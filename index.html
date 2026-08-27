@@ -1,37 +1,42 @@
 <title>Odoo Quote Calculator</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f5f5f5; --card:#ffffff; --ink:#1f1f1f; --sub:#6b7280;
-  --accent:#6b3fa0; --accent-light:#f3e8ff; --accent-dark:#4c2570;
-  --line:#e5e7eb; --good:#059669; --warn:#dc2626;
+  --bg:#faf7f9; --card:#ffffff; --ink:#241a22; --sub:#6b5a66;
+  --accent:#714b67; --accent-light:#e7d6e3; --accent-dark:#4d3345;
+  --line:#e6dee3; --good:#1e7a4a; --warn:#a05a8c;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0f172a; --card:#1e293b; --ink:#f1f5f9; --sub:#cbd5e1;
-    --accent:#a78bfa; --accent-light:#2e1065; --accent-dark:#ddd6fe;
-    --line:#334155; --good:#10b981; --warn:#ef4444;
+    --bg:#1c1520; --card:#251b28; --ink:#f2e9ee; --sub:#b7a3ae;
+    --accent:#c98bb5; --accent-light:#3a2635; --accent-dark:#e2aed0;
+    --line:#3a2c35; --good:#5fd394; --warn:#d9a6c4;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0f172a; --card:#1e293b; --ink:#f1f5f9; --sub:#cbd5e1;
-  --accent:#a78bfa; --accent-light:#2e1065; --accent-dark:#ddd6fe;
-  --line:#334155; --good:#10b981; --warn:#ef4444;
+  --bg:#1c1520; --card:#251b28; --ink:#f2e9ee; --sub:#b7a3ae;
+  --accent:#c98bb5; --accent-light:#3a2635; --accent-dark:#e2aed0;
+  --line:#3a2c35; --good:#5fd394; --warn:#d9a6c4;
 }
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;padding:32px 16px;font-size:15px;}
+body{background:var(--bg);color:var(--ink);font-family:"Roboto","Segoe UI",Arial,sans-serif;margin:0;padding:32px 16px;}
 .wrap{max-width:960px;margin:0 auto;}
-h1{font-size:1.5rem;margin:0 0 4px;}
+h1{font-size:1.5rem;font-weight:900;margin:0 0 4px;}
 .tag{color:var(--sub);font-size:.85rem;margin-bottom:24px;}
 .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:20px;}
 @media(max-width:760px){.grid{grid-template-columns:1fr;}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
-.card h2{font-size:.9rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:0 0 20px;opacity:.9;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;}
+.card h2{font-size:.95rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin:0 0 16px;}
 .field{margin-bottom:16px;}
-.field label{display:flex;justify-content:space-between;font-size:.85rem;color:var(--sub);margin-bottom:6px;}
-.field label span.val{color:var(--ink);font-weight:600;}
-input[type=range]{width:100%;accent-color:var(--accent);}
-select, input[type=number]{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:.9rem;}
+.field label{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--sub);margin-bottom:6px;}
+.numfield{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--bg);}
+.numfield input[type=number]{flex:1;border:none;background:transparent;color:var(--ink);font-family:inherit;font-size:1rem;font-weight:700;padding:9px 10px;width:100%;-moz-appearance:textfield;}
+.numfield input[type=number]::-webkit-outer-spin-button,.numfield input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.numfield span{padding:0 10px;color:var(--sub);font-size:.82rem;white-space:nowrap;}
+.numfield:focus-within{outline:2px solid var(--accent);outline-offset:-1px;}
+select{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-family:inherit;font-size:.9rem;}
 .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);}
 .toggle-row:first-of-type{border-top:none;}
 .toggle-row span{font-size:.85rem;}
@@ -41,32 +46,31 @@ select, input[type=number]{width:100%;padding:8px 10px;border-radius:8px;border:
 .slider:before{content:"";position:absolute;height:18px;width:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s;}
 .switch input:checked + .slider{background:var(--accent);}
 .switch input:checked + .slider:before{transform:translateX(18px);}
-.big{font-size:2.4rem;font-weight:700;color:var(--accent-dark);line-height:1.1;}
+.big{font-size:2.4rem;font-weight:900;color:var(--accent-dark);line-height:1.1;}
 .big small{font-size:1rem;font-weight:500;color:var(--sub);display:block;margin-top:4px;}
 .rows{margin-top:18px;border-top:1px solid var(--line);padding-top:14px;}
 .row{display:flex;justify-content:space-between;font-size:.85rem;padding:6px 0;color:var(--sub);}
 .row.total{color:var(--ink);font-weight:700;border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-size:.95rem;}
-.pill{display:inline-block;background:var(--accent-light);color:var(--accent-dark);border-radius:999px;padding:2px 10px;font-size:.72rem;font-weight:600;margin-left:6px;}
+.pill{display:inline-block;background:var(--accent-light);color:var(--accent-dark);border-radius:999px;padding:2px 10px;font-size:.72rem;font-weight:700;margin-left:6px;}
 .note{font-size:.72rem;color:var(--sub);margin-top:16px;line-height:1.5;}
 .termtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
-.termtabs button{flex:1;min-width:56px;padding:8px 4px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:.8rem;cursor:pointer;}
-.termtabs button.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.termtabs button{flex:1;min-width:56px;padding:8px 4px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-family:inherit;font-size:.8rem;font-weight:500;cursor:pointer;}
+.termtabs button.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;}
 footer{text-align:center;color:var(--sub);font-size:.72rem;margin-top:28px;}
+#warningBox{display:none;}
 </style>
 
 <div class="wrap">
-  <div style="margin-bottom:32px;">
-    <h1 style="font-size:2.2rem;font-weight:700;margin:0 0 8px;color:var(--accent);">Odoo Pricing</h1>
-    <div class="tag">Quote Calculator — Verified pricing (Aug 27, 2026). Pricing menu technique for multi-year positioning.</div>
-  </div>
+  <h1>Odoo Quote Calculator</h1>
+  <div class="tag">Internal draft — verified against odoo.com/pricing and the Aug 27 2026 DS Training call. Not for external quoting yet.</div>
 
   <div class="grid">
     <div class="card">
       <h2>Deal Inputs</h2>
 
       <div class="field">
-        <label>Users <span class="val" id="usersVal">5</span></label>
-        <input type="range" id="users" min="1" max="50" value="5">
+        <label>Users</label>
+        <div class="numfield"><input type="number" id="users" min="1" max="500" value="5" step="1"><span>users</span></div>
       </div>
 
       <div class="field">
@@ -74,51 +78,25 @@ footer{text-align:center;color:var(--sub);font-size:.72rem;margin-top:28px;}
         <div class="termtabs" id="termTabs"></div>
       </div>
 
-      <div class="toggle-row" id="promoRow">
-        <span>Use Year‑1 promo rate ($49/user)</span>
+      <div class="toggle-row">
+        <span>Year‑1 rate ($49/user) — standard, automatic</span>
         <label class="switch"><input type="checkbox" id="promoToggle" checked><span class="slider"></span></label>
       </div>
 
       <div class="field" style="margin-top:16px;">
-        <label>Implementation hours <span class="val" id="hoursVal">50</span></label>
-        <input type="range" id="hours" min="0" max="200" value="50">
+        <label>Implementation hours</label>
+        <div class="numfield"><input type="number" id="hours" min="0" max="500" value="50" step="1"><span>hrs</span></div>
       </div>
 
       <div class="field">
-        <label>Rep discount on hours <span class="val" id="discVal">30%</span> <span class="pill">adjustable</span></label>
-        <input type="range" id="disc" min="0" max="50" value="30">
+        <label>Rep discount on hours <span class="pill">discretionary — not guaranteed</span></label>
+        <div class="numfield"><input type="number" id="disc" min="0" max="50" value="30" step="1"><span>%</span></div>
       </div>
 
-      <div class="field" style="margin-top:24px;">
-        <label>Hosting</label>
-        <select id="hosting">
-          <option value="standard">Standard Cloud — Free</option>
-          <option value="self">Self-Hosting — Free</option>
-          <option value="odoo-sh">Odoo.sh Cloud Platform</option>
-        </select>
-      </div>
-
-      <div id="hostingOptions" style="display:none;">
-        <div class="field">
-          <label>Workers <span class="val" id="workersVal">1</span></label>
-          <input type="range" id="workers" min="1" max="5" value="1">
-        </div>
-        <div class="field">
-          <label>Storage (GB) <span class="val" id="storageVal">1</span></label>
-          <input type="range" id="storage" min="1" max="100" value="1">
-        </div>
-        <div class="toggle-row">
-          <span>Staging Environment</span>
-          <label class="switch"><input type="checkbox" id="staging"><span class="slider"></span></label>
-        </div>
-      </div>
-
-      <div id="warningBox" style="display:none;background:var(--accent-light);color:var(--accent-dark);border-left:3px solid var(--accent);padding:10px;border-radius:6px;margin-top:12px;font-size:.8rem;">
-        ⚠ Recommend at least 4 hours for implementation package
-      </div>
+      <div id="warningBox">⚠ Recommend at least 4 hours for an implementation package</div>
 
       <div class="note">
-        License rates ($49 Y1 / $61 Y2+ / $76.20 no-commit) and implementation tiers ($144 / $140 / $125 per hr at 25+/50+/100+ hrs) are live-verified. The 5/10/13/15% multi-year discount is internal — confirm with sales ops before quoting externally.
+        License rates ($49 Y1 / $61 Y2+ / $76.20 no-commit) and implementation tiers ($144/$140/$125/$125 per hr at 25+/50+/100+/200+ hrs) are live-verified against odoo.com. The Year‑1 license rate is standard — every new customer gets it. The multi‑year discount schedule (5/10/12.5/15%, applied only to the Year‑2‑onward portion — never the whole total) and the implementation‑hours discount (shown at 30%, adjustable, capped at the first 200 hours on the initial invoice only) are internal levers confirmed via the Aug 27, 2026 DS Training call — not published by Odoo. Confirm with sales ops before quoting externally.
       </div>
     </div>
 
@@ -127,30 +105,56 @@ footer{text-align:center;color:var(--sub);font-size:.72rem;margin-top:28px;}
       <div class="big" id="monthlyBig">$0<small>effective per month, all-in</small></div>
 
       <div class="rows">
-        <div class="row"><span>License (term total)</span><span id="licTotal">$0</span></div>
+        <div class="row"><span>License, Year 1</span><span id="licY1">$0</span></div>
+        <div class="row"><span>License, Year 2+ (before discount)</span><span id="licY2">$0</span></div>
         <div class="row"><span>Multi-year discount</span><span id="licDisc">$0</span></div>
         <div class="row"><span>Implementation (list)</span><span id="implList">$0</span></div>
         <div class="row"><span>Rep discount applied</span><span id="implDisc">$0</span></div>
-        <div class="row"><span>Hosting (monthly)</span><span id="hostingCost">$0</span></div>
         <div class="row total"><span>All-in contract value</span><span id="grandTotal">$0</span></div>
       </div>
     </div>
   </div>
 
-  <footer>Odoo Quote Calculator · Verified against odoo.com/pricing (Aug 27, 2026) · For sales training use</footer>
+  <footer>Odoo Quote Calculator · Verified against odoo.com/pricing + Aug 27 2026 DS Training call · For sales training use</footer>
 </div>
 
 <script>
 const LIC = { y1promo: 49.00, y1steady: 61.00, y2: 61.00, noCommit: 76.20 };
-const DISCOUNT_SCHEDULE = {1:0, 2:0.05, 3:0.10, 4:0.13, 5:0.15};
-const IMPL_RATE = h => h >= 100 ? 125 : h >= 50 ? 140 : h >= 25 ? 144 : 145;
+// Discount applies ONLY to the Year-2-onward license total, never Year 1, never the whole contract.
+const DISCOUNT_SCHEDULE = {1:0, 2:0.05, 3:0.10, 4:0.125, 5:0.15};
+// Odoo sells implementation as discrete Success Pack SKUs (odoo.com/pricing-packs), not a
+// continuous rate: 4hr Starter $145, 25hr Basic $144, 50hr Standard $140, 100hr Custom $125,
+// 200hr Pro $125. A customer buying "50 hours" buys the 50hr pack flat at $140/hr — they don't
+// blend through the smaller packs to get there. So typed-in hours round UP to the nearest real
+// pack (beyond 200, up to the next 200hr multiple, same $125 rate). That's what actually
+// eliminates the "more hours costs less" problem — cost is flat-per-pack and pack size only
+// ever goes up, so total cost is never lower for a bigger ask.
+const PACKS = [
+  {hours: 4,   rate: 145},
+  {hours: 25,  rate: 144},
+  {hours: 50,  rate: 140},
+  {hours: 100, rate: 125},
+  {hours: 200, rate: 125}
+];
+const DISCOUNT_ELIGIBLE_HOURS = 200; // initial invoice only, per Josh's Aug 27 training call
+
+function packFor(hours){
+  if (hours <= 0) return {hours: 0, rate: 0};
+  for (const p of PACKS) if (hours <= p.hours) return p;
+  // beyond 200: round up to the next 200-hour multiple, same Pro rate
+  const packHours = Math.ceil(hours / 200) * 200;
+  return {hours: packHours, rate: 125};
+}
+function packCost(hours){
+  const p = packFor(hours);
+  return p.hours * p.rate;
+}
 
 let term = 5;
 const termTabs = document.getElementById('termTabs');
-const termOptions = ['Mo', 1, 2, 3, 4, 5];
-termOptions.forEach(t=>{
+[1,2,3,4,5].forEach(t=>{
   const b = document.createElement('button');
-  b.textContent = t === 'Mo' ? 'Monthly' : (t===1 ? '1 Yr' : t+' Yrs');
+  b.textContent = t===1 ? '1 Yr' : t+' Yrs';
   b.className = t===term ? 'active' : '';
   b.onclick = () => { term = t; [...termTabs.children].forEach(c=>c.classList.remove('active')); b.classList.add('active'); render(); };
   termTabs.appendChild(b);
@@ -160,91 +164,46 @@ const usersEl = document.getElementById('users');
 const hoursEl = document.getElementById('hours');
 const discEl = document.getElementById('disc');
 const promoEl = document.getElementById('promoToggle');
-const hostingEl = document.getElementById('hosting');
-const workersEl = document.getElementById('workers');
-const storageEl = document.getElementById('storage');
-const stagingEl = document.getElementById('staging');
-const hostingOptionsEl = document.getElementById('hostingOptions');
 const fmt = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
 const fmtDec = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
 
-// Odoo.sh pricing (per month)
-const HOSTING_RATES = { worker: 57.60, storage: 0.20, staging: 14.40 };
-
 function render(){
-  const users = +usersEl.value;
-  const hours = +hoursEl.value;
-  const discPct = +discEl.value / 100;
+  let users = Math.max(1, +usersEl.value || 1);
+  let hours = Math.max(0, +hoursEl.value || 0);
+  let discPct = Math.min(100, Math.max(0, +discEl.value || 0)) / 100;
   const usePromo = promoEl.checked;
-  const hosting = hostingEl.value;
-  const workers = +workersEl.value;
-  const storage = +storageEl.value;
-  const staging = stagingEl.checked ? 1 : 0;
 
-  document.getElementById('usersVal').textContent = users;
-  document.getElementById('hoursVal').textContent = hours;
-  document.getElementById('discVal').textContent = Math.round(discPct*100) + '%';
-  document.getElementById('workersVal').textContent = workers;
-  document.getElementById('storageVal').textContent = storage;
+  const y1rate = usePromo ? LIC.y1promo : LIC.y1steady;
+  const y1Total = y1rate * 12 * users;
+  const y2PlusTotal = LIC.y2 * 12 * (term - 1) * users;
+  const licDiscPct = DISCOUNT_SCHEDULE[term];
+  const licDiscAmt = y2PlusTotal * licDiscPct; // discount hits Year 2+ only
+  const licTotal = y1Total + y2PlusTotal - licDiscAmt;
 
-  // License calculation
-  let licMonthly = 0;
-  let licDiscPct = 0;
-
-  if (term === 'Mo') {
-    // Monthly: no-commit rate, no multi-year discount
-    licMonthly = LIC.noCommit * users;
-    licDiscPct = 0;
-  } else {
-    // Annual terms: Y1 (promo or steady) + Y2+ at standard rate
-    const y1rate = usePromo ? LIC.y1promo : LIC.y1steady;
-    licMonthly = (y1rate * 12 + LIC.y2 * 12 * (term - 1)) * users / 12; // per month
-    licDiscPct = DISCOUNT_SCHEDULE[term];
-  }
-
-  const licWithoutDiscount = licMonthly * (term === 'Mo' ? 1 : term * 12);
-  const licDiscAmt = licWithoutDiscount * licDiscPct;
-  const licTotal = licWithoutDiscount - licDiscAmt;
-
-  const rate = IMPL_RATE(hours);
-  const implList = hours > 0 ? hours * rate : 0;
-  const implDiscAmt = implList > 0 ? implList * discPct : 0;
+  // Implementation: rounds up to the nearest real pack, discount only on hours up to the
+  // 200hr initial-invoice cap
+  const implList = packCost(hours);
+  const eligibleHours = Math.min(hours, DISCOUNT_ELIGIBLE_HOURS);
+  const eligibleListCost = packCost(eligibleHours);
+  const implDiscAmt = eligibleListCost * discPct;
   const implTotal = implList - implDiscAmt;
 
-  // Hosting costs (monthly)
-  let hostingMonthly = 0;
-  if (hosting === 'odoo-sh') {
-    hostingMonthly = workers * HOSTING_RATES.worker + storage * HOSTING_RATES.storage + staging * HOSTING_RATES.staging;
-  }
-  const hostingAnnual = hostingMonthly * 12 * term;
-
-  const grand = Math.round((licTotal + implTotal + hostingAnnual) * 100) / 100;
-  const months = term === 'Mo' ? 1 : term * 12;
+  const grand = Math.round((licTotal + implTotal) * 100) / 100;
+  const months = term * 12;
   const monthlyRate = Math.round((grand / months) * 100) / 100;
 
-  document.getElementById('licTotal').textContent = fmtDec(licWithoutDiscount);
-  document.getElementById('licDisc').textContent = '-' + fmtDec(licDiscAmt) + ' (' + Math.round(licDiscPct*100) + '%)';
+  document.getElementById('licY1').textContent = fmtDec(y1Total);
+  document.getElementById('licY2').textContent = fmtDec(y2PlusTotal);
+  document.getElementById('licDisc').textContent = licDiscAmt > 0 ? '-' + fmtDec(licDiscAmt) + ' (' + Math.round(licDiscPct*100*10)/10 + '%)' : '—';
   document.getElementById('implList').textContent = implList > 0 ? fmtDec(implList) : '—';
   document.getElementById('implDisc').textContent = implDiscAmt > 0 ? '-' + fmtDec(implDiscAmt) : '—';
-  document.getElementById('hostingCost').textContent = hosting === 'odoo-sh' ? '$' + Math.round(hostingMonthly * 100) / 100 + '/mo' : 'Free';
   document.getElementById('grandTotal').textContent = fmt(grand);
-  document.getElementById('monthlyBig').innerHTML = fmt(monthlyRate) + '<small>effective per month, all-in</small>';
+  document.getElementById('monthlyBig').innerHTML = fmt(monthlyRate) + '<small>effective per month, all-in · ' + term + '-year term</small>';
 
-  // Show/hide hosting options
-  hostingOptionsEl.style.display = hosting === 'odoo-sh' ? 'block' : 'none';
-
-  // Show/hide promo toggle (only for annual terms)
-  document.getElementById('promoRow').style.display = term === 'Mo' ? 'none' : 'flex';
-
-  // Show warning if implementation hours < 4
   const warningBox = document.getElementById('warningBox');
-  if (hours > 0 && hours < 4) {
-    warningBox.style.display = 'block';
-  } else {
-    warningBox.style.display = 'none';
-  }
+  warningBox.style.display = (hours > 0 && hours < 4) ? 'block' : 'none';
 }
 
-[usersEl, hoursEl, discEl, promoEl, hostingEl, workersEl, storageEl, stagingEl].forEach(el => el.addEventListener('input', render));
+[usersEl, hoursEl, discEl, promoEl].forEach(el => el.addEventListener('input', render));
 render();
 </script>
