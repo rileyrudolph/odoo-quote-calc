@@ -57,12 +57,13 @@ select{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line
 .termtabs button{flex:1;min-width:56px;padding:8px 4px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-family:inherit;font-size:.8rem;font-weight:500;cursor:pointer;}
 .termtabs button.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;}
 footer{text-align:center;color:var(--sub);font-size:.72rem;margin-top:28px;}
-#warningBox{display:none;}
+#warningBox{display:none;background:var(--accent-light);color:var(--accent-dark);border-left:3px solid var(--accent);padding:10px;border-radius:6px;margin-top:12px;font-size:.8rem;}
+#hostingOptions{display:none;padding-top:12px;border-top:1px solid var(--line);}
 </style>
 
 <div class="wrap">
   <h1>Odoo Quote Calculator</h1>
-  <div class="tag">Internal draft — verified against odoo.com/pricing and the Aug 27 2026 DS Training call. Not for external quoting yet.</div>
+  <div class="tag">Live pricing calculator — verified against odoo.com/pricing and Aug 27 2026 DS Training call. For sales training use.</div>
 
   <div class="grid">
     <div class="card">
@@ -79,7 +80,7 @@ footer{text-align:center;color:var(--sub);font-size:.72rem;margin-top:28px;}
       </div>
 
       <div class="toggle-row">
-        <span>Year‑1 rate ($49/user) — standard, automatic</span>
+        <span>Year‑1 rate ($49/user) — standard</span>
         <label class="switch"><input type="checkbox" id="promoToggle" checked><span class="slider"></span></label>
       </div>
 
@@ -89,14 +90,38 @@ footer{text-align:center;color:var(--sub);font-size:.72rem;margin-top:28px;}
       </div>
 
       <div class="field">
-        <label>Rep discount on hours <span class="pill">discretionary — not guaranteed</span></label>
+        <label>Rep discount <span class="pill">discretionary</span></label>
         <div class="numfield"><input type="number" id="disc" min="0" max="50" value="30" step="1"><span>%</span></div>
+      </div>
+
+      <div class="field">
+        <label>Hosting</label>
+        <select id="hosting">
+          <option value="standard">Standard Cloud — Free</option>
+          <option value="self">Self-Hosting — Free</option>
+          <option value="odoo-sh">Odoo.sh Cloud Platform</option>
+        </select>
+      </div>
+
+      <div id="hostingOptions">
+        <div class="field">
+          <label>Workers</label>
+          <div class="numfield"><input type="number" id="workers" min="1" max="5" value="1" step="1"><span>worker</span></div>
+        </div>
+        <div class="field">
+          <label>Storage</label>
+          <div class="numfield"><input type="number" id="storage" min="1" max="100" value="1" step="1"><span>GB</span></div>
+        </div>
+        <div class="toggle-row">
+          <span>Staging Environment</span>
+          <label class="switch"><input type="checkbox" id="staging"><span class="slider"></span></label>
+        </div>
       </div>
 
       <div id="warningBox">⚠ Recommend at least 4 hours for an implementation package</div>
 
       <div class="note">
-        License rates ($49 Y1 / $61 Y2+ / $76.20 no-commit) and implementation tiers ($144/$140/$125/$125 per hr at 25+/50+/100+/200+ hrs) are live-verified against odoo.com. The Year‑1 license rate is standard — every new customer gets it. The multi‑year discount schedule (5/10/12.5/15%, applied only to the Year‑2‑onward portion — never the whole total) and the implementation‑hours discount (shown at 30%, adjustable, capped at the first 200 hours on the initial invoice only) are internal levers confirmed via the Aug 27, 2026 DS Training call — not published by Odoo. Confirm with sales ops before quoting externally.
+        License rates ($49 Y1 / $61 Y2+ / $76.20 no-commit) and implementation packs ($144/$140/$125/$125 at 25+/50+/100+/200+ hours) are live-verified. Year‑1 rate is standard. Multi‑year discount (5/10/12.5/15%, Year 2+ only) and implementation discount (capped 200 hrs, initial invoice) are internal levers — confirm with sales ops before external quoting.
       </div>
     </div>
 
@@ -110,25 +135,18 @@ footer{text-align:center;color:var(--sub);font-size:.72rem;margin-top:28px;}
         <div class="row"><span>Multi-year discount</span><span id="licDisc">$0</span></div>
         <div class="row"><span>Implementation (list)</span><span id="implList">$0</span></div>
         <div class="row"><span>Rep discount applied</span><span id="implDisc">$0</span></div>
+        <div class="row"><span>Hosting (monthly)</span><span id="hostingCost">$0</span></div>
         <div class="row total"><span>All-in contract value</span><span id="grandTotal">$0</span></div>
       </div>
     </div>
   </div>
 
-  <footer>Odoo Quote Calculator · Verified against odoo.com/pricing + Aug 27 2026 DS Training call · For sales training use</footer>
+  <footer>Odoo Quote Calculator · Verified Aug 27 2026 · Sales training use</footer>
 </div>
 
 <script>
 const LIC = { y1promo: 49.00, y1steady: 61.00, y2: 61.00, noCommit: 76.20 };
-// Discount applies ONLY to the Year-2-onward license total, never Year 1, never the whole contract.
 const DISCOUNT_SCHEDULE = {1:0, 2:0.05, 3:0.10, 4:0.125, 5:0.15};
-// Odoo sells implementation as discrete Success Pack SKUs (odoo.com/pricing-packs), not a
-// continuous rate: 4hr Starter $145, 25hr Basic $144, 50hr Standard $140, 100hr Custom $125,
-// 200hr Pro $125. A customer buying "50 hours" buys the 50hr pack flat at $140/hr — they don't
-// blend through the smaller packs to get there. So typed-in hours round UP to the nearest real
-// pack (beyond 200, up to the next 200hr multiple, same $125 rate). That's what actually
-// eliminates the "more hours costs less" problem — cost is flat-per-pack and pack size only
-// ever goes up, so total cost is never lower for a bigger ask.
 const PACKS = [
   {hours: 4,   rate: 145},
   {hours: 25,  rate: 144},
@@ -136,12 +154,12 @@ const PACKS = [
   {hours: 100, rate: 125},
   {hours: 200, rate: 125}
 ];
-const DISCOUNT_ELIGIBLE_HOURS = 200; // initial invoice only, per Josh's Aug 27 training call
+const DISCOUNT_ELIGIBLE_HOURS = 200;
+const HOSTING_RATES = { worker: 57.60, storage: 0.20, staging: 14.40 };
 
 function packFor(hours){
   if (hours <= 0) return {hours: 0, rate: 0};
   for (const p of PACKS) if (hours <= p.hours) return p;
-  // beyond 200: round up to the next 200-hour multiple, same Pro rate
   const packHours = Math.ceil(hours / 200) * 200;
   return {hours: packHours, rate: 125};
 }
@@ -152,58 +170,100 @@ function packCost(hours){
 
 let term = 5;
 const termTabs = document.getElementById('termTabs');
-[1,2,3,4,5].forEach(t=>{
+['Mo', 1, 2, 3, 4, 5].forEach(t=>{
   const b = document.createElement('button');
-  b.textContent = t===1 ? '1 Yr' : t+' Yrs';
+  b.textContent = t === 'Mo' ? 'Monthly' : (t===1 ? '1 Yr' : t+' Yrs');
   b.className = t===term ? 'active' : '';
   b.onclick = () => { term = t; [...termTabs.children].forEach(c=>c.classList.remove('active')); b.classList.add('active'); render(); };
   termTabs.appendChild(b);
 });
 
-const usersEl = document.getElementById('users');
-const hoursEl = document.getElementById('hours');
-const discEl = document.getElementById('disc');
-const promoEl = document.getElementById('promoToggle');
+const els = {
+  users: document.getElementById('users'),
+  hours: document.getElementById('hours'),
+  disc: document.getElementById('disc'),
+  promo: document.getElementById('promoToggle'),
+  hosting: document.getElementById('hosting'),
+  workers: document.getElementById('workers'),
+  storage: document.getElementById('storage'),
+  staging: document.getElementById('staging'),
+  hostingOpts: document.getElementById('hostingOptions'),
+  warningBox: document.getElementById('warningBox')
+};
+
 const fmt = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
 const fmtDec = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
 
 function render(){
-  let users = Math.max(1, +usersEl.value || 1);
-  let hours = Math.max(0, +hoursEl.value || 0);
-  let discPct = Math.min(100, Math.max(0, +discEl.value || 0)) / 100;
-  const usePromo = promoEl.checked;
+  const users = +els.users.value;
+  const hours = +els.hours.value;
+  const discPct = +els.disc.value / 100;
+  const usePromo = els.promo.checked;
+  const hosting = els.hosting.value;
+  const workers = +els.workers.value;
+  const storage = +els.storage.value;
+  const staging = els.staging.checked ? 1 : 0;
 
-  const y1rate = usePromo ? LIC.y1promo : LIC.y1steady;
-  const y1Total = y1rate * 12 * users;
-  const y2PlusTotal = LIC.y2 * 12 * (term - 1) * users;
-  const licDiscPct = DISCOUNT_SCHEDULE[term];
-  const licDiscAmt = y2PlusTotal * licDiscPct; // discount hits Year 2+ only
-  const licTotal = y1Total + y2PlusTotal - licDiscAmt;
+  // License calculation
+  let licMonthly = 0;
+  let licY1Total = 0;
+  let licY2Total = 0;
+  let licDiscPct = 0;
 
-  // Implementation: rounds up to the nearest real pack, discount only on hours up to the
-  // 200hr initial-invoice cap
+  if (term === 'Mo') {
+    licMonthly = LIC.noCommit * users;
+    licY1Total = licMonthly;
+    licY2Total = 0;
+    licDiscPct = 0;
+  } else {
+    const y1rate = usePromo ? LIC.y1promo : LIC.y1steady;
+    licMonthly = y1rate * users;
+    licY1Total = licMonthly * 12;
+    licY2Total = LIC.y2 * users * 12 * (term - 1);
+    licDiscPct = DISCOUNT_SCHEDULE[term];
+  }
+
+  const licWithoutDiscount = licY1Total + licY2Total;
+  const licDiscAmt = licY2Total * licDiscPct; // Discount ONLY on Y2+ portion
+  const licTotal = licWithoutDiscount - licDiscAmt;
+
+  // Implementation: discrete packs, discount on first 200 hours only
   const implList = packCost(hours);
-  const eligibleHours = Math.min(hours, DISCOUNT_ELIGIBLE_HOURS);
-  const eligibleListCost = packCost(eligibleHours);
-  const implDiscAmt = eligibleListCost * discPct;
+  const discountableHours = Math.min(hours, DISCOUNT_ELIGIBLE_HOURS);
+  const discountableRate = packFor(discountableHours).rate;
+  const implDiscAmt = discountableRate * discountableHours * discPct;
   const implTotal = implList - implDiscAmt;
 
-  const grand = Math.round((licTotal + implTotal) * 100) / 100;
-  const months = term * 12;
+  // Hosting
+  let hostingMonthly = 0;
+  if (hosting === 'odoo-sh') {
+    hostingMonthly = workers * HOSTING_RATES.worker + storage * HOSTING_RATES.storage + staging * HOSTING_RATES.staging;
+  }
+  const hostingAnnual = hostingMonthly * 12 * (term === 'Mo' ? 1 : term);
+
+  const grand = Math.round((licTotal + implTotal + hostingAnnual) * 100) / 100;
+  const months = term === 'Mo' ? 1 : term * 12;
   const monthlyRate = Math.round((grand / months) * 100) / 100;
 
-  document.getElementById('licY1').textContent = fmtDec(y1Total);
-  document.getElementById('licY2').textContent = fmtDec(y2PlusTotal);
-  document.getElementById('licDisc').textContent = licDiscAmt > 0 ? '-' + fmtDec(licDiscAmt) + ' (' + Math.round(licDiscPct*100*10)/10 + '%)' : '—';
+  document.getElementById('licY1').textContent = fmtDec(licY1Total);
+  document.getElementById('licY2').textContent = licY2Total > 0 ? fmtDec(licY2Total) : '—';
+  document.getElementById('licDisc').textContent = licDiscAmt > 0 ? '-' + fmtDec(licDiscAmt) + ' (' + Math.round(licDiscPct*100) + '%)' : '—';
   document.getElementById('implList').textContent = implList > 0 ? fmtDec(implList) : '—';
   document.getElementById('implDisc').textContent = implDiscAmt > 0 ? '-' + fmtDec(implDiscAmt) : '—';
+  document.getElementById('hostingCost').textContent = hosting === 'odoo-sh' ? '$' + Math.round(hostingMonthly * 100) / 100 + '/mo' : 'Free';
   document.getElementById('grandTotal').textContent = fmt(grand);
-  document.getElementById('monthlyBig').innerHTML = fmt(monthlyRate) + '<small>effective per month, all-in · ' + term + '-year term</small>';
+  document.getElementById('monthlyBig').innerHTML = fmt(monthlyRate) + '<small>effective per month, all-in</small>';
 
-  const warningBox = document.getElementById('warningBox');
-  warningBox.style.display = (hours > 0 && hours < 4) ? 'block' : 'none';
+  els.hostingOpts.style.display = hosting === 'odoo-sh' ? 'block' : 'none';
+  els.promo.parentElement.parentElement.style.display = term === 'Mo' ? 'none' : 'flex';
+
+  if (hours > 0 && hours < 4) {
+    els.warningBox.style.display = 'block';
+  } else {
+    els.warningBox.style.display = 'none';
+  }
 }
 
-[usersEl, hoursEl, discEl, promoEl].forEach(el => el.addEventListener('input', render));
+Object.values(els).forEach(el => el && el.addEventListener('input', render));
 render();
 </script>
