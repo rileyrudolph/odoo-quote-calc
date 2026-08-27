@@ -89,6 +89,30 @@ footer{text-align:center;color:var(--sub);font-size:.72rem;margin-top:28px;}
         <input type="range" id="disc" min="0" max="50" value="30">
       </div>
 
+      <div class="field" style="margin-top:24px;">
+        <label>Hosting</label>
+        <select id="hosting">
+          <option value="standard">Standard Cloud — Free</option>
+          <option value="self">Self-Hosting — Free</option>
+          <option value="odoo-sh">Odoo.sh Cloud Platform</option>
+        </select>
+      </div>
+
+      <div id="hostingOptions" style="display:none;">
+        <div class="field">
+          <label>Workers <span class="val" id="workersVal">1</span></label>
+          <input type="range" id="workers" min="1" max="5" value="1">
+        </div>
+        <div class="field">
+          <label>Storage (GB) <span class="val" id="storageVal">1</span></label>
+          <input type="range" id="storage" min="1" max="100" value="1">
+        </div>
+        <div class="toggle-row">
+          <span>Staging Environment</span>
+          <label class="switch"><input type="checkbox" id="staging"><span class="slider"></span></label>
+        </div>
+      </div>
+
       <div id="warningBox" style="display:none;background:var(--accent-light);color:var(--accent-dark);border-left:3px solid var(--accent);padding:10px;border-radius:6px;margin-top:12px;font-size:.8rem;">
         ⚠ Recommend at least 4 hours for implementation package
       </div>
@@ -107,6 +131,7 @@ footer{text-align:center;color:var(--sub);font-size:.72rem;margin-top:28px;}
         <div class="row"><span>Multi-year discount</span><span id="licDisc">$0</span></div>
         <div class="row"><span>Implementation (list)</span><span id="implList">$0</span></div>
         <div class="row"><span>Rep discount applied</span><span id="implDisc">$0</span></div>
+        <div class="row"><span>Hosting (monthly)</span><span id="hostingCost">$0</span></div>
         <div class="row total"><span>All-in contract value</span><span id="grandTotal">$0</span></div>
       </div>
     </div>
@@ -134,18 +159,32 @@ const usersEl = document.getElementById('users');
 const hoursEl = document.getElementById('hours');
 const discEl = document.getElementById('disc');
 const promoEl = document.getElementById('promoToggle');
+const hostingEl = document.getElementById('hosting');
+const workersEl = document.getElementById('workers');
+const storageEl = document.getElementById('storage');
+const stagingEl = document.getElementById('staging');
+const hostingOptionsEl = document.getElementById('hostingOptions');
 const fmt = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
 const fmtDec = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+// Odoo.sh pricing (per month)
+const HOSTING_RATES = { worker: 57.60, storage: 0.20, staging: 14.40 };
 
 function render(){
   const users = +usersEl.value;
   const hours = +hoursEl.value;
   const discPct = +discEl.value / 100;
   const usePromo = promoEl.checked;
+  const hosting = hostingEl.value;
+  const workers = +workersEl.value;
+  const storage = +storageEl.value;
+  const staging = stagingEl.checked ? 1 : 0;
 
   document.getElementById('usersVal').textContent = users;
   document.getElementById('hoursVal').textContent = hours;
   document.getElementById('discVal').textContent = Math.round(discPct*100) + '%';
+  document.getElementById('workersVal').textContent = workers;
+  document.getElementById('storageVal').textContent = storage;
 
   const y1rate = usePromo ? LIC.y1promo : LIC.y1steady;
   const licWithoutDiscount = (y1rate * 12 + LIC.y2 * 12 * (term - 1)) * users;
@@ -158,7 +197,14 @@ function render(){
   const implDiscAmt = implList > 0 ? implList * discPct : 0;
   const implTotal = implList - implDiscAmt;
 
-  const grand = Math.round((licTotal + implTotal) * 100) / 100;
+  // Hosting costs (monthly)
+  let hostingMonthly = 0;
+  if (hosting === 'odoo-sh') {
+    hostingMonthly = workers * HOSTING_RATES.worker + storage * HOSTING_RATES.storage + staging * HOSTING_RATES.staging;
+  }
+  const hostingAnnual = hostingMonthly * 12 * term;
+
+  const grand = Math.round((licTotal + implTotal + hostingAnnual) * 100) / 100;
   const months = term * 12;
   const monthlyRate = Math.round((grand / months) * 100) / 100;
 
@@ -166,8 +212,12 @@ function render(){
   document.getElementById('licDisc').textContent = '-' + fmtDec(licDiscAmt) + ' (' + Math.round(licDiscPct*100) + '%)';
   document.getElementById('implList').textContent = implList > 0 ? fmtDec(implList) : '—';
   document.getElementById('implDisc').textContent = implDiscAmt > 0 ? '-' + fmtDec(implDiscAmt) : '—';
+  document.getElementById('hostingCost').textContent = hosting === 'odoo-sh' ? '$' + Math.round(hostingMonthly * 100) / 100 + '/mo' : 'Free';
   document.getElementById('grandTotal').textContent = fmt(grand);
   document.getElementById('monthlyBig').innerHTML = fmt(monthlyRate) + '<small>effective per month, all-in</small>';
+
+  // Show/hide hosting options
+  hostingOptionsEl.style.display = hosting === 'odoo-sh' ? 'block' : 'none';
 
   // Show warning if implementation hours < 4
   const warningBox = document.getElementById('warningBox');
@@ -178,6 +228,6 @@ function render(){
   }
 }
 
-[usersEl, hoursEl, discEl, promoEl].forEach(el => el.addEventListener('input', render));
+[usersEl, hoursEl, discEl, promoEl, hostingEl, workersEl, storageEl, stagingEl].forEach(el => el.addEventListener('input', render));
 render();
 </script>
