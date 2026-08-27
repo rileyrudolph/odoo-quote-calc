@@ -74,7 +74,7 @@ footer{text-align:center;color:var(--sub);font-size:.72rem;margin-top:28px;}
         <div class="termtabs" id="termTabs"></div>
       </div>
 
-      <div class="toggle-row">
+      <div class="toggle-row" id="promoRow">
         <span>Use Year‑1 promo rate ($49/user)</span>
         <label class="switch"><input type="checkbox" id="promoToggle" checked><span class="slider"></span></label>
       </div>
@@ -147,9 +147,10 @@ const IMPL_RATE = h => h >= 100 ? 125 : h >= 50 ? 140 : h >= 25 ? 144 : 145;
 
 let term = 5;
 const termTabs = document.getElementById('termTabs');
-[1,2,3,4,5].forEach(t=>{
+const termOptions = ['Mo', 1, 2, 3, 4, 5];
+termOptions.forEach(t=>{
   const b = document.createElement('button');
-  b.textContent = t===1 ? '1 Yr' : t+' Yrs';
+  b.textContent = t === 'Mo' ? 'Monthly' : (t===1 ? '1 Yr' : t+' Yrs');
   b.className = t===term ? 'active' : '';
   b.onclick = () => { term = t; [...termTabs.children].forEach(c=>c.classList.remove('active')); b.classList.add('active'); render(); };
   termTabs.appendChild(b);
@@ -186,9 +187,22 @@ function render(){
   document.getElementById('workersVal').textContent = workers;
   document.getElementById('storageVal').textContent = storage;
 
-  const y1rate = usePromo ? LIC.y1promo : LIC.y1steady;
-  const licWithoutDiscount = (y1rate * 12 + LIC.y2 * 12 * (term - 1)) * users;
-  const licDiscPct = DISCOUNT_SCHEDULE[term];
+  // License calculation
+  let licMonthly = 0;
+  let licDiscPct = 0;
+
+  if (term === 'Mo') {
+    // Monthly: no-commit rate, no multi-year discount
+    licMonthly = LIC.noCommit * users;
+    licDiscPct = 0;
+  } else {
+    // Annual terms: Y1 (promo or steady) + Y2+ at standard rate
+    const y1rate = usePromo ? LIC.y1promo : LIC.y1steady;
+    licMonthly = (y1rate * 12 + LIC.y2 * 12 * (term - 1)) * users / 12; // per month
+    licDiscPct = DISCOUNT_SCHEDULE[term];
+  }
+
+  const licWithoutDiscount = licMonthly * (term === 'Mo' ? 1 : term * 12);
   const licDiscAmt = licWithoutDiscount * licDiscPct;
   const licTotal = licWithoutDiscount - licDiscAmt;
 
@@ -205,7 +219,7 @@ function render(){
   const hostingAnnual = hostingMonthly * 12 * term;
 
   const grand = Math.round((licTotal + implTotal + hostingAnnual) * 100) / 100;
-  const months = term * 12;
+  const months = term === 'Mo' ? 1 : term * 12;
   const monthlyRate = Math.round((grand / months) * 100) / 100;
 
   document.getElementById('licTotal').textContent = fmtDec(licWithoutDiscount);
@@ -218,6 +232,9 @@ function render(){
 
   // Show/hide hosting options
   hostingOptionsEl.style.display = hosting === 'odoo-sh' ? 'block' : 'none';
+
+  // Show/hide promo toggle (only for annual terms)
+  document.getElementById('promoRow').style.display = term === 'Mo' ? 'none' : 'flex';
 
   // Show warning if implementation hours < 4
   const warningBox = document.getElementById('warningBox');
