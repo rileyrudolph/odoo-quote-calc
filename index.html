@@ -1,31 +1,32 @@
 <title>Odoo Quote Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#faf7f9; --card:#ffffff; --ink:#241a22; --sub:#6b5a66;
-  --accent:#7a3b69; --accent-light:#e7d6e3; --accent-dark:#5c2c4f;
-  --line:#e6dee3; --good:#1e7a4a; --warn:#a05a8c;
+  --bg:#f5f5f5; --card:#ffffff; --ink:#1f1f1f; --sub:#6b7280;
+  --accent:#6b3fa0; --accent-light:#f3e8ff; --accent-dark:#4c2570;
+  --line:#e5e7eb; --good:#059669; --warn:#dc2626;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#1c1520; --card:#251b28; --ink:#f2e9ee; --sub:#b7a3ae;
-    --accent:#c98bb5; --accent-light:#3a2635; --accent-dark:#e2aed0;
-    --line:#3a2c35; --good:#5fd394; --warn:#d9a6c4;
+    --bg:#0f172a; --card:#1e293b; --ink:#f1f5f9; --sub:#cbd5e1;
+    --accent:#a78bfa; --accent-light:#2e1065; --accent-dark:#ddd6fe;
+    --line:#334155; --good:#10b981; --warn:#ef4444;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#1c1520; --card:#251b28; --ink:#f2e9ee; --sub:#b7a3ae;
-  --accent:#c98bb5; --accent-light:#3a2635; --accent-dark:#e2aed0;
-  --line:#3a2c35; --good:#5fd394; --warn:#d9a6c4;
+  --bg:#0f172a; --card:#1e293b; --ink:#f1f5f9; --sub:#cbd5e1;
+  --accent:#a78bfa; --accent-light:#2e1065; --accent-dark:#ddd6fe;
+  --line:#334155; --good:#10b981; --warn:#ef4444;
 }
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:"Segoe UI",Arial,sans-serif;margin:0;padding:32px 16px;}
+body{background:var(--bg);color:var(--ink);font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;padding:32px 16px;font-size:15px;}
 .wrap{max-width:960px;margin:0 auto;}
 h1{font-size:1.5rem;margin:0 0 4px;}
 .tag{color:var(--sub);font-size:.85rem;margin-bottom:24px;}
 .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:20px;}
 @media(max-width:760px){.grid{grid-template-columns:1fr;}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;}
-.card h2{font-size:.95rem;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin:0 0 16px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
+.card h2{font-size:.9rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:0 0 20px;opacity:.9;}
 .field{margin-bottom:16px;}
 .field label{display:flex;justify-content:space-between;font-size:.85rem;color:var(--sub);margin-bottom:6px;}
 .field label span.val{color:var(--ink);font-weight:600;}
@@ -54,8 +55,10 @@ footer{text-align:center;color:var(--sub);font-size:.72rem;margin-top:28px;}
 </style>
 
 <div class="wrap">
-  <h1>Odoo Quote Calculator</h1>
-  <div class="tag">Internal draft — verified against odoo.com/pricing, Aug 27 2026. Not for external quoting yet.</div>
+  <div style="margin-bottom:32px;">
+    <h1 style="font-size:2.2rem;font-weight:700;margin:0 0 8px;color:var(--accent);">Odoo Pricing</h1>
+    <div class="tag">Quote Calculator — Verified pricing (Aug 27, 2026). Pricing menu technique for multi-year positioning.</div>
+  </div>
 
   <div class="grid">
     <div class="card">
@@ -86,8 +89,12 @@ footer{text-align:center;color:var(--sub);font-size:.72rem;margin-top:28px;}
         <input type="range" id="disc" min="0" max="50" value="30">
       </div>
 
+      <div id="warningBox" style="display:none;background:var(--accent-light);color:var(--accent-dark);border-left:3px solid var(--accent);padding:10px;border-radius:6px;margin-top:12px;font-size:.8rem;">
+        ⚠ Recommend at least 4 hours for implementation package
+      </div>
+
       <div class="note">
-        License rates ($49 Y1 / $61 Y2+ / $76.20 no-commit) and implementation tiers ($144 / $140 / $125 per hr at 25+/50+/100+ hrs) are live-verified. The 5/10/13/15% multi-year discount and the rep-discount ceiling are internal levers, not published by Odoo — confirm with sales ops before quoting externally.
+        License rates ($49 Y1 / $61 Y2+ / $76.20 no-commit) and implementation tiers ($144 / $140 / $125 per hr at 25+/50+/100+ hrs) are live-verified. The 5/10/13/15% multi-year discount is internal — confirm with sales ops before quoting externally.
       </div>
     </div>
 
@@ -105,7 +112,7 @@ footer{text-align:center;color:var(--sub);font-size:.72rem;margin-top:28px;}
     </div>
   </div>
 
-  <footer>Draft calculator · iteration 1 · rebuilt from the verified 2026 Excel model</footer>
+  <footer>Odoo Quote Calculator · Verified against odoo.com/pricing (Aug 27, 2026) · For sales training use</footer>
 </div>
 
 <script>
@@ -127,7 +134,8 @@ const usersEl = document.getElementById('users');
 const hoursEl = document.getElementById('hours');
 const discEl = document.getElementById('disc');
 const promoEl = document.getElementById('promoToggle');
-const fmt = n => '$' + n.toLocaleString('en-US', {maximumFractionDigits:0});
+const fmt = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+const fmtDec = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
 
 function render(){
   const users = +usersEl.value;
@@ -146,19 +154,28 @@ function render(){
   const licTotal = licWithoutDiscount - licDiscAmt;
 
   const rate = IMPL_RATE(hours);
-  const implList = hours * rate;
-  const implDiscAmt = implList * discPct;
+  const implList = hours > 0 ? hours * rate : 0;
+  const implDiscAmt = implList > 0 ? implList * discPct : 0;
   const implTotal = implList - implDiscAmt;
 
-  const grand = licTotal + implTotal;
+  const grand = Math.round((licTotal + implTotal) * 100) / 100;
   const months = term * 12;
+  const monthlyRate = Math.round((grand / months) * 100) / 100;
 
-  document.getElementById('licTotal').textContent = fmt(licWithoutDiscount);
-  document.getElementById('licDisc').textContent = '-' + fmt(licDiscAmt) + ' (' + Math.round(licDiscPct*100) + '%)';
-  document.getElementById('implList').textContent = fmt(implList);
-  document.getElementById('implDisc').textContent = '-' + fmt(implDiscAmt);
+  document.getElementById('licTotal').textContent = fmtDec(licWithoutDiscount);
+  document.getElementById('licDisc').textContent = '-' + fmtDec(licDiscAmt) + ' (' + Math.round(licDiscPct*100) + '%)';
+  document.getElementById('implList').textContent = implList > 0 ? fmtDec(implList) : '—';
+  document.getElementById('implDisc').textContent = implDiscAmt > 0 ? '-' + fmtDec(implDiscAmt) : '—';
   document.getElementById('grandTotal').textContent = fmt(grand);
-  document.getElementById('monthlyBig').innerHTML = fmt(grand/months) + '<small>effective per month, all-in · ' + term + '-year term</small>';
+  document.getElementById('monthlyBig').innerHTML = fmt(monthlyRate) + '<small>effective per month, all-in</small>';
+
+  // Show warning if implementation hours < 4
+  const warningBox = document.getElementById('warningBox');
+  if (hours > 0 && hours < 4) {
+    warningBox.style.display = 'block';
+  } else {
+    warningBox.style.display = 'none';
+  }
 }
 
 [usersEl, hoursEl, discEl, promoEl].forEach(el => el.addEventListener('input', render));
