@@ -1,0 +1,2119 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='23' fill='none' stroke='%23714B67' stroke-width='11'/%3E%3Ctext x='32' y='43' font-family='Helvetica,Arial,sans-serif' font-size='30' font-weight='700' fill='%23714B67' text-anchor='middle'%3E$%3C/text%3E%3C/svg%3E">
+<title>Odoo Quote Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+   Odoo's real brand purple anchors the palette; the warm paper neutrals and the
+   per-category accent stripes follow vepat's reference calculator. Every colour is
+   defined once on :root so the dark and light themes stay in lockstep.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root{
+  /* Odoo's own palette, sampled from odoo.com on Aug 28 2026: primary #714B67, body ink #374151,
+     headings #111827, page grey #F3F4F6, and the accent set (#017E84 teal, #F07346 orange,
+     #47738F slate, #FC787D coral). Every text token below is held at WCAG AA or better against
+     the surface it actually sits on. */
+  --bg:#f3f4f6;
+  --surface:#ffffff;
+  --surface-2:#f9fafb;
+  --surface-3:#f3f4f6;
+  --ink:#111827;
+  --ink-2:#374151;
+  --sub:#4b5563;
+  --faint:#5b6474;
+
+  --accent:#714b67; --accent-rgb:113,75,103;
+  --accent-soft:#f4eff3; --accent-deep:#5a3c53;
+  --teal:#017e84; --teal-rgb:1,126,132; --teal-soft:#e6f3f4;
+  --blue:#47738f; --blue-rgb:71,115,143;
+  --amber:#f07346; --amber-rgb:240,115,70;
+  /* The accents are tuned for 5-6px rails and badges. As *text* the orange sits at 2.9:1, so
+     every figure and label drawn in it uses these darker siblings instead. */
+  --teal-text:#016b70; --blue-text:#3b6079; --amber-text:#a9481d;
+  --warn:#c0392b; --warn-soft:#fdf1ef;
+
+  --hl-blue:#6ab7e8;
+
+  --line:#e5e7eb;
+  --line-soft:#f0f1f3;
+
+  /* Odoo buttons are 4px. Cards get a little more so the density stays readable. */
+  --r-sm:4px; --r-md:6px; --r-lg:10px; --r-xl:14px;
+  --sh-1:0 1px 2px rgba(17,24,39,.05), 0 1px 3px rgba(17,24,39,.04);
+  --sh-2:0 1px 3px rgba(17,24,39,.06), 0 8px 24px -12px rgba(17,24,39,.16);
+  --sh-3:0 4px 8px rgba(17,24,39,.06), 0 20px 40px -20px rgba(17,24,39,.20);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111318;
+    --surface:#1a1d24;
+    --surface-2:#20242c;
+    --surface-3:#272b34;
+    --ink:#f3f4f6;
+    --ink-2:#d5d9e0;
+    --sub:#a6adba;
+    --faint:#8b93a1;
+
+    --accent:#d4a3c6; --accent-rgb:212,163,198;
+    --accent-soft:#2c2230; --accent-deep:#ecc9e2;
+    --teal:#3fc9cf; --teal-rgb:63,201,207; --teal-soft:#12303240;
+    --blue:#8fb6d4; --blue-rgb:143,182,212;
+    --amber:#f79a72; --amber-rgb:247,154,114;
+    --teal-text:#5fd8dd; --blue-text:#a9c9e2; --amber-text:#f9b494;
+    --warn:#f08a7e; --warn-soft:#3220204d;
+
+    --hl-blue:#4a90c4;
+
+    --line:#2f343e;
+    --line-soft:#262a33;
+    --sh-1:0 1px 2px rgba(0,0,0,.4);
+    --sh-2:0 2px 6px rgba(0,0,0,.45), 0 10px 28px -14px rgba(0,0,0,.6);
+    --sh-3:0 6px 14px rgba(0,0,0,.5), 0 24px 48px -20px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#17131a; --surface:#211b24; --surface-2:#271f2a; --surface-3:#2e2532;
+  --ink:#f4eef1; --ink-2:#d3c6ce; --sub:#a99ca4; --faint:#7e7079;
+  --accent:#d199bd; --accent-rgb:209,153,189; --accent-soft:#33243040; --accent-deep:#eebfdd;
+  --teal:#3fcdbb; --teal-rgb:63,205,187; --teal-soft:#12352f80;
+  --blue:#5cc0ef; --blue-rgb:92,192,239;
+  --amber:#eaa84f; --amber-rgb:234,168,79;
+  --teal-text:#4fd8c6; --blue-text:#7fd0f5; --amber-text:#f0b968;
+  --warn:#e08b86; --warn-soft:#3a222180;
+  --line:#3a2f3e; --line-soft:#2f2733;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Inter","Segoe UI",system-ui,Arial,sans-serif;
+  font-feature-settings:"cv05" 1,"ss01" 1;
+  margin:0;
+  padding:0 20px 56px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1320px;margin:0 auto;}
+
+/* ── App bar ── */
+.appbar{
+  position:sticky;top:0;z-index:40;background:rgba(255,255,255,.82);
+  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+  border-bottom:1px solid var(--line);margin:0 -20px 0;padding:0 20px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .appbar{background:rgba(33,27,36,.82);}}
+:root[data-theme="dark"] .appbar{background:rgba(33,27,36,.82);}
+.appbar-inner{
+  max-width:1320px;margin:0 auto;height:58px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;}
+.brand-mark{
+  width:22px;height:22px;border-radius:7px;flex:none;
+  background:linear-gradient(140deg,var(--accent) 0%,var(--accent-deep) 100%);
+  box-shadow:0 2px 6px rgba(var(--accent-rgb),.4);
+}
+.brand-name{font-weight:700;font-size:.92rem;letter-spacing:-.01em;color:var(--ink);white-space:nowrap;}
+.appbar-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.btn-sm{padding:7px 14px;font-size:.78rem;}
+
+/* ── Two-column shell ── */
+.layout{display:grid;grid-template-columns:232px minmax(0,1fr);gap:18px;align-items:start;}
+@media(max-width:1000px){.layout{grid-template-columns:1fr;}}
+.sidebar{position:sticky;top:76px;}
+@media(max-width:1000px){.sidebar{position:static;}}
+.sidebar-card{padding:20px 20px 18px;margin-bottom:0;}
+.side-sec{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line-soft);}
+.side-sec:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.side-label{
+  display:flex;align-items:center;gap:7px;font-size:.63rem;text-transform:uppercase;
+  letter-spacing:.13em;font-weight:700;color:var(--sub);margin-bottom:10px;
+}
+.side-label .ico{width:13px;height:13px;flex:none;color:var(--faint);}
+.side-hint{font-size:.73rem;color:var(--sub);line-height:1.5;margin-top:8px;}
+/* Stacked rather than three-across: a 3-digit storage figure clipped inside a 60px column,
+   and a silently truncated number in a pricing tool is worse than a taller sidebar. */
+.sh-grid{display:flex;flex-direction:column;gap:7px;}
+.sh-note{margin-top:9px;}
+.sh-sub{margin-top:14px;padding-top:13px;border-top:1px solid var(--line);}
+.sh-row{display:flex;align-items:center;gap:9px;}
+.sh-row .sh-name{font-size:.72rem;color:var(--sub);width:74px;flex:none;}
+.sh-row .numfield{flex:1;min-width:0;}
+.sh-row .numfield input{padding:7px 4px 7px 9px;font-size:.86rem;}
+.sh-row .numfield span{padding:0 9px 0 2px;font-size:.68rem;}
+.sidebar .pill-toggle{display:flex;width:100%;}
+.sidebar .pill-toggle button{flex:1;padding:7px 8px;font-size:.75rem;}
+
+/* ── Stepper ── */
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface-2);overflow:hidden;}
+.stepper input{
+  flex:1;min-width:0;border:none;background:transparent;color:var(--ink);text-align:center;
+  font-family:inherit;font-size:1.02rem;font-weight:700;padding:9px 2px;
+  font-variant-numeric:tabular-nums;-moz-appearance:textfield;
+}
+.stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.stepper:focus-within{border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13);}
+.step-btn{
+  width:36px;align-self:stretch;border:none;background:transparent;color:var(--sub);
+  font-size:1.05rem;font-weight:600;cursor:pointer;transition:background .15s,color .15s;
+}
+.step-btn:hover{background:var(--surface-3);color:var(--accent);}
+
+.bd-chip{
+  display:inline-block;font-family:"Inter",sans-serif;font-size:.72rem;font-weight:700;
+  background:var(--accent-soft);color:var(--accent);border:1px solid rgba(var(--accent-rgb),.28);
+  padding:3px 11px;border-radius:999px;vertical-align:middle;margin-left:8px;letter-spacing:0;
+}
+
+/* ── Marker highlight: Odoo's own device, one component reused at three weights ── */
+.hl-wrap{position:relative;display:inline-block;}
+.hl-bar{position:absolute;left:-2px;right:-2px;bottom:6%;height:52%;background:var(--hl-blue);opacity:.6;transform:skewX(-4deg);border-radius:3px;z-index:0;pointer-events:none;}
+.hl-text{position:relative;z-index:1;}
+.hl-yellow{background:#f5c518;opacity:.6;}
+.hl-coral{background:#f08a7e;opacity:.5;}
+.hl-sm{height:34%;opacity:.42;}
+.hl-bar::before,.hl-bar::after{content:"";position:absolute;left:0;right:0;height:2px;background:inherit;opacity:.55;}
+.hl-bar::before{top:-2px;border-radius:2px 6px 3px 8px;}
+.hl-bar::after{bottom:-2px;border-radius:8px 3px 6px 2px;}
+.handwritten{font-family:"Caveat",cursive;}
+/* A drawn underline for section headings: same marker device, one stroke instead of a block. */
+.mark-ul{position:relative;display:inline-block;}
+.mark-ul::after{
+  content:"";position:absolute;left:-3px;right:-3px;bottom:-5px;height:6px;
+  background:var(--hl-blue);opacity:.55;border-radius:8px 4px 9px 3px;
+  transform:skewX(-5deg);pointer-events:none;
+}
+
+/* ── Masthead ── */
+.masthead{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;
+  padding:38px 0 22px;margin-bottom:26px;border-bottom:1px solid var(--line);
+}
+.masthead h1{
+  font-family:"Caveat",cursive;font-weight:700;
+  font-size:clamp(1.9rem,3.4vw,2.6rem);margin:0;color:var(--ink);line-height:1.25;letter-spacing:-.005em;
+}
+.masthead .context{
+  font-size:.86rem;color:var(--sub);margin-top:9px;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+}
+.context .dot{width:3px;height:3px;border-radius:50%;background:var(--faint);display:inline-block;}
+.context strong{color:var(--ink-2);font-weight:600;}
+
+/* ── Cards ── */
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);
+  padding:26px 28px;box-shadow:var(--sh-2);margin-bottom:22px;
+}
+.card > h2{
+  font-family:"Caveat",cursive;font-weight:700;font-size:1.6rem;
+  color:var(--ink);margin:0 0 5px;letter-spacing:.005em;
+}
+.card .sub-note{font-size:.85rem;color:var(--sub);margin-bottom:20px;max-width:74ch;}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;}
+
+/* ── Form atoms ── */
+label.lbl{
+  display:block;font-size:.64rem;text-transform:uppercase;letter-spacing:.13em;
+  font-weight:700;color:var(--sub);margin-bottom:8px;
+}
+.numfield{
+  display:flex;align-items:center;border:1px solid var(--line);border-radius:var(--r-md);
+  background:var(--surface-2);transition:border-color .15s,box-shadow .15s;overflow:hidden;
+}
+.numfield input[type=number]{
+  flex:1;min-width:0;border:none;background:transparent;color:var(--ink);
+  font-family:inherit;font-size:1rem;font-weight:650;padding:10px 12px;
+  font-variant-numeric:tabular-nums;-moz-appearance:textfield;
+}
+.numfield input::-webkit-outer-spin-button,.numfield input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.numfield span{padding:0 12px 0 4px;color:var(--faint);font-size:.78rem;white-space:nowrap;}
+.numfield:focus-within{border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13);}
+select{
+  padding:8px 26px 8px 10px;border-radius:var(--r-md);border:1px solid var(--line);
+  background:var(--surface-2);color:var(--ink);font-family:inherit;font-size:.83rem;
+  cursor:pointer;transition:border-color .15s,box-shadow .15s;
+  appearance:none;-webkit-appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--faint) 50%),linear-gradient(135deg,var(--faint) 50%,transparent 50%);
+  background-position:calc(100% - 14px) 52%,calc(100% - 9px) 52%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+}
+select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13);}
+
+.pill-toggle{display:inline-flex;gap:4px;background:var(--surface-3);padding:4px;border-radius:999px;}
+.pill-toggle button{
+  padding:7px 15px;border-radius:999px;border:none;background:transparent;color:var(--sub);
+  font-family:inherit;font-size:.79rem;font-weight:600;cursor:pointer;
+  transition:background .18s,color .18s,box-shadow .18s;white-space:nowrap;
+}
+.pill-toggle button:hover{color:var(--ink);}
+.pill-toggle button.active{background:var(--surface);color:var(--accent);box-shadow:var(--sh-1);font-weight:700;}
+
+.globals{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap;}
+.g-item{min-width:132px;}
+
+/* ── Buttons ── */
+.btn{
+  font-family:inherit;font-weight:650;font-size:.83rem;border-radius:999px;
+  padding:10px 19px;cursor:pointer;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink-2);
+  transition:border-color .16s,color .16s,background .16s,box-shadow .16s,transform .06s;
+  box-shadow:var(--sh-1);
+}
+.btn:hover{border-color:rgba(var(--accent-rgb),.5);color:var(--accent);box-shadow:var(--sh-2);}
+.btn:active{transform:translateY(1px);}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 6px rgba(var(--accent-rgb),.3),0 10px 22px -10px rgba(var(--accent-rgb),.6);}
+.btn-primary:hover{color:#fff;background:var(--accent-deep);border-color:var(--accent-deep);}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SCENARIO TABLE — the heart of the tool. Configuration columns sit left of a
+   divider, computed results right of it, so the eye reads inputs → outputs.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.scroll-x{overflow-x:auto;margin:0 -4px;padding:0 4px;}
+/* Sized so the money columns — All-in and Per mo. — are on screen without scrolling on a
+   normal laptop. They are the whole point of the table; hiding them behind a scrollbar would
+   defeat it. */
+.sctable{width:100%;border-collapse:separate;border-spacing:0;font-size:.8rem;min-width:900px;}
+.sctable thead th{
+  font-size:.57rem;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);
+  font-weight:700;text-align:left;padding:0 4px 9px;white-space:nowrap;
+  border-bottom:1px solid var(--line);
+}
+.sctable th.num,.sctable td.num{text-align:right;}
+.sctable th.center,.sctable td.center{text-align:center;}
+.sctable tbody td{
+  padding:9px 4px;border-bottom:1px solid var(--line-soft);
+  vertical-align:middle;color:var(--ink-2);
+}
+.sctable tbody tr:last-child td{border-bottom:none;}
+.sctable tbody tr{transition:background .16s;}
+.sctable tbody tr:hover{background:var(--surface-2);}
+/* The boundary between "what you chose" and "what it costs". */
+.sctable .divide{border-left:1px solid var(--line);}
+.sctable td.num{font-variant-numeric:tabular-nums;color:var(--ink);}
+.sctable td.grand{font-weight:750;font-size:.92rem;color:var(--ink);}
+.sctable td.per{color:var(--accent);font-weight:650;}
+.sctable td.save{color:var(--teal-text);font-weight:600;}
+/* Selected row: an accent rail rather than a heavy fill. */
+.sctable tbody tr.shown-row{background:var(--accent-soft);}
+.sctable tbody tr.shown-row td:first-child{box-shadow:inset 3px 0 0 var(--accent);}
+.sctable tbody tr.shown-row:hover{background:var(--accent-soft);}
+.sctable input[type=radio]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;}
+.sctable select{font-size:.74rem;padding:5px 18px 5px 6px;background-position:calc(100% - 9px) 52%,calc(100% - 5px) 52%;max-width:112px;}
+.sctable .pct{
+  width:46px;padding:5px 5px;border-radius:var(--r-sm);border:1px solid var(--line);
+  background:var(--surface-2);color:var(--ink);font-family:inherit;font-size:.79rem;
+  text-align:right;font-variant-numeric:tabular-nums;-moz-appearance:textfield;
+  transition:border-color .15s,box-shadow .15s;
+}
+.sctable .pct::-webkit-outer-spin-button,.sctable .pct::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.sctable .pct:focus{outline:none;border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13);}
+.sctable .pct:disabled{opacity:.32;cursor:not-allowed;}
+.sctable .na{color:var(--sub);}
+.rm-btn{
+  width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;
+  background:transparent;border:1px solid var(--line);color:var(--sub);font-size:.95rem;
+  font-family:inherit;line-height:1;cursor:pointer;padding:0;border-radius:50%;
+  transition:color .15s,background .15s,border-color .15s;
+}
+.rm-btn:hover:not(:disabled){color:#fff;background:var(--warn);border-color:var(--warn);}
+.rm-btn:disabled{opacity:.28;cursor:not-allowed;}
+.move-cell{white-space:nowrap;padding-left:2px !important;padding-right:0 !important;}
+.move-btn{
+  width:17px;height:17px;line-height:1;padding:0;margin:0 1px;
+  border:1px solid var(--line);border-radius:3px;background:var(--surface);
+  color:var(--sub);font-size:.62rem;cursor:pointer;
+  transition:color .15s,background .15s,border-color .15s;
+}
+.move-btn:hover:not(:disabled){color:#fff;background:var(--accent);border-color:var(--accent);}
+.move-btn:disabled{opacity:.25;cursor:not-allowed;}
+.mtd-row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;}
+.mtd-toggles{margin-bottom:16px;}
+.mtd-opt{margin-bottom:14px;}
+.mtd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px 22px;margin-bottom:14px;}
+.mtd-note{font-size:.79rem;color:var(--sub);line-height:1.55;padding:11px 14px;background:var(--surface-2);border-radius:var(--r-md);margin-bottom:4px;}
+.mtd-item{min-width:190px;}
+.mtd-item .numfield .pre{padding:0 2px 0 11px;color:var(--faint);font-size:.85rem;}
+.empty-row{text-align:center;padding:26px 8px !important;color:var(--sub);font-size:.88rem;}
+
+
+/* ── Breakdown grid: one card per scenario, equal width ── */
+.bd-grid{display:grid;gap:14px;align-items:start;}
+.bd-card{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:16px 18px;min-width:0;
+}
+.bd-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.bd-num{
+  width:19px;height:19px;border-radius:50%;background:var(--accent);color:#fff;flex:none;
+  font-size:.66rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center;
+}
+.bd-title{font-weight:700;font-size:.9rem;color:var(--ink);}
+.bd-seats{
+  font-size:.68rem;color:var(--sub);background:var(--surface-3);border-radius:999px;
+  padding:2px 9px;margin-left:auto;white-space:nowrap;
+}
+.bd-total{font-size:1.75rem;font-weight:800;color:var(--accent);letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1;}
+.bd-sub{font-size:.74rem;color:var(--sub);margin-top:3px;}
+.bd-permo,.bd-save{
+  display:flex;justify-content:space-between;gap:10px;font-size:.8rem;
+  padding-top:9px;margin-top:9px;border-top:1px solid var(--line);color:var(--sub);
+}
+.bd-permo span:last-child{font-weight:750;color:var(--ink);font-variant-numeric:tabular-nums;}
+.bd-save{color:var(--teal-text);border-top-style:dashed;}
+.bd-save span:last-child{font-weight:750;font-variant-numeric:tabular-nums;}
+.bd-fin{
+  margin-top:10px;padding:9px 11px;background:var(--surface);border:1px dashed var(--line);
+  border-radius:var(--r-md);
+}
+.bd-fin .fin-amt{font-size:.95rem;}
+.head-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.bd-years{margin-top:12px;padding-top:11px;border-top:1px solid var(--line);}
+.bd-years-h{
+  font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--sub);margin-bottom:7px;
+}
+.bd-yr{
+  display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:baseline;
+  font-size:.78rem;padding:3px 0;color:var(--sub);
+}
+.bd-yr + .bd-yr{border-top:1px dotted var(--line);}
+.bd-yr .yr-amt{font-variant-numeric:tabular-nums;color:var(--ink-2);font-weight:650;text-align:right;}
+.bd-yr .yr-mo{font-variant-numeric:tabular-nums;color:var(--sub);white-space:nowrap;font-size:.72rem;}
+.bd-yr.first .yr-amt{color:var(--ink);}
+.bd-yr-note{font-size:.68rem;color:var(--faint);margin-top:6px;line-height:1.45;}
+.month-roll{margin-top:18px;padding:16px 18px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-lg);}
+.mr-top{margin-bottom:12px;}
+.mr-pick{font-size:.72rem;font-weight:500;text-transform:none;letter-spacing:0;color:var(--faint);margin-top:3px;}
+.mr-h{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--sub);}
+.mr-table{width:100%;table-layout:fixed;}
+.mr-table th:first-child,.mr-table td:first-child{width:34%;text-align:left;}
+.mr-table th:not(:first-child),.mr-table td:not(:first-child){width:22%;text-align:right;}
+.mr-table th{font-size:.78rem;font-weight:800;color:var(--ink);text-transform:none;letter-spacing:0;padding-bottom:9px;}
+.mr-table td{padding:8px 6px;}
+.th-sub{display:block;font-size:.58rem;font-weight:600;text-transform:none;letter-spacing:.01em;color:var(--faint);margin-top:3px;}
+.pct-sub{display:block;font-size:.66rem;font-weight:600;color:var(--faint);letter-spacing:.01em;margin-top:2px;}
+.mr-table tr.mr-total .pct-sub{color:var(--sub);}
+.intable td.num .pct-sub{font-weight:500;}
+.mr-table tr.mr-total td{border-top:2px solid var(--line);font-weight:800;color:var(--ink);padding-top:10px;}
+.mr-table tr.mr-add td{color:var(--accent-deep);font-weight:650;}
+.mr-table .mr-label{text-align:left;color:var(--sub);font-weight:600;}
+.mr-table tr.mr-total .mr-label{color:var(--ink);}
+.pick-col{width:30px;padding-left:2px !important;padding-right:2px !important;}
+.pick-col input{width:14px;height:14px;accent-color:var(--accent);cursor:pointer;margin:0;}
+.intable tr.row-muted td:not(.pick-col){opacity:.4;}
+.capflag{font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;background:var(--amber);color:#fff;padding:2px 5px;border-radius:4px;vertical-align:middle;margin-left:6px;}
+.bd-detail{margin-top:12px;padding-top:11px;border-top:1px solid var(--line);}
+.bd-sec + .bd-sec{margin-top:11px;}
+.bd-sec-h{
+  display:flex;align-items:center;gap:6px;font-size:.74rem;font-weight:700;color:var(--ink);
+  margin-bottom:5px;
+}
+.bd-sec-h em{font-style:normal;font-weight:400;color:var(--sub);font-size:.7rem;margin-left:auto;text-align:right;}
+.dotmark{width:7px;height:7px;border-radius:2px;flex:none;}
+.dotmark.blue{background:var(--blue);}
+.dotmark.amber{background:var(--amber);}
+.dotmark.teal{background:var(--teal);}
+.bd-line{display:flex;justify-content:space-between;gap:10px;font-size:.78rem;padding:2px 0;color:var(--sub);}
+.bd-line span:last-child{font-variant-numeric:tabular-nums;color:var(--ink-2);white-space:nowrap;}
+.bd-line.disc{font-weight:650;}
+.bd-line.disc.blue{color:var(--blue-text);}
+.bd-line.disc.amber{color:var(--amber-text);}
+.bd-line.disc.teal{color:var(--teal-text);}
+.bd-line.disc span:last-child{color:inherit;}
+
+/* ── Add-scenario bar ── */
+.addbar{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;}
+.addbar strong{font-size:.9rem;color:var(--ink);}
+.addbar-hint{display:block;font-size:.78rem;color:var(--sub);margin-top:3px;}
+.side-check{display:flex;align-items:center;gap:7px;font-size:.76rem;color:var(--sub);margin-top:9px;cursor:pointer;}
+.side-check input{width:14px;height:14px;accent-color:var(--accent);cursor:pointer;}
+.sctable .users-in{width:44px;}
+
+/* ── Warnings: present only when they apply ── */
+.warnbox:empty{display:none;}
+/* Warnings are notes, not alarms. Nothing here is forbidden — the rep is being told what the
+   system will do, so these read as quiet asides rather than errors demanding to be cleared. */
+.warnbox{margin-top:16px;display:flex;flex-direction:column;gap:5px;}
+.warnmsg{
+  font-size:.76rem;color:var(--sub);line-height:1.5;padding:0;
+  background:none;border:0;border-radius:0;
+}
+.warn-field{
+  display:inline-block;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--accent-deep);background:var(--accent-soft);border-radius:3px;
+  padding:2px 6px;margin-right:8px;vertical-align:baseline;white-space:nowrap;
+}
+.warnmsg::before{
+  content:'';display:inline-block;width:4px;height:4px;border-radius:50%;
+  background:var(--amber);margin:0 8px 2px 2px;vertical-align:middle;
+}
+.warnbox:first-child .warnmsg:first-child{margin-top:2px;}
+
+/* ── Marketing / context blocks (these print with the quote) ── */
+
+/* ── Internal view ── */
+#internalCard{border:1px dashed rgba(var(--accent-rgb),.55);background:var(--surface-2);}
+.tag-internal{
+  font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+  background:var(--accent);color:#fff;padding:3px 9px;border-radius:999px;vertical-align:middle;margin-left:8px;
+}
+
+footer{
+  text-align:center;color:var(--sub);font-size:.75rem;margin-top:34px;
+  padding-top:22px;border-top:1px solid var(--line);line-height:1.7;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRINT — the exported PDF is a customer-facing document, so the controls,
+   the internal view and the scenario chrome all drop away.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media print{
+  @page{margin:14mm;}
+  .no-print{display:none !important;}
+  body{padding:0;background:#fff;font-size:10.5px;}
+  .wrap{max-width:none;}
+  .masthead{padding:0 0 12px;margin-bottom:16px;}
+  .masthead h1{font-size:20px;}
+  .card{
+    border:1px solid #ddd;box-shadow:none;padding:12px 14px;margin-bottom:12px;
+    border-radius:10px;break-inside:avoid;
+  }
+  .card > h2{font-size:13px;}
+  .sctable{min-width:0;font-size:9px;}
+  .sctable thead th{font-size:7.5px;padding:0 5px 6px;}
+  .sctable tbody td{padding:6px 5px;}
+  .scroll-x{overflow:visible;}
+  .bd-card{break-inside:avoid;}
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+}
+</style>
+
+<!-- ═══ APP BAR ═══ -->
+<header class="appbar no-print">
+  <div class="appbar-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">Odoo Quote Calculator</span>
+    </div>
+    <div class="appbar-actions">
+      <button id="finToggle" type="button" class="btn btn-sm">Financing</button>
+      <button id="internalToggle" type="button" class="btn btn-sm">Internal</button>
+      <button id="exportPdf" type="button" class="btn btn-sm btn-primary">Export PDF</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ═══ HERO ═══ -->
+  <div class="masthead">
+    <div>
+      <h1>Your <span class="hl-wrap"><span class="hl-bar" aria-hidden="true"></span><span class="hl-text">Odoo Pricing</span></span></h1>
+      <div class="context" id="contextLine"></div>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- ═══ SIDEBAR: only what every scenario genuinely has in common ═══ -->
+    <aside class="sidebar no-print">
+      <div class="card sidebar-card">
+        <div class="side-sec">
+          <div class="side-label"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2a9 9 0 0 1 0 12A9 9 0 0 1 8 2z"/></svg>Country</div>
+          <div class="pill-toggle" id="countryTabs">
+            <button type="button" id="countryUS" class="active">USD · US</button>
+            <button type="button" id="countryCA">CAD · CA</button>
+          </div>
+        </div>
+
+        <div class="side-sec">
+          <div class="side-label"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.4"/><path d="M2 13.2c0-2.2 1.8-3.6 4-3.6s4 1.4 4 3.6"/><path d="M11 5.2a2.2 2.2 0 0 1 0 4.2M12 13.2c0-1.5-.5-2.5-1.4-3.2"/></svg>Users</div>
+          <div class="stepper">
+            <button type="button" class="step-btn" id="usersDown" aria-label="Decrease users">−</button>
+            <input type="number" id="users" min="1" max="500" value="1" step="1" aria-label="Number of users">
+            <button type="button" class="step-btn" id="usersUp" aria-label="Increase users">+</button>
+          </div>
+          <label class="side-check"><input type="checkbox" id="usersLinked" checked> Same for every scenario</label>
+          <div class="side-hint" id="usersHint"></div>
+        </div>
+
+
+        <div class="side-sec" id="shSizingWrap" style="display:none;">
+          <div class="side-label"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2.6" width="12" height="4.2" rx="1.2"/><rect x="2" y="9.2" width="12" height="4.2" rx="1.2"/><path d="M4.6 4.7h.01M4.6 11.3h.01"/></svg>Odoo.sh sizing</div>
+          <div class="side-hint">Applies to every scenario on Odoo.sh.</div>
+          <!-- Two separate things live here, and they used to read as one paragraph: the three
+               metered fields with their auto-sizing note, and the dedicated-server upgrade with
+               its own price. Each note now sits directly under what it describes, with a rule
+               between the two blocks. -->
+          <div class="sh-grid">
+            <div class="sh-row"><span class="sh-name">Workers</span><div class="numfield"><input type="number" id="shWorkers" min="0" value="1" step="1" aria-label="Workers"><span>wkr</span></div></div>
+            <div class="sh-row"><span class="sh-name">Storage</span><div class="numfield"><input type="number" id="shStorage" min="0" value="2" step="1" aria-label="Storage in GB"><span>GB</span></div></div>
+            <div class="sh-row"><span class="sh-name">Staging</span><div class="numfield"><input type="number" id="shStaging" min="0" value="1" step="1" aria-label="Staging environments"><span>env</span></div></div>
+          </div>
+          <div class="side-hint sh-note">These three are billed per month. Auto-sized from Users as a starting point: about 1 worker per 15&nbsp;users, about 2&nbsp;GB per user, 1 staging branch. Sizing is up to the rep and the business.</div>
+
+          <div class="sh-sub">
+            <label class="side-check" id="shDedicatedRow"><input type="checkbox" id="shDedicated"> Dedicated server</label>
+            <div class="side-hint sh-note" id="shDedicatedHint"></div>
+          </div>
+        </div>
+
+        <div class="warnbox" id="globalWarns"></div>
+      </div>
+    </aside>
+
+    <!-- ═══ MAIN ═══ -->
+    <main class="main">
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2><span class="hl-wrap"><span class="hl-bar hl-yellow hl-sm" aria-hidden="true"></span><span class="hl-text">Scenarios</span></span></h2>
+            <div class="sub-note">Every row is its own deal. Change the term, plan, implementation, either discount, or hosting on one row without touching the others.</div>
+          </div>
+        </div>
+        <div class="scroll-x">
+          <table class="sctable">
+            <thead>
+              <tr>
+                <th class="center no-print" aria-label="Remove scenario"></th>
+                <th class="center no-print" aria-label="Reorder scenario"></th>
+                <th class="center">Users</th>
+                <th>Term</th>
+                <th>Plan</th>
+                <th class="center">Lic %</th>
+                <th>Implementation</th>
+                <th class="center">Impl %</th>
+                <th>Hosting</th>
+                <th class="num divide">License</th>
+                <th class="num">Impl.</th>
+                <th class="num col-sh">Hosting</th>
+                <th class="num">All-in</th>
+                <th class="num">Per mo.</th>
+                <th class="num col-save">Save vs Mo.</th>
+              </tr>
+            </thead>
+            <tbody id="scBody"></tbody>
+          </table>
+        </div>
+        <div class="warnbox" id="scWarns"></div>
+      </div>
+
+      <div class="card addbar no-print">
+        <div>
+          <strong>Add a scenario</strong>
+          <span class="addbar-hint">Start a blank deal, or copy the last one and change a single thing.</span>
+        </div>
+        <div class="btn-row" style="margin-top:0;">
+          <button type="button" class="btn btn-primary" id="addScenario">+ Add scenario</button>
+          <button type="button" class="btn" id="dupScenario">Duplicate last</button>
+        </div>
+      </div>
+
+      <div class="card" id="breakdownCard">
+        <div class="card-head">
+          <div>
+            <h2><span class="mark-ul">Breakdown</span></h2>
+            <div class="sub-note">Every scenario, side by side and line by line.</div>
+          </div>
+          <div class="head-btns no-print">
+            <button type="button" class="btn btn-sm" id="toggleYears">Year by year</button>
+            <button type="button" class="btn btn-sm" id="toggleDetail">Collapse line items</button>
+          </div>
+        </div>
+        <div class="bd-grid" id="bdGrid"></div>
+      </div>
+
+      <!-- Internal-only. Never printed, never part of a customer-facing quote. -->
+      <div class="card no-print" id="internalCard" style="display:none;">
+        <div class="card-head">
+          <div>
+            <h2>Commission <span class="tag-internal">Internal</span></h2>
+            <div class="sub-note" id="segNote"></div>
+          </div>
+        </div>
+
+        <!-- Two settings, then three figures about the month, then the read-out. They used to
+             share one wrapping flex row, which put the note beside an input and broke the rhythm. -->
+        <div class="mtd-row mtd-toggles">
+          <div class="mtd-item">
+            <label class="lbl">Book segment</label>
+            <div class="pill-toggle" id="segTabs">
+              <button type="button" id="seg15">1-5 users</button>
+              <button type="button" id="seg6" class="active">6+ users</button>
+            </div>
+          </div>
+          <div class="mtd-item">
+            <label class="lbl">Show payout in</label>
+            <div class="pill-toggle" id="payTabs">
+              <button type="button" id="payUSD" class="active">USD</button>
+              <button type="button" id="payCAD">CAD</button>
+            </div>
+          </div>
+        </div>
+
+        <label class="side-check mtd-opt"><input type="checkbox" id="useMtd"> Factor in my month so far</label>
+        <div class="mtd-grid" id="mtdGrid" style="display:none;">
+          <div class="mtd-item">
+            <label class="lbl" for="mtdMrr">Already booked this month (MRR)</label>
+            <div class="numfield"><span class="pre">$</span><input type="number" id="mtdMrr" min="0" value="0" step="50"><span>/mo</span></div>
+          </div>
+          <div class="mtd-item">
+            <label class="lbl" for="mtdNrr">Already booked this month (NRR)</label>
+            <div class="numfield"><span class="pre">$</span><input type="number" id="mtdNrr" min="0" value="0" step="500"><span>one-time</span></div>
+          </div>
+          <div class="mtd-item">
+            <label class="lbl" for="churnMrr">Churn this month <span style="text-transform:none;letter-spacing:0;font-weight:400;">(MRR lost)</span></label>
+            <div class="numfield"><span class="pre">$</span><input type="number" id="churnMrr" min="0" value="0" step="10"><span>/mo</span></div>
+          </div>
+        </div>
+        <div class="mtd-note" id="mtdAttain"></div>
+
+        <div class="scroll-x">
+          <table class="sctable" style="min-width:660px;">
+            <thead><tr>
+              <th class="center pick-col"><input type="checkbox" id="pickAll" checked aria-label="Count every scenario toward the month"></th>
+              <th>Scenario</th>
+              <th class="num" title="Contract-length multiplier on the monthly value">Rate</th>
+              <th class="num">MRR</th>
+              <th class="num">NRR</th>
+              <th class="num divide" title="Where the month lands if this one books">Month MRR<span class="th-sub">% of quota</span></th>
+              <th class="num" title="Where the month lands if this one books">Month NRR<span class="th-sub">% of quota</span></th>
+              <th class="num divide">Pays you<span class="th-sub">% of on-target</span></th>
+            </tr></thead>
+            <tbody id="internalBody"></tbody>
+          </table>
+        </div>
+
+        <!-- The month, answered outright: where it stands, what the board adds, where it ends. -->
+        <div class="month-roll" id="monthRoll">
+          <div class="mr-top">
+            <div class="mr-h">If they all book</div>
+            <div class="mr-pick" id="rollPickNote"></div>
+          </div>
+          <table class="intable mr-table">
+            <thead><tr>
+              <th></th>
+              <th class="num">MRR<span class="th-sub">% of quota</span></th>
+              <th class="num">NRR<span class="th-sub">% of quota</span></th>
+              <th class="num">Commission<span class="th-sub">% of on-target</span></th>
+            </tr></thead>
+            <tbody id="monthRollBody"></tbody>
+          </table>
+        </div>
+
+        <div class="warnmsg" id="capNote" style="display:none;margin-top:14px;color:var(--amber-text);"></div>
+
+        <div class="warnmsg" id="commNote" style="margin-top:16px;background:var(--surface-3);border-color:var(--line);color:var(--sub);">
+          <strong>Longer contracts count for more.</strong> A deal's MRR is its monthly value multiplied by its term, so a 3-year counts triple and a 5-year counts five times. Success packs count as NRR at face value. Rates marked <strong>*</strong> follow the pattern but are not written in the plan; ×2 and ×0.8 are. Bands work like tax brackets, so where your month already stands changes what a deal is worth more than its size does. Churn goes in the field above, not in the deal.
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// PRICING DATA
+// ─────────────────────────────────────────────────────────────────────────────
+// Both plans confirmed live on odoo.com/pricing (Aug 27, 2026). Standard = all apps, Odoo Online
+// only. Custom = all apps + Studio, multi-company, external API, Odoo.sh/on-prem hosting.
+// noCommitY1: paying monthly (no annual commitment) still gets its own Year-1 promo rate before
+// stepping up to the steady noCommit rate — it's not one flat rate from day one. Sourced from
+// vepat's reference calculator (PRICING table) cross-checked against odoo.com/pricing's display.
+// Slightly less certain than the annual-commit rates, which were confirmed with a live fetch.
+// US rates were confirmed with a live fetch. CA rates come from vepat's PRICING table only —
+// odoo.com serves localised pricing that could not be re-fetched from here, so treat CAD as
+// third-party-sourced the same way the SH numbers are.
+const PLANS_BY_COUNTRY = {
+  US: {
+    standard: { y1promo: 24.90, y2: 31.10, noCommitY1: 31.10, noCommit: 38.90 },
+    custom:   { y1promo: 49.00, y2: 61.00, noCommitY1: 61.10, noCommit: 76.20 }
+  },
+  // Live-read from odoo.com/pricing with the country selector set to Canada, Aug 28 2026.
+  // The previous third-party CAD figures were wrong in seven of eight places. Note especially
+  // that Custom's monthly Year-1 rate (68.50) is BELOW its yearly steady rate (69.00) — the old
+  // data assumed noCommitY1 always equals y2, which is true for US Standard and CA Standard but
+  // not here. Odoo's CAD list is an independently set regional pricelist, NOT an FX conversion:
+  // the implied USD->CAD rate ranges from 1.12x (Custom promo) to 1.47x (50hr pack).
+  CA: {
+    standard: { y1promo: 35.20, y2: 44.00, noCommitY1: 44.00, noCommit: 55.00 },
+    custom:   { y1promo: 55.00, y2: 69.00, noCommitY1: 68.50, noCommit: 86.00 }
+  }
+};
+const COUNTRIES = {
+  US: { label: 'USD · US', currency: 'USD', toUSD: 1 },
+  CA: { label: 'CAD · Canada', currency: 'CAD', toUSD: 40.12 / 54.80 }
+};
+let country = 'US';
+function PLANS_() { return PLANS_BY_COUNTRY[country]; }
+
+// The real per-term system ceiling Josh live-tested on the Aug 27 call (0/5/10/12.5/15% for
+// 1/2/3/4/5yr). This is a hard limit — the system will not apply more than this on a given term —
+// so exceeding it is warned about, not just hinted at.
+const DISCOUNT_SCHEDULE = {1:0, 2:0.05, 3:0.10, 4:0.125, 5:0.15};
+
+// Read the ceiling as a clean percentage. Going through the fraction matters: 0.05 * 100 is
+// 5.000000000000001 in floating point, which would both print badly and make "10 > max" compare
+// against a number that is not quite 10. Rounding at one decimal gives exactly 5 / 10 / 12.5 / 15.
+function licMaxPct(term){
+  const f = DISCOUNT_SCHEDULE[term];
+  return f === undefined ? null : Math.round(f * 1000) / 10;
+}
+
+// The "typical" implementation discount from the Aug 27 call. Not a hard ceiling, and the tool
+// never blocks a larger one; it flags it, and flags it again when the pack is big enough that the
+// 200-hour eligibility rule makes the headline percentage misleading.
+const TYPICAL_IMPL_DISCOUNT = 30;
+
+
+// Odoo sells implementation as discrete Success Pack SKUs (odoo.com/pricing-packs), not a
+// continuous hourly rate. A customer buying "50 hours" buys the 50hr pack flat at $140/hr — they
+// don't blend through smaller packs. Cost is flat-per-pack and pack size only goes up, so a
+// bigger ask can never total less.
+// US pack prices verified against odoo.com/pricing-packs. CA from vepat's IMPLEMENTATIONS table.
+const PACKS_BY_COUNTRY = {
+  US: [
+    {hours: 4,   rate: 145,   label: 'Starter'},
+    {hours: 25,  rate: 144,   label: 'Basic'},
+    {hours: 50,  rate: 140,   label: 'Standard'},
+    {hours: 100, rate: 125,   label: 'Custom'},
+    {hours: 200, rate: 125,   label: 'Pro'}
+  ],
+  // CAD packs live-read Aug 28 2026: 850 / 5,260 / 10,300 / 18,250 / 36,500.
+  // The 25hr rate was 210 (=$5,250); Odoo lists C$5,260, so the rate is 210.40.
+  CA: [
+    {hours: 4,   rate: 212.5, label: 'Starter'},
+    {hours: 25,  rate: 210.4, label: 'Basic'},
+    {hours: 50,  rate: 206,   label: 'Standard'},
+    {hours: 100, rate: 182.5, label: 'Custom'},
+    {hours: 200, rate: 182.5, label: 'Pro'}
+  ]
+};
+function PACKS_() { return PACKS_BY_COUNTRY[country]; }
+const DISCOUNT_ELIGIBLE_HOURS = 200; // initial invoice only, per Josh's Aug 27 training call
+
+// Odoo.sh rates. odoo.sh/pricing is entirely client-rendered — no numeric pricing is present in
+// the static page, so these could not be independently re-confirmed the way the license and
+// implementation numbers were. Sourced from vepat's calculator (SH table, US rates), whose
+// license figures matched the verified ones exactly. Treat as third-party-sourced.
+// Odoo sells three hosting choices. Two are free; only Odoo.sh is metered.
+//   Standard Cloud Hosting — free (Odoo Online)
+//   Self Hosting           — free (on-premise)
+//   Odoo.sh Cloud Platform — per worker / GB / staging environment
+// The per-unit figures below were confirmed against Odoo's own hosting pricing:
+// worker US$57.60/mo, storage US$0.20/GB/mo, staging env US$14.40/mo.
+// The no-commitment monthly uplift is still third-party sourced (vepat) — it is what makes the
+// "save vs monthly" line work for hosting, but it is the one part here not directly confirmed.
+// Odoo.sh unit rates, live-read from odoo.sh/pricing Aug 28 2026 (verified against the widget's
+// own total: 4 workers + 1GB + 0 staging = $230.60, i.e. 4*57.60 + 0.20, so the model is purely
+// linear with no base fee).
+//
+// odoo.sh publishes ONLY USD (and EUR) — there is no Canadian Odoo.sh pricelist. The previous CAD
+// figures here were invented, and internally inconsistent: workers and staging were 1.5x the USD
+// rate while storage was 1.6x. They are now derived from the published USD rates at a stated FX,
+// and the UI says so whenever a Canadian quote uses Odoo.sh. Confirm before it reaches a customer.
+const SH_RATES_USD = {
+  yearly:  {worker: 57.60, storage: 0.20, staging: 14.40, dedicated: 480, base: 0},
+  monthly: {worker: 72.00, storage: 0.25, staging: 18.00, dedicated: 600, base: 0}
+};
+const USD_TO_CAD = 54.80 / 40.12;   // ~1.3659, the market rate this tool quotes at
+function scaleRates(r, k){
+  const out = {};
+  for (const key in r) out[key] = Math.round(r[key] * k * 10000) / 10000;
+  return out;
+}
+const SH_RATES_BY_COUNTRY = {
+  US: SH_RATES_USD,
+  CA: { yearly: scaleRates(SH_RATES_USD.yearly, USD_TO_CAD),
+        monthly: scaleRates(SH_RATES_USD.monthly, USD_TO_CAD) }
+};
+function SH_RATES_() { return SH_RATES_BY_COUNTRY[country]; }
+
+// Typical sizing envelope for Odoo.sh. Warning thresholds only — never hard caps.
+// Sliders on odoo.sh/pricing, read Aug 28 2026. Dedicated raises the ceilings sharply — it is a
+// different class of server, which is why the flat fee buys headroom as well as isolation.
+const SH_LIMITS          = { workersMin: 1, workersMax: 8,   storageMax: 512  };
+const SH_LIMITS_DEDICATED = { workersMin: 4, workersMax: 256, storageMax: 4096 };
+const SH_STAGING_MAX = 20;
+function shLimits(){ return isDedicated() ? SH_LIMITS_DEDICATED : SH_LIMITS; }
+function isDedicated(){
+  const el = document.getElementById('shDedicated');
+  return !!(el && el.checked);
+}
+
+// Financing reference APRs, same band vepat uses.
+const APR_LOW = 0.06, APR_HIGH = 0.13;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+function packFor(hours){
+  const PACKS = PACKS_();
+  if (hours <= 0) return {hours: 0, rate: 0, label: 'None'};
+  for (const p of PACKS) if (hours <= p.hours) return p;
+  return PACKS[PACKS.length - 1];
+}
+
+// Arbitrary hour counts are quoted as the cheapest realistic combination of Success Packs that
+// covers them — a rep quoting 135 hours sells a 100 + a 50 ($19,500), not a 200 ($25,000).
+// Deliberately capped at TWO packs: an unconstrained search "wins" by stacking nine 4-hour
+// Starter packs, which is cheaper on paper and not something anyone would ever quote. Past two
+// packs' worth of hours it falls back to whole Pro packs plus one pack for the remainder.
+// (vepat instead scales linearly off the next-lowest pack, pricing hours Odoo does not sell.)
+function packComboCost(hours){
+  if (hours <= 0) return 0;
+  const PACKS = PACKS_();
+  const biggest = PACKS[PACKS.length - 1];
+
+  if (hours > biggest.hours * 2) {
+    const k = Math.floor(hours / biggest.hours);
+    const rem = hours - k * biggest.hours;
+    const bulk = k * biggest.hours * biggest.rate;
+    if (rem <= 0) return bulk;
+    const top = PACKS.find(p => p.hours >= rem) || biggest;
+    return bulk + top.hours * top.rate;
+  }
+
+  let best = Infinity;
+  for (const a of PACKS) {
+    if (a.hours >= hours) best = Math.min(best, a.hours * a.rate);
+    for (const b of PACKS) {
+      if (a.hours + b.hours >= hours) best = Math.min(best, a.hours * a.rate + b.hours * b.rate);
+    }
+  }
+  return best;
+}
+
+// A listed pack is priced flat at its own rate; anything else falls to the combination price.
+function packCost(hours){
+  if (hours <= 0) return 0;
+  const exact = PACKS_().find(p => p.hours === hours);
+  if (exact) return exact.hours * exact.rate;
+  return packComboCost(hours);
+}
+
+const sym = () => '$'; // both supported countries use $; currency is disambiguated by the label
+const fmt    = n => sym() + n.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+const fmtDec = n => sym() + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtUSD = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+
+const usersEl   = document.getElementById('users');
+const shWorkersEl = document.getElementById('shWorkers');
+const shStorageEl = document.getElementById('shStorage');
+const shStagingEl = document.getElementById('shStaging');
+
+function getUsers(){ return Math.max(1, +usersEl.value || 1); }
+function shInputs(){
+  return {
+    workers: Math.max(0, +shWorkersEl.value || 0),
+    storage: Math.max(0, +shStorageEl.value || 0),
+    staging: Math.max(0, +shStagingEl.value || 0)
+  };
+}
+// $/month for the current SH sizing at either the annual-commit or no-commitment rate table.
+const HOSTING = {
+  standard: { label: 'Standard Cloud', paid: false },
+  self:     { label: 'Self-hosted',    paid: false },
+  sh:       { label: 'Odoo.sh',        paid: true  }
+};
+function isPaidHosting(h){ return !!(HOSTING[h] && HOSTING[h].paid); }
+
+function shMonthlyCost(type, annual){
+  if (!isPaidHosting(type)) return 0;
+  const r = annual ? SH_RATES_().yearly : SH_RATES_().monthly;
+  const {workers, storage, staging} = shInputs();
+  // Dedicated is a flat monthly fee ON TOP of the metered lines, not a replacement for them —
+  // odoo.sh prices it as its own row while workers/storage/staging keep billing as normal.
+  const ded = isDedicated() ? r.dedicated : 0;
+  return r.base + ded + workers * r.worker + storage * r.storage + staging * r.staging;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCENARIOS — each one is a complete, independent deal configuration.
+// Everything starts neutral: 1-year, Custom, no implementation, 0% on both discounts, no SH.
+// ─────────────────────────────────────────────────────────────────────────────
+let internalView = false;   // commission view, off by default and never printed
+let showFinancing = false;  // financing band, opt-in like vepat's
+
+let nextId = 1;
+function blankScenario(){
+  // Seeded from the master count so a new row starts where the rep already is.
+  return { id: nextId++, users: masterUsers(), term: 1, plan: 'custom',
+           licDisc: 0, hours: 0, implDisc: 0, sh: 'standard', customHours: false };
+}
+// The sidebar count is the master. Linked (the default) keeps every scenario on it; unlinked
+// lets a rep price the same deal shape at different seat counts side by side.
+function masterUsers(){ return Math.max(1, +usersEl.value || 1); }
+function usersLinked(){ return document.getElementById('usersLinked').checked; }
+function scenarioUsers(s){ return usersLinked() ? masterUsers() : Math.max(1, s.users || 1); }
+// Starts empty: the rep builds the comparison rather than being handed a default deal that
+// might quietly anchor the conversation.
+let scenarios = [];
+
+const TERM_OPTS = [
+  {v:'mo', label:'Monthly'},
+  {v:'1',  label:'1 Yr'}, {v:'2', label:'2 Yrs'}, {v:'3', label:'3 Yrs'},
+  {v:'4',  label:'4 Yrs'}, {v:'5', label:'5 Yrs'}
+];
+function termLabel(t){ return t === 'mo' ? 'Mo (no commit)' : (t === 1 ? '1 Yr' : t + ' Yrs'); }
+function planLabel(p){ return p === 'custom' ? 'Custom' : 'Standard'; }
+// Which terms accept a licence discount at all. A no-commitment monthly deal does not: there is
+// no term to discount against. A 1-year deal does, but it behaves differently from 2-5 years and
+// the tool says so — see licDiscountBasis below.
+function isDiscountableTerm(t){ return t !== 'mo'; }
+
+// WHERE a licence discount lands. On 2-5 years it reduces only the Year-2-onward licence, which
+// is the rule Josh live-tested and the bug he found in the public reference tool. A 1-year deal
+// has no Year 2, so a discount there can only come off the Year-1 promotional rate — which is
+// outside the standard multi-year schedule. The tool allows it and flags it rather than blocking
+// it, because reps do negotiate them and a calculator that cannot show one is no use in the room.
+function licDiscountBasis(t){ return (t !== 'mo' && t > 1) ? 'year2' : 'year1'; }
+function isOffScheduleLicDiscount(s){
+  return s.term !== 'mo' && s.term <= 1 && Math.max(0, s.licDisc) > 0;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// THE MATH — one function, used by both the table row and the detail breakdown, so the two can
+// never drift apart.
+// ─────────────────────────────────────────────────────────────────────────────
+function compute(s){
+  const users = scenarioUsers(s);
+  const LIC = PLANS_()[s.plan];
+  const isMo = s.term === 'mo';
+  const years = isMo ? 1 : s.term;      // Mo is priced as a 12-month equivalent so every column
+  const months = years * 12;            // lines up against the committed terms.
+
+  // License. The multi-year discount applies ONLY to the Year-2-onward portion — never Year 1,
+  // never the whole contract. (Josh caught exactly that bug in the public reference tool.)
+  let y1Total, y2PlusTotal, licDiscAmt;
+  if (isMo) {
+    y1Total = LIC.noCommitY1 * 12 * users; // 12 months at the no-commit Year-1 rate
+    y2PlusTotal = 0;
+    licDiscAmt = 0;
+  } else {
+    y1Total = LIC.y1promo * 12 * users;
+    y2PlusTotal = LIC.y2 * 12 * (years - 1) * users;
+    const pct = isDiscountableTerm(s.term) ? Math.max(0, s.licDisc) / 100 : 0;
+    // On 2-5 years the discount reaches only the Year-2-onward portion. On a 1-year deal there is
+    // no Year 2, so it comes off Year 1 instead.
+    licDiscAmt = (licDiscountBasis(s.term) === 'year2' ? y2PlusTotal : y1Total) * pct;
+  }
+  const licTotal = y1Total + y2PlusTotal - licDiscAmt;
+
+  // Implementation — rounds up to the nearest real pack; the discount only reaches the first
+  // 200 hours, on the initial invoice.
+  const implList = packCost(s.hours);
+  const implDiscPct = Math.max(0, s.implDisc) / 100;
+  const implDiscAmt = packCost(Math.min(s.hours, DISCOUNT_ELIGIBLE_HOURS)) * implDiscPct;
+  const implTotal = implList - implDiscAmt;
+
+  // Hosting. Mirrors the license mechanic: multi-year discount on the Year-2+ portion, at this
+  // scenario's own license discount.
+  // Same stale-enum trap as the sizing seed: hosting values are standard/self/sh now, so testing
+  // "not none" would be true for the free plans too. Harmless today because shMonthlyCost returns
+  // 0 for them, but it would silently start billing the moment a free plan gained a rate.
+  let shList = 0, shDiscAmt = 0, shTotal = 0, shYear1 = 0;
+  if (isPaidHosting(s.sh)) {
+    if (isMo) {
+      shList = shMonthlyCost(s.sh, false) * 12;
+      shYear1 = shList;
+    } else {
+      const mo = shMonthlyCost(s.sh, true);
+      shList = mo * 12 * years;
+      const pct = isDiscountableTerm(s.term) ? Math.max(0, s.licDisc) / 100 : 0;
+      if (licDiscountBasis(s.term) === 'year2') {
+        shYear1 = mo * 12;               // Year 1 is not discounted, same as the licence
+        shDiscAmt = mo * 12 * (years - 1) * pct;
+      } else {
+        // 1-year: the discount lands on the only year there is.
+        shDiscAmt = mo * 12 * pct;
+        shYear1 = shList - shDiscAmt;
+      }
+    }
+    shTotal = shList - shDiscAmt;
+  }
+
+  const grand = Math.round((licTotal + implTotal + shTotal) * 100) / 100;
+  const perMonth = Math.round((grand / months) * 100) / 100;
+
+  // Savings vs. paying monthly with no commitment, over the same span — license plus hosting
+  // plus whatever came off implementation. Mo scenarios have nothing to save against.
+  let savings = 0;
+  if (!isMo) {
+    const licMonthlyEquiv = (LIC.noCommitY1 * 12 + LIC.noCommit * 12 * (years - 1)) * users;
+    const shMonthlyEquiv = isPaidHosting(s.sh) ? shMonthlyCost(s.sh, false) * months : 0;
+    savings = (licMonthlyEquiv - licTotal) + implDiscAmt + (shMonthlyEquiv - shTotal);
+  }
+
+  // Financed monthly payment band (standard amortization), same APRs vepat quotes.
+  const pmt = rate => {
+    const r = rate / 12;
+    return (grand * r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
+  };
+  const finLow = grand > 0 ? pmt(APR_LOW) : 0;
+  const finHigh = grand > 0 ? pmt(APR_HIGH) : 0;
+
+  // Year-by-year cash. Reps get asked "so what do I actually pay in year three?" and an
+  // amortized average is the wrong answer — Year 1 carries the whole implementation and the
+  // undiscounted licence, so it is materially bigger than every year after it.
+  //   Year 1     = Year-1 promo licence + undiscounted hosting + implementation (initial invoice)
+  //   Year 2..n  = discounted Year-2+ licence and hosting, split evenly across the remaining years
+  // The rest of the term is flat, which is exactly the point worth showing a customer.
+  const rest = years - 1;
+  const licRest = rest > 0 ? (y2PlusTotal - licDiscAmt) / rest : 0;
+  const shRest  = rest > 0 ? (shTotal - shYear1) / rest : 0;
+  const schedule = [];
+  for (let y = 1; y <= years; y++) {
+    const first = y === 1;
+    const lic  = first ? y1Total : licRest;
+    const sh   = first ? shYear1 : shRest;
+    const impl = first ? implTotal : 0;
+    const total = lic + impl + sh;
+    schedule.push({ year: y, lic, impl, sh, total, perMonth: total / 12 });
+  }
+
+  return { isMo, years, months, y1Total, y2PlusTotal, licDiscAmt, licTotal,
+           implList, implDiscAmt, implTotal, shList, shDiscAmt, shTotal, shYear1,
+           grand, perMonth, savings, finLow, finHigh, schedule };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────────────────────────────────────
+const scBody = document.getElementById('scBody');
+
+function buildSelect(opts, value, onChange, id, ariaLabel){
+  const sel = document.createElement('select');
+  opts.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.v; opt.textContent = o.label;
+    if (String(o.v) === String(value)) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  if (id) sel.id = id;
+  if (ariaLabel) sel.setAttribute('aria-label', ariaLabel);
+  sel.addEventListener('change', () => onChange(sel.value));
+  return sel;
+}
+
+function buildPct(value, disabled, onInput, id, ariaLabel){
+  const input = document.createElement('input');
+  input.type = 'number'; input.min = '0'; input.step = '0.5';
+  input.className = 'pct';
+  input.value = value;
+  input.disabled = disabled;
+  if (id) input.id = id;
+  if (ariaLabel) input.setAttribute('aria-label', ariaLabel);
+  input.addEventListener('input', () => onInput(Math.max(0, +input.value || 0)));
+  return input;
+}
+
+function renderScenarios(){
+  scBody.innerHTML = '';
+  const anySh = scenarios.some(s => isPaidHosting(s.sh));
+  const anyCommitted = scenarios.some(s => s.term !== 'mo');
+
+  // Conditional columns — hosting and savings only appear when they mean something.
+  document.querySelectorAll('.col-sh').forEach(el => el.style.display = anySh ? '' : 'none');
+  document.querySelectorAll('.col-save').forEach(el => el.style.display = anyCommitted ? '' : 'none');
+  document.getElementById('shSizingWrap').style.display = anySh ? '' : 'none';
+  // Price the dedicated upgrade in the sidebar. Odoo.sh charges it per month, and the rate differs
+  // between annual and monthly billing, so quote whichever the scenarios actually use.
+  const dedHint = document.getElementById('shDedicatedHint');
+  if (dedHint && anySh) {
+    const anyMo = scenarios.some(s => isPaidHosting(s.sh) && s.term === 'mo');
+    const rate = (anyMo ? SH_RATES_().monthly : SH_RATES_().yearly).dedicated;
+    dedHint.textContent = `A server of your own rather than a shared one. Adds a flat `
+      + `${fmtDec(rate)}/month on top of the three figures above, and lifts their ceiling to `
+      + `${SH_LIMITS_DEDICATED.workersMax} workers and ${SH_LIMITS_DEDICATED.storageMax}GB.`;
+  }
+
+  if (!scenarios.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="14" class="empty-row">No scenarios yet. Press <strong>+ Add</strong> to build one.</td>';
+    scBody.appendChild(tr);
+    document.getElementById('dupScenario').disabled = true;
+    return;
+  }
+  document.getElementById('dupScenario').disabled = false;
+
+  const computed = scenarios.map(s => ({ s, q: compute(s) }));
+
+  computed.forEach(({s, q}) => {
+    const tr = document.createElement('tr');
+    tr.id = 'scRow_' + s.id;
+
+    // Show
+    const n = 'scenario ' + (scenarios.indexOf(s) + 1);
+
+    // Remove sits FIRST so it is always on screen. As the last column it fell off the right of
+    // the table on a narrower window, behind a horizontal scrollbar most people never touch —
+    // and it was omitted entirely on a single row, so there was no affordance to discover.
+    // It now always renders; with one scenario left it is simply disabled and says why.
+    const tdRm = document.createElement('td');
+    tdRm.className = 'no-print center';
+    const rmBtn = document.createElement('button');
+    rmBtn.type = 'button';
+    rmBtn.className = 'rm-btn';
+    rmBtn.id = 'rm_' + s.id;
+    rmBtn.textContent = '×';
+    rmBtn.setAttribute('aria-label', 'Remove ' + n);
+    rmBtn.title = 'Remove this scenario';
+    rmBtn.addEventListener('click', () => {
+      scenarios = scenarios.filter(x => x.id !== s.id);
+      render();
+    });
+    tdRm.appendChild(rmBtn);
+    tr.appendChild(tdRm);
+
+    // Order matters on a board a rep is talking through, so rows can be moved. Kept as buttons
+    // rather than drag-and-drop: this gets used mid-conversation on a laptop trackpad.
+    const tdMove = document.createElement('td');
+    tdMove.className = 'no-print center move-cell';
+    [['up', '\u2191', -1], ['down', '\u2193', 1]].forEach(([dir, glyph, delta]) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'move-btn';
+      btn.id = 'mv' + dir + '_' + s.id;
+      btn.textContent = glyph;
+      btn.setAttribute('aria-label', `Move ${n} ${dir}`);
+      btn.title = `Move ${dir}`;
+      const at = scenarios.findIndex(x => x.id === s.id);
+      btn.disabled = delta < 0 ? at === 0 : at === scenarios.length - 1;
+      btn.addEventListener('click', () => {
+        const i = scenarios.findIndex(x => x.id === s.id);
+        const j = i + delta;
+        if (j < 0 || j >= scenarios.length) return;
+        [scenarios[i], scenarios[j]] = [scenarios[j], scenarios[i]];
+        render();
+      });
+      tdMove.appendChild(btn);
+    });
+    tr.appendChild(tdMove);
+
+
+    const tdUsers = document.createElement('td');
+    tdUsers.className = 'center';
+    const uIn = document.createElement('input');
+    uIn.type = 'number'; uIn.min = '1'; uIn.step = '1';
+    uIn.className = 'pct users-in';
+    uIn.id = 'users_' + s.id;
+    uIn.value = scenarioUsers(s);
+    uIn.disabled = usersLinked();
+    uIn.title = usersLinked()
+      ? 'Untick "Same for every scenario" in the sidebar to vary seats per row'
+      : 'Seats for this scenario';
+    uIn.setAttribute('aria-label', 'Users for ' + n);
+    uIn.addEventListener('input', () => { s.users = Math.max(1, +uIn.value || 1); render(); });
+    tdUsers.appendChild(uIn);
+    tr.appendChild(tdUsers);
+
+    // Term
+    const tdTerm = document.createElement('td');
+    tdTerm.appendChild(buildSelect(TERM_OPTS, s.term, v => {
+      const wasBasis = licDiscountBasis(s.term);
+      s.term = v === 'mo' ? 'mo' : +v;
+      // Reset the licence discount whenever WHAT IT MEANS changes. A 15% that was coming off the
+      // Year-2-onward licence would silently start coming off Year 1 on a switch to a 1-year term,
+      // which is a much larger real discount and off-schedule besides. Making the rep re-enter it
+      // keeps an off-schedule discount a deliberate act rather than a side effect.
+      if (!isDiscountableTerm(s.term) || licDiscountBasis(s.term) !== wasBasis) s.licDisc = 0;
+      render();
+    }, 'term_' + s.id, 'Term for ' + n));
+    tr.appendChild(tdTerm);
+
+    // Plan
+    const tdPlan = document.createElement('td');
+    tdPlan.appendChild(buildSelect(
+      [{v:'standard', label:'Standard'}, {v:'custom', label:'Custom'}],
+      s.plan, v => { s.plan = v; render(); }, 'plan_' + s.id, 'Plan for ' + n));
+    tr.appendChild(tdPlan);
+
+    // License discount — n/a on Mo and 1yr
+    const tdLic = document.createElement('td');
+    tdLic.className = 'center';
+    if (isDiscountableTerm(s.term)) {
+      const licInput = buildPct(s.licDisc, false, v => { s.licDisc = v; render(); },
+        'licDisc_' + s.id, 'License discount percent for ' + n);
+      // The ceiling is on the field itself as well as in the warning box, so a rep can see the
+      // limit before typing rather than only after breaching it.
+      licInput.title = licDiscountBasis(s.term) === 'year2'
+        ? `Maximum for a ${s.term}-year term is ${licMaxPct(s.term)}%`
+        : 'No Year 2 on a 1-year term, so this comes off the Year-1 promotional rate. Outside the standard schedule';
+      tdLic.appendChild(licInput);
+    } else {
+      // Not a policy block so much as arithmetic: the multi-year discount only ever reduces the
+      // Year-2-onward licence, and neither a 1-year nor a no-commitment deal has one. Both still
+      // get the automatic Year-1 promotional rate, and both can still discount implementation —
+      // so the cell explains itself rather than just reading "no discount".
+      tdLic.innerHTML = '<span class="na">n/a</span>';
+      tdLic.title = s.term === 'mo'
+        ? 'No commitment, so there is no Year 2+ to discount. The no-commit Year-1 rate still applies, and implementation can still be discounted.'
+        : 'A 1-year term has no Year 2+ for the multi-year discount to reduce. The Year-1 promotional rate still applies, and implementation can still be discounted.';
+    }
+    tr.appendChild(tdLic);
+
+    // Implementation package. Dropping back to self-serve clears the discount too, so a row can
+    // never carry a stale percentage against a disabled input the user can no longer reach.
+    // "Custom" reveals an hours box priced as the cheapest real combination of packs.
+    const tdImpl = document.createElement('td');
+    const implOpts = [{v:'0', label:'None'}]
+      .concat(PACKS_().map(p => ({v:String(p.hours), label:`${p.label} ${p.hours}h`})))
+      .concat([{v:'custom', label:'Custom…'}]);
+    const isCustomHours = s.customHours || !PACKS_().some(p => p.hours === s.hours) && s.hours > 0;
+    tdImpl.appendChild(buildSelect(implOpts, isCustomHours ? 'custom' : s.hours, v => {
+      if (v === 'custom') {
+        s.customHours = true;
+        if (!s.hours) s.hours = 50;
+      } else {
+        s.customHours = false;
+        s.hours = +v;
+        if (s.hours <= 0) s.implDisc = 0;
+      }
+      render();
+    }, 'hours_' + s.id, 'Implementation package for ' + n));
+    if (isCustomHours) {
+      const hrs = document.createElement('input');
+      hrs.type = 'number'; hrs.min = '0'; hrs.step = '1';
+      hrs.className = 'pct'; hrs.style.marginLeft = '6px'; hrs.style.width = '62px';
+      hrs.value = s.hours; hrs.id = 'customHours_' + s.id;
+      hrs.setAttribute('aria-label', 'Custom implementation hours for ' + n);
+      hrs.addEventListener('input', () => {
+        s.hours = Math.max(0, +hrs.value || 0);
+        if (s.hours <= 0) s.implDisc = 0;
+        render();
+      });
+      tdImpl.appendChild(hrs);
+    }
+    tr.appendChild(tdImpl);
+
+    // Implementation discount — only meaningful once a package is on the row
+    const tdImplPct = document.createElement('td');
+    tdImplPct.className = 'center';
+    tdImplPct.appendChild(buildPct(s.implDisc, s.hours <= 0, v => { s.implDisc = v; render(); },
+      'implDisc_' + s.id, 'Implementation discount percent for ' + n));
+    tr.appendChild(tdImplPct);
+
+    // Hosting
+    const tdSh = document.createElement('td');
+    tdSh.appendChild(buildSelect(
+      [{v:'standard', label:'Standard Cloud'}, {v:'self', label:'Self-hosted'}, {v:'sh', label:'Odoo.sh'}],
+      s.sh, v => { s.sh = v; render(); }, 'sh_' + s.id, 'Hosting for ' + n));
+    tr.appendChild(tdSh);
+
+    // Outputs
+    const addNum = (id, text, extraClass) => {
+      const td = document.createElement('td');
+      td.className = 'num' + (extraClass ? ' ' + extraClass : '');
+      td.id = id; td.textContent = text;
+      tr.appendChild(td);
+      return td;
+    };
+    // A dash means "this deal has none of that" — not "it rounded to zero". An over-100%
+    // discount legitimately drives the number negative and must still be readable.
+    addNum('cLic_' + s.id, fmt(q.licTotal), 'divide'); // starts the results half of the row
+    addNum('cImpl_' + s.id, q.implList > 0 ? fmt(q.implTotal) : '-');
+    const tdShOut = addNum('cSh_' + s.id, isPaidHosting(s.sh) ? fmt(q.shTotal) : '-', 'col-sh');
+    if (!anySh) tdShOut.style.display = 'none';
+
+    addNum('cGrand_' + s.id, fmt(q.grand), 'grand');
+    addNum('cPer_' + s.id, fmt(q.perMonth));
+    const tdSave = addNum('cSave_' + s.id, q.savings > 0 ? fmt(q.savings) : '-', 'col-save');
+    if (!anyCommitted) tdSave.style.display = 'none';
+
+    scBody.appendChild(tr);
+  });
+}
+
+// Warnings are built fresh each render and only exist when they actually apply — nothing sits
+// on screen as permanent noise.
+function renderWarnings(){
+  const box = document.getElementById('scWarns');
+  const gbox = document.getElementById('globalWarns');
+  box.innerHTML = '';
+  gbox.innerHTML = '';
+  // Every note names the field it is about. Reading "Lic %" first tells a rep where to look
+  // before they have read a word of the explanation, which matters when three notes are stacked.
+  const add = (target, field, msg) => {
+    const d = document.createElement('div');
+    d.className = 'warnmsg';
+    const f = document.createElement('span');
+    f.className = 'warn-field';
+    f.textContent = field;
+    d.appendChild(f);
+    d.appendChild(document.createTextNode(msg));
+    target.appendChild(d);
+  };
+
+  // License discount is capped per term by the system (2yr 5%, 3yr 10%, 4yr 12.5%, 5yr 15%), so
+  // the warning names the ceiling that was breached rather than a single flat number. Every term
+  // ceiling sits below the 30% flag used elsewhere, so a separate 30% line for license would only
+  // ever restate this one.
+  const licOver = scenarios.filter(s =>
+    licDiscountBasis(s.term) === 'year2' && licMaxPct(s.term) !== null && s.licDisc > licMaxPct(s.term));
+  if (licOver.length) {
+    add(box, 'Lic %', 'License discount above the per-term maximum: ' + licOver
+      .map(s => `${termLabel(s.term)} at ${s.licDisc}% (max ${licMaxPct(s.term)}%)`).join(', '));
+  }
+
+  // Implementation discount flags. 30% is the figure from the Aug 27 call, described there as
+  // typical rather than a hard ceiling, so the wording says "above", not "over the limit".
+  const implOver = scenarios.filter(s => s.hours > 0 && s.implDisc > TYPICAL_IMPL_DISCOUNT && s.implDisc <= 100);
+  if (implOver.length) {
+    add(box, 'Impl %', `Implementation discount above ${TYPICAL_IMPL_DISCOUNT}%: `
+      + implOver.map(s => `${termLabel(s.term)} (${s.implDisc}%)`).join(', '));
+  }
+
+  // The same discount on a pack larger than 200 hours is worth calling out separately, because
+  // only the first 200 hours are eligible. A rep reading "30%" off a 400-hour engagement is not
+  // getting 30% off the engagement; they are getting 30% off half of it.
+  const implOverBig = scenarios.filter(s =>
+    s.hours > DISCOUNT_ELIGIBLE_HOURS && s.implDisc > TYPICAL_IMPL_DISCOUNT);
+  if (implOverBig.length) {
+    add(box, 'Impl % + Implementation', `Above ${TYPICAL_IMPL_DISCOUNT}% on more than ${DISCOUNT_ELIGIBLE_HOURS} hours: `
+      + `the discount reaches only the first ${DISCOUNT_ELIGIBLE_HOURS} hrs, so the effective rate `
+      + `on the whole engagement is lower than the number typed`);
+  }
+
+  const implNeg = scenarios.filter(s => s.hours > 0 && s.implDisc > 100);
+  if (implNeg.length) add(box, 'Impl %', 'Implementation discount over 100%, which pushes the implementation cost negative');
+
+  // Year 1 sits at the promotional rate and a multi-year discount cannot reach it — this is
+  // exactly the error Josh found in the public reference calculator, which discounted the whole
+  // contract. Surfaced when a licence discount is actually being applied, since that is the
+  // moment a rep might assume it comes off everything.
+  // The "initial users ordered" wording is quoted from odoo.com/pricing's own footnote.
+  // A 1-year discount is off-schedule: worth a quiet note, not a red flag.
+  const offSchedule = scenarios.filter(isOffScheduleLicDiscount);
+  if (offSchedule.length) {
+    add(box, 'Lic %', 'There is no first-year licence discount. Odoo discounts only the '
+           + 'Year-2-onward licence, and a 1-year term has no Year 2, so what is typed here comes '
+           + 'off the Year-1 promotional rate. The tool allows it so you can model the ask, but it '
+           + 'is not a discount Odoo offers');
+  }
+
+  const licDiscounted = scenarios.filter(s => licDiscountBasis(s.term) === 'year2' && s.licDisc > 0);
+  if (licDiscounted.length) {
+    add(box, 'Lic %', 'Year 1 is already at the promotional rate. A multi-year discount only reduces the '
+           + 'Year-2-onward licence, never the whole contract. Odoo applies the promo for 12 months, '
+           + 'for initial users ordered, so seats added later in the year pay the standard rate');
+  }
+
+  // Odoo publishes Odoo.sh in USD only; a Canadian Odoo.sh line is a conversion, not a pricelist.
+  if (country === 'CA' && scenarios.some(s => isPaidHosting(s.sh))) {
+    add(gbox, 'Country + Hosting', `Odoo publishes Odoo.sh in USD only, so this hosting line is converted at ${USD_TO_CAD.toFixed(4)} and is worth confirming`);
+  }
+  // The 200hr / initial-invoice rule only matters once someone is actually discounting hours.
+  if (scenarios.some(s => s.hours > 0 && s.implDisc > 0)) {
+    add(box, 'Impl %', `The implementation discount only reaches the first ${DISCOUNT_ELIGIBLE_HOURS} hrs, on the initial invoice`);
+  }
+  // Hosting sizing — only when hosting is actually in play.
+  if (scenarios.some(s => isPaidHosting(s.sh))) {
+    const {workers, storage, staging} = shInputs();
+    const lim = shLimits();
+    if (workers < lim.workersMin || workers > lim.workersMax) add(gbox, 'Workers', `Odoo.sh typically runs ${lim.workersMin} to ${lim.workersMax} workers`);
+    if (storage > lim.storageMax) add(gbox, 'Storage', `Odoo.sh storage typically tops out around ${lim.storageMax}GB`);
+    if (staging > SH_STAGING_MAX) add(gbox, 'Staging', `Typically capped around ${SH_STAGING_MAX} staging environments`);
+  }
+}
+
+function renderDetail(){
+  const card = document.getElementById('breakdownCard');
+  const grid = document.getElementById('bdGrid');
+  if (!scenarios.length) { card.style.display = 'none'; return; }
+  card.style.display = '';
+  grid.innerHTML = '';
+
+  // Every scenario gets an equal column. The grid auto-fits, so two deals sit side by side and
+  // six wrap into rows rather than shrinking into unreadable slivers.
+  grid.style.gridTemplateColumns =
+    scenarios.length === 1 ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))';
+
+  scenarios.forEach((s, i) => {
+    const q = compute(s);
+    const users = scenarioUsers(s);
+    const p = packFor(s.hours);
+
+    const el = document.createElement('div');
+    el.className = 'bd-card';
+    el.id = 'bd_' + s.id;
+
+    const rows = [];
+    rows.push(`<div class="bd-line"><span>Year 1 (1st-year discount)</span><span>${fmtDec(q.y1Total)}</span></div>`);
+    if (q.y2PlusTotal > 0) rows.push(`<div class="bd-line"><span>Year 2+ (before discount)</span><span>${fmtDec(q.y2PlusTotal)}</span></div>`);
+    if (q.licDiscAmt > 0) {
+      const label = licDiscountBasis(s.term) === 'year2'
+        ? 'Multi-year discount'
+        : 'Year-1 discount (off-schedule)';
+      rows.push(`<div class="bd-line disc blue"><span>${label}</span><span>-${fmtDec(q.licDiscAmt)} (${s.licDisc}%)</span></div>`);
+    }
+
+    let implRows = '';
+    if (q.implList > 0) {
+      implRows = `<div class="bd-sec"><div class="bd-sec-h"><span class="dotmark amber"></span>Implementation<em>${p.label} ${p.hours}h</em></div>` +
+        `<div class="bd-line"><span>List</span><span>${fmtDec(q.implList)}</span></div>` +
+        (q.implDiscAmt !== 0 ? `<div class="bd-line disc amber"><span>Discount</span><span>-${fmtDec(q.implDiscAmt)} (${s.implDisc}%)</span></div>` : '') +
+        `</div>`;
+    }
+
+    let shRows = '';
+    if (isPaidHosting(s.sh)) {
+      const sz = shInputs();
+      shRows = `<div class="bd-sec"><div class="bd-sec-h"><span class="dotmark teal"></span>Hosting` +
+        `<em>Odoo.sh${isDedicated() ? ' dedicated' : ''} · ${sz.workers}w · ${sz.storage}GB</em></div>` +
+        `<div class="bd-line"><span>Hosting (list)</span><span>${fmtDec(q.shList)}</span></div>` +
+        (q.shDiscAmt > 0 ? `<div class="bd-line disc teal"><span>${licDiscountBasis(s.term) === 'year2' ? 'Multi-year discount' : 'Year-1 discount (off-schedule)'}</span><span>-${fmtDec(q.shDiscAmt)} (${s.licDisc}%)</span></div>` : '') +
+        `</div>`;
+    }
+
+    let fin = '';
+    if (showFinancing && !q.isMo && q.grand > 0) {
+      const tl = q.finLow * q.months, th = q.finHigh * q.months;
+      fin = `<div class="bd-fin"><div class="fin-label">Monthly payment if financed</div>` +
+        `<div class="fin-amt">${fmt(q.finLow)} to ${fmt(q.finHigh)}</div>` +
+        `<div class="fin-sub">over ${q.months} months at 6-13% APR · repays ${fmt(tl)} to ${fmt(th)}</div></div>`;
+    }
+
+    // Year-by-year cash. Hidden by default — it answers a question that only some customers ask.
+    const yrRows = q.schedule.map(y => {
+      const label = q.isMo ? '12 months' : 'Year ' + y.year;
+      // Rows show whole dollars because that is what gets said out loud; the exact figure is on
+      // the hover title, so the schedule still reconciles to the cent against the line items.
+      const exact = `${fmtDec(y.total)} · ${fmtDec(y.perMonth)}/mo`;
+      return `<div class="bd-yr${y.year === 1 ? ' first' : ''}" title="${exact}">` +
+        `<span>${label}</span>` +
+        `<span class="yr-amt">${fmt(y.total)}</span>` +
+        `<span class="yr-mo">${fmt(y.perMonth)}/mo</span></div>`;
+    }).join('');
+    // Year 1 is the odd one out, so say why rather than leaving the rep to explain the jump.
+    // Careful with the wording: Year 1's LICENCE is the cheapest of the term — it sits at the
+    // promotional rate, so it is lower than every later year even after the multi-year discount.
+    // Year 1 is only the biggest year because the whole implementation lands on it. Calling the
+    // Year-1 licence "undiscounted" read as though it were the expensive one, which is backwards.
+    let yrNote = '';
+    if (!q.isMo && q.years > 1) {
+      const licY1 = q.y1Total, licRestY = (q.y2PlusTotal - q.licDiscAmt) / (q.years - 1);
+      const bits = [];
+      if (q.implTotal !== 0) bits.push(`the whole implementation (${fmt(q.implTotal)})`);
+      if (licRestY > licY1 + 0.005) {
+        bits.push(`the licence at the Year-1 promotional rate, ${fmt(licY1)} against ${fmt(licRestY)} a year afterwards`);
+      }
+      if (bits.length) {
+        yrNote = `<div class="bd-yr-note">Year 1 carries ${bits.join(', and ')}. Every year after it is the same.</div>`;
+      }
+    }
+    const yearsBlock =
+      `<div class="bd-years"><div class="bd-years-h">Year by year</div>` +
+      `<div id="bdYears_${s.id}">${yrRows}</div>${yrNote}</div>`;
+
+    el.innerHTML =
+      `<div class="bd-head"><span class="bd-num">${i + 1}</span>` +
+      `<span class="bd-title">${termLabel(s.term)} · ${planLabel(s.plan)}</span>` +
+      `<span class="bd-seats">${users} ${users === 1 ? 'seat' : 'seats'}</span></div>` +
+      `<div class="bd-total" id="bdTotal_${s.id}">${fmt(q.grand)}</div>` +
+      `<div class="bd-sub">${q.isMo ? 'Billed monthly, no commitment · 12-month equivalent' : q.years + '-year term · ' + q.months + ' months'}</div>` +
+      `<div class="bd-permo"><span>Amortized per month</span><span id="bdPer_${s.id}">${fmt(q.perMonth)}</span></div>` +
+      (!q.isMo && q.savings > 0
+        ? `<div class="bd-save"><span>Saves vs paying monthly</span><span id="bdSave_${s.id}">${fmt(q.savings)}</span></div>` : '') +
+      fin +
+      yearsBlock +
+      `<div class="bd-detail">` +
+        `<div class="bd-sec"><div class="bd-sec-h"><span class="dotmark blue"></span>License` +
+        `<em>${q.isMo ? '12 months, no commitment' : 'Year 1 promo + Year 2+'}</em></div>${rows.join('')}</div>` +
+        implRows + shRows +
+      `</div>`;
+
+    grid.appendChild(el);
+  });
+
+  applyDetailVisibility();
+}
+
+// One switch each for the whole grid — with several scenarios open at once, per-card toggles
+// would just be more clicking.
+let detailOpen = true;
+let yearsOpen = false;   // off by default: only some customers ask for the year-by-year
+function applyDetailVisibility(){
+  document.querySelectorAll('.bd-detail').forEach(d => { d.style.display = detailOpen ? '' : 'none'; });
+  const btn = document.getElementById('toggleDetail');
+  if (btn) btn.textContent = detailOpen ? 'Collapse line items' : 'Expand line items';
+
+  document.querySelectorAll('.bd-years').forEach(d => { d.style.display = yearsOpen ? '' : 'none'; });
+  const ybtn = document.getElementById('toggleYears');
+  if (ybtn) {
+    ybtn.textContent = yearsOpen ? 'Hide year by year' : 'Year by year';
+    ybtn.classList.toggle('btn-primary', yearsOpen);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAYOUT — internal commission maths. THIS IS THE ONLY BLOCK TO EDIT when the comp plan
+// changes; nothing below reads the pricing model directly.
+//
+// Each function receives the computed scenario `q`, the raw scenario `s`, and
+// `ctx = { users, country, fx }`, and returns a figure in the quoting currency — the caller
+// applies `fx` to convert to USD.
+// ─────────────────────────────────────────────────────────────────────────────
+const PAYOUT = {
+  // The "MRR change line": the plan divides the contract by its length in months.
+  //   "A client signed a 2-year account for an amount of $10,000.
+  //    MRR change line will be $10,000 / 24 months = $416.66"
+  // The contract here is the recurring part — licence plus hosting. Success packs are explicitly
+  // listed as NRR, not MRR, so they are excluded.
+  mrrChangeLine(q, s, ctx){
+    return (q.licTotal + q.shTotal) / q.months;
+  },
+  // MRR *achieved* value = the change line times the contract-length MRR Rate.
+  //   "The value of the transaction is $416.66 * MRR Rate = $416.66 * 2 = $833.32"
+  // NOTE: an earlier version of this tool subtracted an assumed "customer's existing MRR" here,
+  // reading the doc's "$833.32 - $80" as a netting-off. The full plan document disproves that:
+  // the -$80 is a SEPARATE churned account in the same month (-$100/1 month x an MRR Rate of 0.8
+  // for a monthly contract). Churn belongs in the month-to-date field, not in the deal.
+  mrrAchieved(q, s, ctx){
+    return PAYOUT.mrrChangeLine(q, s, ctx) * mrrRateFor(s.term);
+  },
+  // NRR achieved value — success pack x NRR rate, and "The NRR rate is equal to 100%."
+  nrrAchieved(q, s, ctx){
+    return q.implTotal * COMMISSION.nrrRate;
+  },
+  // Return false to hide the NRR figure for a scenario (no implementation sold).
+  hasNrr(q, s, ctx){
+    return q.implList > 0;
+  }
+};
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMMISSION — the BU-DS-NA plan, 07/15/2025.
+//
+// Reps are split by book — a 1–5 user team and a 6+ team — and each carries its own quota. The
+// 6+ figures are the doc's. The 1–5 targets are NOT in that extract: they are scaled here so the
+// band structure (50/70/100/120/150% of quota) still holds, and are marked unconfirmed in the UI.
+// Replace SEGMENTS['1-5'] with the real numbers when you have them.
+//
+// Bands are treated as MARGINAL (each rate applies only to the slice of achieved value inside
+// that band), like tax brackets. The document does not say so outright, but a flat whole-amount
+// rate would pay $129.65 at $1,049.79 (x0.1235) and $1,293.88 at $1,049.80 (x1.2325) — a 9.98x
+// jump for one cent — so
+// marginal is the only coherent reading. Worth confirming with Finance.
+//
+// Commission is earned on the MONTH's achieved value, not on one deal in isolation, so a deal's
+// real commission depends on what is already booked. That is what marginalCommission is for.
+// ─────────────────────────────────────────────────────────────────────────────
+// ── Commission plans, typed from the signed documents ────────────────────────────────────────
+// 1-5:  USHR BU-DS-NA-1to5 Sales Commission Plan, doc dated 07/15/2025, effective 06/29/2026.
+// 6+:   BU-DS-NA plan, same family, from the extract Riley supplied Aug 27.
+//
+// Each book has its OWN rate table. They are not scaled versions of one another: the 1-5 plan
+// spikes to 5.5212 in the 70-100%-of-quota band and then flattens to 0.65, while 6+ peaks at
+// 1.2325 and tapers. What the two share is the band geometry and — strikingly — the payout at
+// 100%: both land on ~$2,036, which is the 1-5 plan's stated monthly on-target goal of $2,036.04.
+// That coincidence is load-bearing: it cross-validates both rate tables at once, and a test
+// asserts it, so a typo in either table would show up immediately.
+const SEGMENTS = {
+  '6+': {
+    label: '6+ users', mrrTarget: 2100, nrrTarget: 18000, onTarget: null,
+    mrrRates: [0.1235, 1.2325, 1.2325, 1.0668, 0.7429, 0.7429],
+    nrrRates: [0.0068, 0.0612, 0.0612, 0.0340, 0.0340, 0.0340]
+  },
+  '1-5': {
+    label: '1-5 users', mrrTarget: 700, nrrTarget: 6000, onTarget: 2036.04,
+    mrrRates: [0.3705, 0.9634, 5.5212, 0.6500, 0.6500, 0.6500],
+    nrrRates: [0.0204, 0.0388, 0.2801, 0.0420, 0.0420, 0.0420]
+  }
+};
+let segment = '6+';
+
+// Band tops are fractions of quota. Confirmed against BOTH documents independently: the 1-5 plan
+// prints 349.93 / 489.93 / 699.93 / 839.93 / 1,049.93 on a $700 target, which is exactly these
+// fractions, and the same holds for its $6,000 NRR target and for the 6+ figures.
+const BAND_STOPS = [0.4999, 0.6999, 0.9999, 1.1999, 1.4999, Infinity];
+
+// The plan caps a month's payout at 3000% of the on-target goal. This is a hard limit in the
+// document, not a guideline, so the tool enforces it rather than warning about it.
+const PAYOUT_CAP_MULTIPLE = 30;
+
+// "The MRR Rate is an increasing or decreasing percentage of the value of the MRR, which is
+// intended to incentivize the sale of longer contracts."  The plan gives two worked values:
+// a 2-year contract carries a rate of 2, and a churned monthly account carries 0.8. The rate
+// therefore tracks the committed years. 1 / 3 / 4 / 5 follow the pattern but are NOT stated in
+// the document — they are marked below and surfaced in the UI so nobody mistakes them for quoted
+// facts. Change them here if Finance says otherwise; nothing else needs touching.
+const MRR_RATE = { mo: 0.8, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
+const MRR_RATE_CONFIRMED = { mo: true, 1: false, 2: true, 3: false, 4: false, 5: false };
+function mrrRateFor(term){
+  const r = MRR_RATE[term];
+  return r === undefined ? 1 : r;
+}
+function mrrRateIsConfirmed(term){ return !!MRR_RATE_CONFIRMED[term]; }
+
+function bandsFor(target, rates){
+  return BAND_STOPS.map((stop, i) => ({
+    upTo: stop === Infinity ? Infinity : Math.round(target * stop * 100) / 100,
+    rate: rates[i]
+  }));
+}
+
+const COMMISSION = {
+  get segment(){ return SEGMENTS[segment]; },
+  get mrrTarget(){ return SEGMENTS[segment].mrrTarget; },
+  get nrrTarget(){ return SEGMENTS[segment].nrrTarget; },
+  get mrrBands(){ return bandsFor(SEGMENTS[segment].mrrTarget, SEGMENTS[segment].mrrRates); },
+  get nrrBands(){ return bandsFor(SEGMENTS[segment].nrrTarget, SEGMENTS[segment].nrrRates); },
+  nrrRate: 1,                      // "The NRR rate is equal to 100%."
+  // The month's payout at exactly 100% of both quotas — the plan's "on-target commission goal".
+  get onTargetPayout(){
+    return bandedCommission(this.mrrTarget, this.mrrBands)
+         + bandedCommission(this.nrrTarget, this.nrrBands);
+  },
+  get payoutCap(){ return this.onTargetPayout * PAYOUT_CAP_MULTIPLE; }
+};
+
+// Commission on a running total, walking the bands.
+function bandedCommission(value, bands){
+  if (!(value > 0)) return 0;
+  let total = 0, floor = 0;
+  for (const b of bands) {
+    if (value <= floor) break;
+    total += (Math.min(value, b.upTo) - floor) * b.rate;
+    floor = b.upTo;
+  }
+  return total;
+}
+
+// What THIS deal adds, given what the rep has already booked this month. Because the bands
+// accelerate then decelerate, the same deal is worth different amounts depending on where in
+// the month it lands — so the honest figure is the difference the deal makes.
+// The month's total payout, with the plan's hard cap applied. The cap is on the MONTH, not on a
+// line, so it has to be evaluated on MRR and NRR together — capping each separately would let a
+// month slip past the limit.
+function cappedMonthPayout(mrrValue, nrrValue){
+  const raw = bandedCommission(mrrValue, COMMISSION.mrrBands)
+            + bandedCommission(nrrValue, COMMISSION.nrrBands);
+  return Math.min(raw, COMMISSION.payoutCap);
+}
+
+// What a deal actually adds to the month's payout once the cap is taken into account.
+function cappedDealCommission(priorMrr, priorNrr, dealMrr, dealNrr){
+  return cappedMonthPayout(priorMrr + dealMrr, priorNrr + dealNrr)
+       - cappedMonthPayout(priorMrr, priorNrr);
+}
+
+function marginalCommission(priorValue, dealValue, bands){
+  return bandedCommission(priorValue + dealValue, bands) - bandedCommission(priorValue, bands);
+}
+
+// Which scenarios count toward the month roll-up. A dropdown could only offer "one" or "all";
+// a rep comparing four shapes often wants two of them. Held as a Set of ids that survives
+// re-renders, with anything newly added counted by default.
+const rollExcluded = new Set();
+function isRolled(id){ return !rollExcluded.has(id); }
+
+// The comp plan pays in USD, so every band and every threshold is evaluated in USD. This only
+// changes how the finished figures are DISPLAYED, which is why the multiplier is applied last.
+let payCurrency = 'USD';
+function payMult(){ return payCurrency === 'USD' ? 1 : USD_TO_CAD; }
+// Attainment, rendered as a quiet second line under a figure. A number alone does not tell a rep
+// whether the month is going well; against quota it does.
+function pctOf(value, target){
+  if (!(target > 0)) return '';
+  // Leading space matters: without it the figure and the percentage run together in textContent
+  // ("$1,4658%"), which breaks anything reading the cell as a number. It is invisible on screen
+  // because the span is display:block.
+  return ` <span class="pct-sub">${Math.round((value / target) * 100)}%</span>`;
+}
+
+function fmtPay(usd){
+  const v = usd * payMult();
+  return (payCurrency === 'USD' ? '$' : 'C$')
+    + v.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+}
+
+function renderInternal(){
+  const card = document.getElementById('internalCard');
+  card.style.display = internalView ? '' : 'none';
+  if (!internalView) return;
+
+  const fx = COUNTRIES[country].toUSD;
+  const body = document.getElementById('internalBody');
+  body.innerHTML = '';
+  const ctx = { country, fx };
+
+  // The book is which team the rep sits on, not something derived from the quote — so it is
+  // simply whichever segment is selected.
+  const seg = SEGMENTS[segment];
+  document.getElementById('segNote').innerHTML =
+    `What each scenario pays you, in <strong>${payCurrency}</strong>. <strong>${seg.label}</strong> book. Monthly targets ` +
+    `MRR <strong>${fmtPay(seg.mrrTarget)}</strong> · NRR <strong>${fmtPay(seg.nrrTarget)}</strong>. ` +
+    (country === 'US'
+      ? ''
+      : ` Quote is in CAD, converted to USD at <strong>${(1 / fx).toFixed(4)}</strong> CAD per USD.`) +
+    `At 100% of both, the month pays <strong>${fmtDec(COMMISSION.onTargetPayout)}</strong>` +
+    (seg.onTarget ? `. The plan states ${fmtDec(seg.onTarget)}.` : `.`) +
+    ` Capped at ${PAYOUT_CAP_MULTIPLE * 100}% of that, i.e. ${fmtPay(COMMISSION.payoutCap)} a month.`;
+
+  let anyCapped = false;
+  // Filling in the month is optional. Left off, every scenario is priced from an empty month,
+  // which is the right default for someone just comparing shapes of a deal.
+  const useMtd = document.getElementById('useMtd').checked;
+  document.getElementById('mtdGrid').style.display = useMtd ? '' : 'none';
+  const bookedMrr = useMtd ? Math.max(0, +document.getElementById('mtdMrr').value || 0) : 0;
+  const priorNrr  = useMtd ? Math.max(0, +document.getElementById('mtdNrr').value || 0) : 0;
+  // Churn reduces the month's achieved MRR before this deal is layered on. The plan's own example
+  // does exactly this: a $100 monthly account churning contributes -$100 x 0.8 = -$80 to the
+  // month, which is where the "$833.32 - $80" comes from.
+  const churnMrr = useMtd ? Math.max(0, +document.getElementById('churnMrr').value || 0) : 0;
+  const priorMrr = bookedMrr - churnMrr;
+
+  // Each row is kept so the roll-up picker can select one or all of them.
+  const rows = [];
+  scenarios.forEach((s, i) => {
+    const q = compute(s);
+    ctx.users = scenarioUsers(s);
+    const line  = PAYOUT.mrrChangeLine(q, s, ctx) * fx;   // contract / months
+    const rate  = mrrRateFor(s.term);
+    const mrr   = PAYOUT.mrrAchieved(q, s, ctx) * fx;    // change line x MRR Rate
+    const nrr = PAYOUT.hasNrr(q, s, ctx) ? PAYOUT.nrrAchieved(q, s, ctx) * fx : 0;
+    // The commission this deal adds on top of whatever is already booked this month.
+    const mrrComm = marginalCommission(priorMrr, mrr, COMMISSION.mrrBands);
+    const nrrComm = marginalCommission(priorNrr, nrr, COMMISSION.nrrBands);
+    // The plan caps the month at 3000% of the on-target goal, so the total can be less than the
+    // two parts added together. It is a hard limit in the document, so it is enforced, not warned.
+    const total = cappedDealCommission(priorMrr, priorNrr, mrr, nrr);
+    const capped = total < mrrComm + nrrComm - 0.005;
+    if (capped) anyCapped = true;
+    rows.push({ id: s.id, mrr, nrr, n: i + 1 });
+
+    const tr = document.createElement('tr');
+    // Spell the plan's own formula out on hover: contract / months x MRR Rate.
+    const mrrTitle = `${fmtPay(line)} change line × ${rate} MRR Rate = ${fmtPay(mrr)} achieved`
+      + (mrrRateIsConfirmed(s.term) ? '' : ' · rate inferred, not stated in the plan');
+    tr.className = isRolled(s.id) ? '' : 'row-muted';
+    tr.innerHTML =
+      `<td class="center pick-col"><input type="checkbox" id="pick_${s.id}"${isRolled(s.id) ? ' checked' : ''} aria-label="Count scenario ${i + 1} toward the month"></td>` +
+      `<td>${i + 1}. ${termLabel(s.term)} · ${planLabel(s.plan)} · ${scenarioUsers(s)}u</td>` +
+      `<td class="num" id="mrrRate_${s.id}" title="${mrrRateIsConfirmed(s.term) ? 'Stated in the plan' : 'Inferred from the pattern, not stated in the plan'}">×${rate}${mrrRateIsConfirmed(s.term) ? '' : '*'}</td>` +
+      `<td class="num" id="mrr_${s.id}" title="${mrrTitle}">${fmtPay(mrr)}</td>` +
+      `<td class="num" id="nrr_${s.id}">${nrr > 0 ? fmtPay(nrr) : '-'}</td>` +
+      `<td class="num divide" id="monthMrr_${s.id}" title="${fmtPay(priorMrr)} booked + ${fmtPay(mrr)} = ${fmtPay(priorMrr + mrr)}">${fmtPay(priorMrr + mrr)}${pctOf(priorMrr + mrr, COMMISSION.mrrTarget)}</td>` +
+      `<td class="num" id="monthNrr_${s.id}" title="${fmtPay(priorNrr)} booked + ${fmtPay(nrr)} = ${fmtPay(priorNrr + nrr)}">${fmtPay(priorNrr + nrr)}${pctOf(priorNrr + nrr, COMMISSION.nrrTarget)}</td>` +
+      `<td class="num grand divide" id="comm_${s.id}" title="${fmtPay(mrrComm)} on MRR + ${fmtPay(nrrComm)} on NRR${capped ? `, capped from ${fmtPay(mrrComm + nrrComm)}` : ''}">${fmtPay(total)}${capped ? ' <span class="capflag">cap</span>' : ''}${pctOf(total, COMMISSION.onTargetPayout)}</td>`;
+    body.appendChild(tr);
+  });
+
+  // Wire the pickers. Done after the rows exist so the handlers attach to live nodes.
+  scenarios.forEach(s => {
+    const cb = document.getElementById('pick_' + s.id);
+    if (!cb) return;
+    cb.addEventListener('change', () => {
+      if (cb.checked) rollExcluded.delete(s.id); else rollExcluded.add(s.id);
+      renderInternal();
+    });
+  });
+  const pickAll = document.getElementById('pickAll');
+  if (pickAll) {
+    const allOn = scenarios.every(s => isRolled(s.id));
+    pickAll.checked = allOn;
+    pickAll.indeterminate = !allOn && scenarios.some(s => isRolled(s.id));
+    pickAll.onchange = () => {
+      rollExcluded.clear();
+      if (!pickAll.checked) scenarios.forEach(s => rollExcluded.add(s.id));
+      renderInternal();
+    };
+  }
+
+  // The month, answered outright. Scenarios are normally alternatives, but a rep working a real
+  // month wants to know what the whole board is worth if it all lands, and where that leaves them
+  // against quota. Three rows: where the month stands now, what the board adds, where it ends.
+  const rollBody = document.getElementById('monthRollBody');
+  if (rollBody) {
+    // Whatever is ticked in the table above. Everything by default; a rep comparing four shapes
+    // can count any two of them and see what that month looks like.
+    const chosen = rows.filter(r => isRolled(r.id));
+    const addMrr = chosen.reduce((a, r) => a + r.mrr, 0);
+    const addNrr = chosen.reduce((a, r) => a + r.nrr, 0);
+    const label  = chosen.length === rows.length
+      ? `All ${rows.length} scenario${rows.length === 1 ? '' : 's'}`
+      : chosen.length === 0
+        ? 'Nothing selected'
+        : (chosen.length === 1
+            ? `Scenario ${chosen[0].n}`
+            : `Scenarios ${chosen.map(r => r.n).join(' + ')}`);
+    const note = document.getElementById('rollPickNote');
+    if (note) note.textContent = chosen.length === rows.length
+      ? 'Counting every scenario. Untick any in the table above.'
+      : `Counting ${chosen.length} of ${rows.length}.`;
+
+    const commBooked = cappedMonthPayout(priorMrr, priorNrr);
+    const commAll    = cappedMonthPayout(priorMrr + addMrr, priorNrr + addNrr);
+    const commAdded  = commAll - commBooked;
+    const pct = (v, t) => `${Math.round((v / t) * 100)}% of quota`;
+    rollBody.innerHTML =
+      `<tr><td class="mr-label">Already booked</td>` +
+        `<td class="num" id="rollBookedMrr">${fmtPay(priorMrr)}${pctOf(priorMrr, COMMISSION.mrrTarget)}</td>` +
+        `<td class="num" id="rollBookedNrr">${fmtPay(priorNrr)}${pctOf(priorNrr, COMMISSION.nrrTarget)}</td>` +
+        `<td class="num" id="rollBookedComm">${fmtPay(commBooked)}${pctOf(commBooked, COMMISSION.onTargetPayout)}</td></tr>` +
+      `<tr class="mr-add"><td class="mr-label">${label}</td>` +
+        `<td class="num" id="rollAddMrr">+${fmtPay(addMrr)}${pctOf(addMrr, COMMISSION.mrrTarget)}</td>` +
+        `<td class="num" id="rollAddNrr">+${fmtPay(addNrr)}${pctOf(addNrr, COMMISSION.nrrTarget)}</td>` +
+        `<td class="num" id="rollAddComm">+${fmtPay(commAdded)}${pctOf(commAdded, COMMISSION.onTargetPayout)}</td></tr>` +
+      `<tr class="mr-total"><td class="mr-label">Month total</td>` +
+        `<td class="num" id="rollTotMrr">${fmtPay(priorMrr + addMrr)}${pctOf(priorMrr + addMrr, COMMISSION.mrrTarget)}</td>` +
+        `<td class="num" id="rollTotNrr">${fmtPay(priorNrr + addNrr)}${pctOf(priorNrr + addNrr, COMMISSION.nrrTarget)}</td>` +
+        `<td class="num" id="rollTotComm">${fmtPay(commAll)}${pctOf(commAll, COMMISSION.onTargetPayout)}</td></tr>`;
+    document.getElementById('monthRoll').style.display = scenarios.length ? '' : 'none';
+    const rh = document.querySelector('#monthRoll .mr-h');
+    if (rh) rh.textContent = !scenarios.length
+      ? 'If they all book'
+      : chosen.length === 0
+        ? 'Nothing selected, so the month stands where it is'
+        : `Booking ${chosen.length === rows.length ? 'all of them' : chosen.length === 1 ? 'that one' : 'those ' + chosen.length} `
+          + `ends the month at ${Math.round(((priorMrr + addMrr) / COMMISSION.mrrTarget) * 100)}% of MRR quota and `
+          + `${Math.round(((priorNrr + addNrr) / COMMISSION.nrrTarget) * 100)}% of NRR`;
+  }
+
+  // Where the month stands before this deal, so the bands above make sense in context.
+  const mPct = Math.round((priorMrr / COMMISSION.mrrTarget) * 100);
+  const nPct = Math.round((priorNrr / COMMISSION.nrrTarget) * 100);
+  const capNote = document.getElementById('capNote');
+  if (capNote) {
+    capNote.style.display = anyCapped ? '' : 'none';
+    capNote.textContent = `One or more scenarios hit the plan's monthly cap of `
+      + `${PAYOUT_CAP_MULTIPLE * 100}% of the on-target goal (${fmtPay(COMMISSION.payoutCap)}). `
+      + `The Total column shows what would actually be paid.`;
+  }
+  // Which band the next dollar lands in. On the 1-5 book the 70-100%-of-quota band pays 5.5212,
+  // more than eight times the 0.65 that applies above quota — so where the month currently sits
+  // changes what a deal is worth far more than its size does. Worth stating outright.
+  const bandAt = v => (COMMISSION.mrrBands.find(b => v < b.upTo) || COMMISSION.mrrBands[COMMISSION.mrrBands.length - 1]).rate;
+  const nowRate = bandAt(Math.max(0, priorMrr));
+  const bestRate = Math.max(...COMMISSION.mrrBands.map(b => b.rate));
+  const atBest = Math.abs(nowRate - bestRate) < 1e-9;
+  const marginalNote = ` The next dollar of MRR sits in the <strong>×${nowRate}</strong> band`
+    + (atBest ? ', the richest one in this plan.' : `, against a best of ×${bestRate} in this plan.`);
+
+  document.getElementById('mtdAttain').innerHTML = (priorMrr > 0 || priorNrr > 0)
+    ? `Before this deal you are at <strong>${mPct}%</strong> of the MRR target and <strong>${nPct}%</strong> of NRR. The bands below start from there.` + marginalNote
+    : (useMtd
+        ? `Nothing entered yet, so each scenario is priced from $0 and the low opening band applies.`
+        : `Each scenario is priced from an empty month, so the low opening band applies. Tick <strong>Factor in my month so far</strong> to see what a deal is really worth once your month is under way.`)
+      + marginalNote;
+}
+
+// One-line statement of what is being quoted, echoing the customer back to themselves.
+function renderContext(){
+  const parts = [];
+  if (scenarios.length) {
+    const seats = [...new Set(scenarios.map(scenarioUsers))].sort((a, b) => a - b);
+    parts.push(seats.length === 1
+      ? `<strong>${seats[0]}</strong> ${seats[0] === 1 ? 'user' : 'users'}`
+      : `<strong>${seats[0]}-${seats[seats.length - 1]}</strong> users`);
+    const plans = [...new Set(scenarios.map(x => planLabel(x.plan)))];
+    parts.push(plans.length === 1 ? `<strong>${plans[0]}</strong> plan` : `${plans.join(' + ')} plans`);
+  }
+  parts.push(country === 'US' ? 'United States · USD' : 'Canada · CAD');
+  parts.push(scenarios.length
+    ? `${scenarios.length} scenario${scenarios.length === 1 ? '' : 's'}`
+    : 'no scenarios yet');
+  document.getElementById('contextLine').innerHTML = parts.join('<span class="dot"></span>');
+}
+
+function syncUsers(){
+  const linked = usersLinked();
+  if (linked) scenarios.forEach(s => { s.users = masterUsers(); });
+  const hint = document.getElementById('usersHint');
+  if (hint) hint.textContent = linked
+    ? 'Every scenario uses this count.'
+    : 'Each scenario keeps its own count. Edit them in the Users column.';
+}
+
+function render(){
+  syncUsers();
+  // renderScenarios() rebuilds the table from scratch, which destroys whatever input the user is
+  // typing into and drops focus after a single keystroke. Capture the caret first and put it back
+  // afterwards, including the raw text they had typed — re-deriving the value from state would
+  // fight them mid-edit (clearing the box would snap it back to "0" and they'd end up with "0135").
+  const active = document.activeElement;
+  const focusId = active && active.id ? active.id : null;
+  const focusVal = focusId && 'value' in active ? active.value : null;
+
+  maybeSeedShSizing();
+  renderScenarios();
+  renderWarnings();
+  renderDetail();
+  renderInternal();
+  renderContext();
+
+  if (focusId) {
+    const el = document.getElementById(focusId);
+    if (el && el !== document.activeElement) {
+      if (focusVal !== null && 'value' in el && el.value !== focusVal) el.value = focusVal;
+      el.focus();
+      // A number input refuses setSelectionRange in most browsers; focus alone is enough there.
+      try { if (el.type !== 'number' && el.setSelectionRange) el.setSelectionRange(el.value.length, el.value.length); } catch (e) {}
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WIRING
+// ─────────────────────────────────────────────────────────────────────────────
+document.getElementById('addScenario').addEventListener('click', () => {
+  scenarios.push(blankScenario());
+  render();
+});
+// Duplicating the shown row is the fast path for "same deal, one thing changed" — the way you'd
+// duplicate a quote in the pricing sheet to compare terms.
+document.getElementById('dupScenario').addEventListener('click', () => {
+  const src = scenarios[scenarios.length - 1];
+  if (!src) return;
+  const copy = Object.assign({}, src, { id: nextId++ });
+  scenarios.push(copy);
+  render();
+});
+
+// SH sizing seeds off seats the first time a *paid* plan is switched on: ~1 worker per 15 users,
+// ~2 GB per user, 1 staging branch. A starting guess only — never re-clamped after a manual edit.
+// The guard must test isPaidHosting, not "not none": Standard Cloud and Self-hosted are free and
+// are what every new scenario starts on, so a looser test fires on the first render at 1 seat and
+// latches there, leaving a 400-user quote sized for one.
+// It sizes off the largest scenario running Odoo.sh, because this block is shared by all of them.
+let shSeeded = false;
+function maybeSeedShSizing(){
+  if (shSeeded) return;
+  const paid = scenarios.filter(s => isPaidHosting(s.sh));
+  if (!paid.length) return;
+  const users = Math.max(...paid.map(scenarioUsers));
+  shWorkersEl.value = Math.max(1, Math.ceil(users / 15));
+  shStorageEl.value = users * 2;
+  shStagingEl.value = 1;
+  shSeeded = true;
+}
+
+['mtdMrr', 'mtdNrr', 'churnMrr'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', render);
+  el.addEventListener('change', render);
+});
+
+[usersEl, shWorkersEl, shStorageEl, shStagingEl].forEach(el => {
+  el.addEventListener('input', render);
+  el.addEventListener('change', render);
+});
+
+// Country switch — repoints every rate table at once. Pack sizes are identical across countries,
+// so each scenario's selection stays valid.
+const countryUSBtn = document.getElementById('countryUS');
+const countryCABtn = document.getElementById('countryCA');
+countryUSBtn.addEventListener('click', () => {
+  country = 'US'; countryUSBtn.classList.add('active'); countryCABtn.classList.remove('active'); render();
+});
+countryCABtn.addEventListener('click', () => {
+  country = 'CA'; countryCABtn.classList.add('active'); countryUSBtn.classList.remove('active'); render();
+});
+
+// Users stepper
+document.getElementById('usersDown').addEventListener('click', () => {
+  usersEl.value = Math.max(1, getUsers() - 1); render();
+});
+document.getElementById('usersUp').addEventListener('click', () => {
+  usersEl.value = getUsers() + 1; render();
+});
+
+const finBtn = document.getElementById('finToggle');
+finBtn.addEventListener('click', () => {
+  showFinancing = !showFinancing;
+  finBtn.textContent = showFinancing ? 'Financing ✓' : 'Financing';
+  finBtn.classList.toggle('btn-primary', showFinancing);
+  render();
+});
+
+document.getElementById('toggleDetail').addEventListener('click', () => {
+  detailOpen = !detailOpen;
+  applyDetailVisibility();
+});
+document.getElementById('toggleYears').addEventListener('click', () => {
+  yearsOpen = !yearsOpen;
+  applyDetailVisibility();
+});
+document.getElementById('usersLinked').addEventListener('change', render);
+document.getElementById('shDedicated').addEventListener('change', render);
+document.getElementById('useMtd').addEventListener('change', render);
+
+const payUSDBtn = document.getElementById('payUSD');
+const payCADBtn = document.getElementById('payCAD');
+payUSDBtn.addEventListener('click', () => {
+  payCurrency = 'USD'; payUSDBtn.classList.add('active'); payCADBtn.classList.remove('active'); render();
+});
+payCADBtn.addEventListener('click', () => {
+  payCurrency = 'CAD'; payCADBtn.classList.add('active'); payUSDBtn.classList.remove('active'); render();
+});
+
+const seg15Btn = document.getElementById('seg15');
+const seg6Btn = document.getElementById('seg6');
+seg15Btn.addEventListener('click', () => {
+  segment = '1-5'; seg15Btn.classList.add('active'); seg6Btn.classList.remove('active'); render();
+});
+seg6Btn.addEventListener('click', () => {
+  segment = '6+'; seg6Btn.classList.add('active'); seg15Btn.classList.remove('active'); render();
+});
+
+const internalBtn = document.getElementById('internalToggle');
+internalBtn.addEventListener('click', () => {
+  internalView = !internalView;
+  internalBtn.textContent = internalView ? 'Internal ✓' : 'Internal';
+  internalBtn.classList.toggle('btn-primary', internalView);
+  render();
+});
+
+// Printing must never carry commission figures onto a page a customer could see. Three guards,
+// deliberately redundant, because a leak here is the one mistake in this tool with consequences:
+//   1. #internalCard carries .no-print, and the print stylesheet hides it with !important, which
+//      beats the inline display the toggle sets.
+//   2. beforeprint forces the view off, so the numbers are not in the rendered page at all rather
+//      than merely hidden by a stylesheet the browser might not honour.
+//   3. afterprint restores whatever the rep had open, so the guard costs them nothing.
+let internalWasOpen = false;
+window.addEventListener('beforeprint', () => {
+  internalWasOpen = internalView;
+  if (internalView) { internalView = false; render(); }
+});
+window.addEventListener('afterprint', () => {
+  if (internalWasOpen) { internalView = true; internalWasOpen = false; render(); }
+});
+document.getElementById('exportPdf').addEventListener('click', () => {
+  // Safari and some PDF paths do not fire beforeprint, so close it here too.
+  const reopen = internalView;
+  if (internalView) { internalView = false; render(); }
+  window.print();
+  if (reopen) { internalView = true; render(); }
+});
+
+// Exposed deliberately: the commission bands are the one piece of arithmetic here that pays
+// someone, so the test suite checks them directly rather than only through rendered cells.
+window.COMMISSION = COMMISSION;
+window.SEGMENTS = SEGMENTS;
+window.bandedCommission = bandedCommission;
+window.marginalCommission = marginalCommission;
+window.cappedMonthPayout = cappedMonthPayout;
+window.cappedDealCommission = cappedDealCommission;
+window.mrrRateFor = mrrRateFor;
+window.PAYOUT = PAYOUT;
+window.PAYOUT_CAP_MULTIPLE = PAYOUT_CAP_MULTIPLE;
+window.MRR_RATE = MRR_RATE;
+window.setSegment = function(v){ segment = v; render(); };
+window.setPayCurrency = function(v){ payCurrency = v; render(); };
+
+render();
+</script>
