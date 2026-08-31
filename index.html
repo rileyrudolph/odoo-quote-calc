@@ -4,169 +4,124 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="google-site-verification" content="3CjePo9x7Vy6232tWVOHWV2YkCLaoXl33aEjPKDHXgs" />
-<title>Odoo Quote Calculator — price a deal and send the proposal</title>
-<meta name="description" content="A quick pricing tool for Odoo reps: build the scenarios, see what year three really costs, then email the customer a clean proposal or present it live.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='23' fill='none' stroke='%23714B67' stroke-width='11'/%3E%3Ctext x='32' y='43' font-family='Helvetica,Arial,sans-serif' font-size='30' font-weight='700' fill='%23714B67' text-anchor='middle'%3E$%3C/text%3E%3C/svg%3E">
+<title>Odoo — All your business on one platform</title>
+<meta name="description" content="Odoo is a suite of integrated business apps — CRM, Sales, Accounting, Inventory, Manufacturing and more. Simple, efficient, yet affordable.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23714B67'/%3E%3Ctext x='32' y='44' font-family='Helvetica,Arial,sans-serif' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3Eo%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#fffdfb; --surface:#ffffff; --surface-2:#faf7f9; --surface-3:#f3f4f6;
-  --ink:#1a1a1f; --ink-2:#374151; --sub:#555b66; --faint:#8a8f9b;
-  --accent:#714b67; --accent-rgb:113,75,103; --accent-soft:#f7f1f5; --accent-deep:#5a3c53;
-  --teal:#017e84; --teal-soft:#e6f3f4;
-  --line:#ebe6ea; --line-soft:#f4f1f4;
-  --r-md:10px; --r-lg:16px; --r-xl:22px;
-  --sh-1:0 1px 2px rgba(26,26,31,.04), 0 2px 6px rgba(26,26,31,.05);
-  --sh-2:0 2px 8px rgba(26,26,31,.05), 0 14px 34px -16px rgba(26,26,31,.2);
-  --maxw:1080px;
+  --purple:#714B67; --purple-deep:#5A3C53; --purple-soft:#F6F1F5;
+  --teal:#017E84; --sky:#1BB6F9; --mint:#00CEB3; --amber:#FBB130; --coral:#FC787D; --orange:#F15E22;
+  --ink:#1A1A1F; --sub:#5A5560; --faint:#8A8590;
+  --bg:#FFFFFF; --surface:#FFFFFF; --surface-2:#FAF7F9;
+  --line:#EBE5EA;
+  --sh-1:0 1px 2px rgba(26,26,31,.04), 0 2px 8px rgba(26,26,31,.05);
+  --sh-2:0 4px 12px rgba(26,26,31,.06), 0 16px 40px -18px rgba(26,26,31,.22);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#131016; --surface:#1b171e; --surface-2:#221d25; --surface-3:#2a242e;
-    --ink:#f5f1f3; --ink-2:#d8d0d6; --sub:#a9a0a8; --faint:#847a83;
-    --accent:#d4a3c6; --accent-rgb:212,163,198; --accent-soft:#2a2130; --accent-deep:#ecc9e2;
-    --teal:#3fc9cf; --teal-soft:#12303240;
-    --line:#332b36; --line-soft:#272130;
+    --ink:#F5F1F3; --sub:#ADA5AE; --faint:#867E88;
+    --bg:#121016; --surface:#1A171E; --surface-2:#211C25; --line:#302935;
+    --purple:#D4A3C6; --purple-deep:#ECC9E2; --purple-soft:#271F2C;
     --sh-1:0 1px 3px rgba(0,0,0,.5);
-    --sh-2:0 3px 10px rgba(0,0,0,.5), 0 16px 38px -18px rgba(0,0,0,.75);
+    --sh-2:0 4px 14px rgba(0,0,0,.5), 0 18px 44px -20px rgba(0,0,0,.8);
   }
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
 body{
-  margin:0;background:var(--bg);color:var(--ink);line-height:1.65;
-  font-family:"Inter","Segoe UI",system-ui,-apple-system,Arial,sans-serif;
-  -webkit-font-smoothing:antialiased;
+  margin:0;background:var(--bg);color:var(--ink);line-height:1.6;
+  font-family:"Inter","Segoe UI",system-ui,-apple-system,Arial,sans-serif;-webkit-font-smoothing:antialiased;
 }
 a{color:inherit}
-.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
-.script{font-family:"Caveat",cursive;font-weight:700;color:var(--accent);letter-spacing:0}
+.wrap{max-width:1020px;margin:0 auto;padding:0 24px}
 
-.nav{
-  position:sticky;top:0;z-index:50;background:color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
-  border-bottom:1px solid var(--line);
+.nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 90%,transparent);
+  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;height:62px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{width:30px;height:30px;border-radius:9px;background:var(--purple);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;letter-spacing:-.04em;flex:none}
+.logo-text{font-weight:750;font-size:1.02rem;letter-spacing:-.02em}
+.nav-right{display:flex;align-items:center;gap:10px}
+.icon-btn{
+  width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;color:var(--sub);text-decoration:none;
+  transition:border-color .16s,color .16s,background .16s;
 }
-.nav-inner{display:flex;align-items:center;justify-content:space-between;gap:20px;height:62px}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
-.brand-mark{
-  width:26px;height:26px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(140deg,var(--accent) 0%,var(--accent-deep) 100%);
-  box-shadow:0 2px 8px rgba(var(--accent-rgb),.4);color:#fff;font-weight:800;font-size:14px;
-}
-.brand-name{font-weight:750;font-size:.96rem;letter-spacing:-.015em;white-space:nowrap}
-.nav-links{display:flex;align-items:center;gap:28px}
-.nav-links a{text-decoration:none;font-size:.88rem;font-weight:550;color:var(--sub);transition:color .15s}
-.nav-links a:hover{color:var(--ink)}
-.nav-links a.btn{color:var(--ink-2)}
-.nav-links a.btn:hover{color:var(--accent)}
-.nav-links a.btn-primary,.nav-links a.btn-primary:hover{color:#fff}
-@media(max-width:780px){.nav-links a:not(.btn){display:none}}
+.icon-btn:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-soft)}
+.icon-btn svg{width:18px;height:18px}
 
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  font-family:inherit;font-weight:650;font-size:.9rem;border-radius:999px;
-  padding:11px 22px;cursor:pointer;text-decoration:none;border:1px solid var(--line);
-  background:var(--surface);color:var(--ink-2);box-shadow:var(--sh-1);
-  transition:border-color .16s,color .16s,background .16s,box-shadow .16s,transform .08s;
-}
-.btn:hover{border-color:rgba(var(--accent-rgb),.5);color:var(--accent);box-shadow:var(--sh-2)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-family:inherit;
+  font-weight:650;font-size:.92rem;border-radius:999px;padding:12px 24px;text-decoration:none;
+  border:1px solid var(--purple);background:var(--purple);color:#fff;
+  box-shadow:0 2px 8px rgba(113,75,103,.3),0 14px 28px -14px rgba(113,75,103,.6);
+  transition:background .16s,transform .08s,box-shadow .16s}
+.btn:hover{background:var(--purple-deep);border-color:var(--purple-deep);color:#fff}
 .btn:active{transform:translateY(1px)}
-.btn-primary{
-  background:var(--accent);color:#fff;border-color:var(--accent);
-  box-shadow:0 2px 8px rgba(var(--accent-rgb),.3),0 14px 28px -14px rgba(var(--accent-rgb),.6);
-}
-.btn-primary:hover{background:var(--accent-deep);border-color:var(--accent-deep);color:#fff}
-.btn-sm{padding:8px 16px;font-size:.83rem}
-.btn-lg{padding:14px 28px;font-size:.97rem}
+.btn-lg{padding:15px 32px;font-size:1rem}
 
-.hero{position:relative;overflow:hidden;padding:80px 0 66px}
-.hero::before{
-  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
-  background:
-    radial-gradient(720px 480px at 8% -12%, rgba(var(--accent-rgb),.15), transparent 62%),
-    radial-gradient(600px 420px at 96% 4%, rgba(27,182,249,.10), transparent 60%);
-}
+.hero{padding:76px 0 60px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(700px 460px at 6% -14%,rgba(113,75,103,.14),transparent 60%),
+             radial-gradient(560px 400px at 98% 0%,rgba(27,182,249,.10),transparent 58%)}
 .hero .wrap{position:relative;z-index:1}
-.eyebrow{
-  display:inline-flex;align-items:center;gap:8px;font-size:.75rem;font-weight:700;
-  letter-spacing:.09em;text-transform:uppercase;color:var(--accent);
-  background:var(--accent-soft);border:1px solid rgba(var(--accent-rgb),.2);
-  padding:7px 14px;border-radius:999px;margin-bottom:24px;
-}
-h1{font-size:clamp(2.2rem,5vw,3.6rem);line-height:1.08;letter-spacing:-.03em;font-weight:800;margin:0 0 20px;max-width:17ch}
-h1 .script{font-size:1.15em}
-.lede{font-size:clamp(1.03rem,1.6vw,1.17rem);color:var(--sub);max-width:56ch;margin:0 0 30px}
-.hero-cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-.hero-note{font-size:.83rem;color:var(--faint);margin-top:16px}
+h1{font-size:clamp(2.3rem,5.4vw,3.7rem);line-height:1.05;letter-spacing:-.035em;font-weight:800;margin:0 0 16px;max-width:15ch}
+.tagline{font-size:clamp(1.15rem,2.2vw,1.5rem);color:var(--purple);font-weight:650;letter-spacing:-.02em;margin:0 0 18px}
+.lede{font-size:1.06rem;color:var(--sub);max-width:52ch;margin:0 0 30px}
 
-section{padding:70px 0}
-.sec-head{max-width:60ch;margin-bottom:38px}
-.sec-label{font-size:.75rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
-h2{font-size:clamp(1.55rem,2.9vw,2.1rem);line-height:1.2;letter-spacing:-.022em;font-weight:780;margin:0 0 12px}
-h3{font-size:1.02rem;font-weight:720;letter-spacing:-.01em;margin:0 0 7px}
-.sec-head p{color:var(--sub);margin:0;font-size:1.02rem}
+.apps{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 34px}
+.app{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);
+  border-radius:999px;padding:7px 15px 7px 8px;font-size:.86rem;font-weight:600;color:var(--sub);box-shadow:var(--sh-1)}
+.app i{width:20px;height:20px;border-radius:6px;display:block;flex:none}
 
-.grid{display:grid;gap:18px}
-.grid-3{grid-template-columns:repeat(3,1fr)}
-@media(max-width:900px){.grid-3{grid-template-columns:1fr 1fr}}
-@media(max-width:620px){.grid-3{grid-template-columns:1fr}}
+section{padding:64px 0}
+.alt{background:var(--surface-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+h2{font-size:clamp(1.5rem,2.8vw,2rem);line-height:1.2;letter-spacing:-.025em;font-weight:780;margin:0 0 34px}
+h3{font-size:1rem;font-weight:720;margin:0 0 6px;letter-spacing:-.01em}
 
-.why{background:var(--surface-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.why-card{
-  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
-  padding:24px 24px 26px;box-shadow:var(--sh-1);position:relative;overflow:hidden;
-  transition:box-shadow .18s,transform .18s,border-color .18s;
-}
-.why-card:hover{box-shadow:var(--sh-2);transform:translateY(-2px);border-color:rgba(var(--accent-rgb),.3)}
-.why-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--bar,var(--accent))}
-.why-card p{color:var(--sub);margin:0;font-size:.93rem}
+.grid{display:grid;gap:26px 32px;grid-template-columns:repeat(3,1fr)}
+@media(max-width:860px){.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+.point{display:flex;gap:13px;align-items:flex-start}
+.point .dot{width:30px;height:30px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff}
+.point .dot svg{width:16px;height:16px}
+.point p{margin:0;color:var(--sub);font-size:.92rem}
 
-.does{display:grid;gap:0}
-.does-row{display:flex;gap:18px;align-items:flex-start;padding:22px 0;border-bottom:1px solid var(--line-soft)}
-.does-row:last-child{border-bottom:none}
-.does-ico{
-  width:38px;height:38px;flex:none;border-radius:11px;background:var(--accent-soft);color:var(--accent);
-  display:flex;align-items:center;justify-content:center;
-}
-.does-ico svg{width:19px;height:19px}
-.does-row p{margin:0;color:var(--sub);font-size:.95rem}
+.contact{text-align:center;padding:70px 0}
+.contact h2{margin-bottom:10px}
+.contact p{color:var(--sub);margin:0 auto 26px;max-width:44ch;font-size:1.02rem}
+.mail{display:inline-block;margin-top:18px;font-size:.95rem;color:var(--purple);font-weight:650;text-decoration:none}
+.mail:hover{text-decoration:underline}
 
-.cta-band{
-  background:linear-gradient(135deg,var(--accent) 0%,var(--accent-deep) 100%);
-  border-radius:var(--r-xl);padding:48px 40px;text-align:center;color:#fff;
-  box-shadow:0 18px 46px -22px rgba(var(--accent-rgb),.75);
-}
-.cta-band h2{color:#fff;margin-bottom:8px}
-.cta-band p{color:rgba(255,255,255,.85);margin:0 auto 26px;max-width:46ch}
-.cta-band .btn{background:#fff;color:var(--accent);border-color:#fff}
-.cta-band .btn:hover{background:#f7eff4;color:var(--accent-deep);border-color:#f7eff4}
-
-footer{border-top:1px solid var(--line);padding:40px 0;background:var(--surface-2)}
-.foot-inner{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between}
-.foot-links{display:flex;flex-wrap:wrap;gap:22px}
-.foot-links a{text-decoration:none;font-size:.87rem;color:var(--sub);transition:color .15s}
-.foot-links a:hover{color:var(--accent)}
-.foot-note{font-size:.79rem;color:var(--faint);margin-top:16px;max-width:78ch;line-height:1.6}
-.foot-note a{color:var(--sub);text-decoration:underline}
+footer{border-top:1px solid var(--line);padding:30px 0;background:var(--surface-2)}
+.foot{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+.foot-note{font-size:.78rem;color:var(--faint);max-width:64ch;line-height:1.55;margin:0}
+.foot-note a{color:var(--sub)}
+.foot-links{display:flex;gap:18px;flex-wrap:wrap}
+.foot-links a{font-size:.82rem;color:var(--sub);text-decoration:none}
+.foot-links a:hover{color:var(--purple)}
 </style>
 </head>
 <body>
 
 <header class="nav">
   <div class="wrap nav-inner">
-    <a class="brand" href="/">
-      <span class="brand-mark" aria-hidden="true">$</span>
-      <span class="brand-name">Odoo Quote Calculator</span>
+    <a class="logo" href="/">
+      <span class="logo-mark" aria-hidden="true">o</span>
+      <span class="logo-text">odoo</span>
     </a>
-    <nav class="nav-links">
-      <a href="#why">Why Odoo</a>
-      <a href="#does">What it does</a>
-      <a href="privacy.html">Privacy</a>
-      <a class="btn btn-sm btn-primary" href="app.html">Open the calculator</a>
-    </nav>
+    <div class="nav-right">
+      <a class="icon-btn" href="app.html" title="Quote calculator" aria-label="Quote calculator">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8"/>
+          <path d="M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h4"/>
+        </svg>
+      </a>
+      <a class="btn" href="mailto:rifei@odoo.com">Reach out today</a>
+    </div>
   </div>
 </header>
 
@@ -174,149 +129,114 @@ footer{border-top:1px solid var(--line);padding:40px 0;background:var(--surface-
 
   <section class="hero">
     <div class="wrap">
-      <div class="eyebrow">Made for Odoo reps</div>
-      <h1>Price the deal. <span class="script">Send something good.</span></h1>
+      <h1>All your business on one platform.</h1>
+      <p class="tagline">Simple, efficient, yet affordable.</p>
       <p class="lede">
-        Punch in the users, the term and the hours — you get real numbers in a couple of seconds.
-        Then email the customer a proposal that looks the part, or walk them through the deck live.
-        No spreadsheet, no waiting until you're back at your desk.
+        Odoo is a suite of integrated business apps that actually talk to each other. Start with the
+        one you need today, add the rest as you grow.
       </p>
-      <div class="hero-cta">
-        <a class="btn btn-lg btn-primary" href="app.html">Open the calculator</a>
-        <a class="btn btn-lg" href="#why">What moves the deal</a>
+
+      <div class="apps">
+        <span class="app"><i style="background:var(--purple)"></i>CRM</span>
+        <span class="app"><i style="background:var(--teal)"></i>Sales</span>
+        <span class="app"><i style="background:var(--sky)"></i>Accounting</span>
+        <span class="app"><i style="background:var(--amber)"></i>Inventory</span>
+        <span class="app"><i style="background:var(--coral)"></i>Manufacturing</span>
+        <span class="app"><i style="background:var(--mint)"></i>Website</span>
+        <span class="app"><i style="background:var(--orange)"></i>Employees</span>
       </div>
-      <p class="hero-note">For the sales team — you'll need the team password.</p>
+
+      <a class="btn btn-lg" href="mailto:rifei@odoo.com">Reach out today</a>
     </div>
   </section>
 
-  <section id="why" class="why">
+  <section class="alt">
     <div class="wrap">
-      <div class="sec-head">
-        <div class="sec-label">Talk track</div>
-        <h2>What actually moves the deal</h2>
-        <p>ERP is a long sell and nobody signs on the first call. These are the points that tend to land, roughly in the order customers raise them.</p>
-      </div>
+      <h2>Why people move to Odoo</h2>
+      <div class="grid">
 
-      <div class="grid grid-3">
-        <div class="why-card" style="--bar:#714B67">
-          <h3>Everything's included</h3>
-          <p>CRM, Accounting, Inventory, Manufacturing, Website — one price covers the lot. Nobody has to
-             guess which module costs extra, because none of them do.</p>
+        <div class="point">
+          <span class="dot" style="background:var(--purple)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+          <div>
+            <h3>One platform, not seven tools</h3>
+            <p>Your quotes, stock, invoices and customers live in the same system, so nothing has to be
+               re-keyed or reconciled between apps.</p>
+          </div>
         </div>
-        <div class="why-card" style="--bar:#1BB6F9">
-          <h3>Real pricing on the first call</h3>
-          <p>You don't have to say "let me get back to you". You can put actual numbers in front of them
-             while you've still got their attention — which is most of what this tool is for.</p>
-        </div>
-        <div class="why-card" style="--bar:#00CEB3">
-          <h3>They can try it first</h3>
-          <p>There's a free trial, so nobody's signing off on a promise. They get to click around the
-             real thing before any money moves.</p>
-        </div>
-        <div class="why-card" style="--bar:#FBB130">
-          <h3>One system instead of seven</h3>
-          <p>Most of the savings aren't in the licence — they're in killing the stack of disconnected
-             tools that don't talk to each other. That's usually the number that lands.</p>
-        </div>
-        <div class="why-card" style="--bar:#FC787D">
-          <h3>It grows with them</h3>
-          <p>Add users and apps as the business grows. The price moves in a straight line instead of
-             jumping off a cliff at the next tier.</p>
-        </div>
-        <div class="why-card" style="--bar:#017E84">
-          <h3>Multi-year locks the rate</h3>
-          <p>Commit for longer and the rate is fixed for the whole term. Price protection is an easy
-             yes when everyone else is putting their prices up.</p>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <section id="does">
-    <div class="wrap">
-      <div class="sec-head">
-        <div class="sec-label">The tool</div>
-        <h2>What it actually does</h2>
-        <p>Built to get you from "so what would it cost?" to a sent proposal without leaving the page.</p>
-      </div>
+        <div class="point">
+          <span class="dot" style="background:var(--teal)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+          <div>
+            <h3>Priced to actually fit</h3>
+            <p>One price per user with every app included — no per-module surprises, and no enterprise
+               licence that dwarfs the problem you're solving.</p>
+          </div>
+        </div>
 
-      <div class="does">
-        <div class="does-row">
-          <div class="does-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+        <div class="point">
+          <span class="dot" style="background:var(--sky)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg></span>
           <div>
-            <h3>Line the options up next to each other</h3>
-            <p>Monthly, yearly, three-year — one row each. Change the users, plan, hours, hosting or
-               discount on one row and the others stay exactly where they were.</p>
+            <h3>Open source</h3>
+            <p>The code is open and the community is enormous. You're never locked in, and there's
+               almost always someone who has solved your edge case already.</p>
           </div>
         </div>
-        <div class="does-row">
-          <div class="does-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
+
+        <div class="point">
+          <span class="dot" style="background:var(--amber)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg></span>
           <div>
-            <h3>Answer "what do I pay in year three?"</h3>
-            <p>Year 1 carries the implementation and the full-price licence, so an averaged monthly
-               number is misleading. You get the honest year-by-year instead.</p>
+            <h3>It grows with you</h3>
+            <p>Start with one app. Add users, add modules, add companies — the system scales without a
+               replatform every few years.</p>
           </div>
         </div>
-        <div class="does-row">
-          <div class="does-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg></div>
+
+        <div class="point">
+          <span class="dot" style="background:var(--coral)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m9 12 2 2 4-4"/></svg></span>
           <div>
-            <h3>Send a proposal that looks the part</h3>
-            <p>Totals, savings, the year-by-year and payment options, laid out properly and sent from
-               your own Gmail so it lands as coming from you. Preview it before it goes.</p>
+            <h3>Try it before you buy it</h3>
+            <p>There's a free trial and a free plan, so you can put it in front of the team and see
+               whether it fits before anyone signs anything.</p>
           </div>
         </div>
-        <div class="does-row">
-          <div class="does-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H4z"/><path d="M2 20h20M9 16v4M15 16v4"/></svg></div>
+
+        <div class="point">
+          <span class="dot" style="background:var(--mint)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6z"/></svg></span>
           <div>
-            <h3>Present it without switching apps</h3>
-            <p>The pricing deck is right there with your numbers dropped into it. Pick your slides and
-               present full screen, or keep the browser bar if you're sharing a tab.</p>
+            <h3>Upgrades and support included</h3>
+            <p>Hosting, upgrades, bug fixes and support come with the subscription rather than arriving
+               as a separate line item every year.</p>
           </div>
         </div>
-        <div class="does-row">
-          <div class="does-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></div>
-          <div>
-            <h3>Your commission stays yours</h3>
-            <p>The internal view is worked out separately from the customer numbers, so there's no way
-               for it to end up in an email or on a slide by accident.</p>
-          </div>
-        </div>
+
       </div>
     </div>
   </section>
 
-  <section style="padding-top:0">
+  <section class="contact">
     <div class="wrap">
-      <div class="cta-band">
-        <h2>Got a deal to price?</h2>
-        <p>Takes about a minute. Build the scenarios, then send it or present it.</p>
-        <a class="btn btn-lg" href="app.html">Open the calculator</a>
-      </div>
+      <h2>Let's talk about your business</h2>
+      <p>Happy to walk you through the apps, answer questions, and put real numbers in front of you.</p>
+      <div><a class="btn btn-lg" href="mailto:rifei@odoo.com">Reach out today</a></div>
+      <a class="mail" href="mailto:rifei@odoo.com">rifei@odoo.com</a>
     </div>
   </section>
 
 </main>
 
 <footer>
-  <div class="wrap">
-    <div class="foot-inner">
-      <a class="brand" href="/">
-        <span class="brand-mark" aria-hidden="true">$</span>
-        <span class="brand-name">Odoo Quote Calculator</span>
-      </a>
-      <div class="foot-links">
-        <a href="app.html">Calculator</a>
-        
-        <a href="privacy.html">Privacy policy</a>
-      </div>
+  <div class="wrap foot">
     <p class="foot-note">
-      An internal tool for Odoo sales reps. Anything it works out is indicative — the real numbers are
-      the ones on the signed order form. Not affiliated with, or an official product of, Odoo S.A.
-      Signing in with Google is optional and is only used to send the one quote email you compose; it
-      never reads your mailbox and nothing is stored. See the
+      This site also hosts the <a href="app.html">Odoo Quote Calculator</a>, an internal tool for
+      building Odoo quotes and emailing them from your own Gmail account. See the
       <a href="privacy.html">privacy policy</a> for how Google account data is handled, in line with the
       <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Google API Services User Data Policy</a>.
+      Not affiliated with, or an official product of, Odoo S.A.
     </p>
+    <div class="foot-links">
+      <a href="app.html">Calculator</a>
+      <a href="privacy.html">Privacy</a>
+    </div>
   </div>
 </footer>
 
