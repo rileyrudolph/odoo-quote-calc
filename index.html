@@ -558,7 +558,121 @@ footer{
 .compose-panel.collapsed .compose-body,
 .compose-panel.collapsed .compose-footer{display:none;}
 @media (max-width:480px){.compose-panel{right:0;left:0;width:100%;max-width:100%;}}
+   
+/* ═══════════════════════════════════════════════════════════════════════════
+   PASSWORD GATE — nothing behind it is usable until the password is entered.
+   No storage of any kind; every fresh load asks again.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.pw-gate{
+  position:fixed;inset:0;z-index:99999;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  background:
+    radial-gradient(760px 520px at 10% -12%, rgba(var(--accent-rgb),.20), transparent 60%),
+    radial-gradient(680px 480px at 108% 112%, rgba(var(--teal-rgb),.16), transparent 60%),
+    var(--bg);
+  animation:pwFadeIn .4s ease both;
+}
+@keyframes pwFadeIn{from{opacity:0}to{opacity:1}}
+.pw-gate.pw-hide{animation:pwFadeOut .35s ease both;pointer-events:none;}
+@keyframes pwFadeOut{to{opacity:0;visibility:hidden;}}
+.pw-card{
+  width:100%;max-width:392px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-xl);box-shadow:var(--sh-3);padding:40px 36px 32px;text-align:center;
+  animation:pwRise .5s cubic-bezier(.2,.7,.3,1) both;
+}
+@keyframes pwRise{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+.pw-mark{
+  width:58px;height:58px;border-radius:17px;margin:0 auto 20px;
+  background:linear-gradient(140deg,var(--accent) 0%,var(--accent-deep) 100%);
+  box-shadow:0 8px 18px -4px rgba(var(--accent-rgb),.5);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-family:"Inter",sans-serif;font-weight:800;font-size:27px;
+}
+.pw-title{font-family:"Caveat",cursive;font-weight:700;font-size:2.15rem;color:var(--ink);margin:0 0 3px;line-height:1.15;}
+.pw-sub{font-size:.87rem;color:var(--sub);margin:0 0 26px;}
+.pw-field{margin-bottom:6px;}
+.pw-field input{
+  width:100%;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface-2);
+  color:var(--ink);font-family:inherit;font-size:1rem;font-weight:650;
+  padding:13px 16px;text-align:center;letter-spacing:.08em;
+  transition:border-color .16s,box-shadow .16s;
+}
+.pw-field input::placeholder{font-weight:500;letter-spacing:normal;color:var(--faint);}
+.pw-field input:focus{outline:none;border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.15);}
+.pw-gate.pw-shake .pw-card{animation:pwShake .4s;}
+@keyframes pwShake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-5px)}40%,60%{transform:translateX(5px)}}
+.pw-error{font-size:.8rem;color:var(--warn);margin:10px 0 4px;min-height:1.1em;opacity:0;transition:opacity .15s;}
+.pw-error.pw-show{opacity:1;}
+.pw-submit{
+  width:100%;margin-top:16px;font-family:inherit;font-weight:700;font-size:.94rem;border-radius:999px;
+  padding:13px 19px;cursor:pointer;border:1px solid var(--accent);
+  background:var(--accent);color:#fff;
+  box-shadow:0 2px 6px rgba(var(--accent-rgb),.3),0 10px 22px -10px rgba(var(--accent-rgb),.6);
+  transition:background .16s,border-color .16s,transform .06s;
+}
+.pw-submit:hover{background:var(--accent-deep);border-color:var(--accent-deep);}
+.pw-submit:active{transform:translateY(1px);}
+.pw-foot{margin-top:22px;font-size:.72rem;color:var(--faint);}
 </style>
+
+<!-- ═══ PASSWORD GATE ═══ -->
+<div class="pw-gate no-print" id="pwGate">
+  <div class="pw-card">
+    <div class="pw-mark" aria-hidden="true">$</div>
+    <h1 class="pw-title">Odoo Quote Calculator</h1>
+    <p class="pw-sub">Enter the password to continue</p>
+    <form id="pwForm" autocomplete="off">
+      <div class="pw-field">
+        <input type="password" id="pwInput" name="pwInput" placeholder="Password" autocomplete="new-password" spellcheck="false">
+      </div>
+      <p class="pw-error" id="pwError">Incorrect password — try again.</p>
+      <button type="submit" class="pw-submit">Unlock</button>
+    </form>
+    <p class="pw-foot">Access is restricted to authorized users.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var GATE_PASSWORD = "Odoo20";
+  function init(){
+    var gate = document.getElementById('pwGate');
+    var form = document.getElementById('pwForm');
+    var input = document.getElementById('pwInput');
+    var error = document.getElementById('pwError');
+    var locked = [document.querySelector('header.appbar'), document.querySelector('div.wrap')];
+
+    document.body.style.overflow = 'hidden';
+    locked.forEach(function(el){ if (el) el.setAttribute('inert',''); });
+
+    function unlock(){
+      gate.classList.add('pw-hide');
+      document.body.style.overflow = '';
+      locked.forEach(function(el){ if (el) el.removeAttribute('inert'); });
+      setTimeout(function(){ if (gate && gate.parentNode) gate.parentNode.removeChild(gate); }, 400);
+    }
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      if (input.value === GATE_PASSWORD) {
+        unlock();
+      } else {
+        error.classList.add('pw-show');
+        gate.classList.add('pw-shake');
+        input.value = '';
+        input.focus();
+        setTimeout(function(){ gate.classList.remove('pw-shake'); }, 400);
+      }
+    });
+
+    input.focus();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
 
 <!-- ═══ APP BAR ═══ -->
 <header class="appbar no-print">
