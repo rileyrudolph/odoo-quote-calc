@@ -1754,7 +1754,7 @@ function renderWarnings(){
     add(gbox, 'Country + Hosting', `Odoo publishes Odoo.sh in USD only, so this hosting line is converted at ${USD_TO_CAD.toFixed(4)} and is worth confirming`);
   }
   // The 200hr / initial-invoice rule only matters once someone is actually discounting hours.
-  if (scenarios.some(s => s.hours > 0 && s.implDisc > 0)) {
+  if (scenarios.some(s => s.hours > DISCOUNT_ELIGIBLE_HOURS && s.implDisc > 0)) {
     add(box, 'Impl %', `The ${TYPICAL_IMPL_DISCOUNT}% only reaches the first ${DISCOUNT_ELIGIBLE_HOURS} hrs of implementation, on the initial invoice`);
   }
   // Hosting sizing — only when hosting is actually in play.
