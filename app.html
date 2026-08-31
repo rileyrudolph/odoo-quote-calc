@@ -1801,7 +1801,7 @@ function renderDetail(){
     let implRows = '';
     if (q.implList > 0) {
       implRows = `<div class="bd-sec"><div class="bd-sec-h"><span class="dotmark amber"></span>Implementation<em>${p.label} ${p.hours}h</em></div>` +
-        `<div class="bd-line"><span>List</span><span>${fmtDec(q.implList)}</span></div>` +
+        `<div class="bd-line"><span>${q.implDiscAmt !== 0 ? 'List price' : 'Success Pack'}</span><span>${fmtDec(q.implList)}</span></div>` +
         (q.implDiscAmt !== 0 ? `<div class="bd-line disc amber"><span>Discount</span><span>-${fmtDec(q.implDiscAmt)} (${s.implDisc}%)</span></div>` : '') +
         `</div>`;
     }
@@ -1811,7 +1811,7 @@ function renderDetail(){
       const sz = shInputs();
       shRows = `<div class="bd-sec"><div class="bd-sec-h"><span class="dotmark teal"></span>Hosting` +
         `<em>Odoo.sh${isDedicated() ? ' dedicated' : ''} · ${sz.workers}w · ${sz.storage}GB</em></div>` +
-        `<div class="bd-line"><span>Hosting (list)</span><span>${fmtDec(q.shList)}</span></div>` +
+        `<div class="bd-line"><span>${q.shDiscAmt > 0 ? 'Hosting (list)' : 'Hosting'}</span><span>${fmtDec(q.shList)}</span></div>` +
         (q.shDiscAmt > 0 ? `<div class="bd-line disc teal"><span>${licDiscountBasis(s.term) === 'year2' ? 'Multi-year discount' : 'Year-1 discount (off-schedule)'}</span><span>-${fmtDec(q.shDiscAmt)} (${s.licDisc}%)</span></div>` : '') +
         `</div>`;
     }
