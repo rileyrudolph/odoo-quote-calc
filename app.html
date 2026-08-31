@@ -2968,6 +2968,82 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && emailPreviewOverlay.classList.contains('on')) closePreview();
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// QUOTE PDF — the attachment. Built from compute() like everything else, so it
+// cannot disagree with the screen. Drawing it here is what lets the email body
+// stay plain: the customer gets a message a person wrote, and the pricing as a
+// document they can file, forward or print.
+// ─────────────────────────────────────────────────────────────────────────────
+function buildQuotePdf(f){
+  const s = f.scenario;
+  const q = compute(s);
+  const users = scenarioUsers(s);
+  const term = termLabel(s.term);
+  const doc = new window.jspdf.jsPDF({ unit: 'pt', format: 'letter' });
+  const L = 56, R = 556;
+  let y = 68;
+  const rule = () => { doc.setDrawColor(226); doc.line(L, y, R, y); y += 22; };
+  const row = (label, value, o) => {
+    o = o || {};
+    doc.setFont('helvetica', o.bold ? 'bold' : 'normal');
+    doc.setFontSize(o.size || 10.5);
+    doc.setTextColor(o.muted ? 120 : 33);
+    doc.text(label, L, y);
+    doc.text(value, R, y, { align: 'right' });
+    y += 19;
+  };
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(33);
+  doc.text('Odoo Pricing', L, y); y += 20;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(120);
+  doc.text(f.company ? 'Prepared for ' + f.company : 'Prepared for you', L, y); y += 16;
+  rule();
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(26); doc.setTextColor(33);
+  doc.text(fmt(q.grand), L, y);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5); doc.setTextColor(120);
+  doc.text(fmt(q.perMonth) + ' per month' + (q.isMo ? '' : ' equivalent'), R, y, { align: 'right' });
+  y += 16;
+  doc.setFontSize(10);
+  doc.text(term + '  ·  ' + users + ' user' + (users === 1 ? '' : 's') + '  ·  ' + planLabel(s.plan), L, y);
+  y += 22;
+  if (q.savings > 0) {
+    doc.setTextColor(1, 126, 132);
+    doc.text('Saves ' + fmt(q.savings) + ' against paying month to month.', L, y);
+    doc.setTextColor(33); y += 20;
+  }
+  rule();
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5); doc.setTextColor(33);
+  doc.text("What's included", L, y); y += 20;
+  row('Software licence', fmt(q.licTotal));
+  if (q.implTotal > 0) row('Implementation · ' + s.hours + ' hrs', fmt(q.implTotal));
+  if (q.shTotal > 0)   row('Hosting · ' + HOSTING[s.sh].label, fmt(q.shTotal));
+  y += 2; rule();
+  row('Total (' + term + ')', fmt(q.grand), { bold: true, size: 13 });
+
+  if (q.schedule.length > 1) {
+    y += 10; rule();
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5); doc.setTextColor(33);
+    doc.text('Year by year', L, y); y += 20;
+    q.schedule.forEach(function(yr){
+      row('Year ' + yr.year, fmt(yr.total) + '    ' + fmt(yr.perMonth) + '/mo');
+    });
+    if (q.implTotal > 0) {
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(130);
+      doc.text('Year 1 carries the whole implementation, and the licence at the Year-1 promotional rate.', L, y);
+      y += 18;
+    }
+  }
+
+  y += 8; rule();
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(130);
+  doc.text('Paid in full at signing (ACH or wire), or financed across flexible terms.', L, y); y += 13;
+  doc.text('Valid for 30 days. Final pricing is confirmed on the signed order form. Taxes not included.', L, y);
+
+  return doc.output('datauristring').split(',')[1];
+}
+
 emailSubmitBtn.addEventListener('click', async () => {
   const recipientEmail = emailToInput.value.trim();
   const subject = emailSubjectInput.value.trim() || 'Your Odoo Pricing Proposal';
