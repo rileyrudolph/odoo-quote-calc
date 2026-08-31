@@ -560,9 +560,9 @@ footer{
 @media (max-width:480px){.compose-panel{right:0;left:0;width:100%;max-width:100%;}}
    
 /* ═══════════════════════════════════════════════════════════════════════════
-   PASSWORD GATE — nothing behind it is usable until the password is entered.
-   No storage of any kind; every fresh load asks again.
-   ═══════════════════════════════════════════════════════════════════════════ */
+      PASSWORD GATE — one shared unlock for the whole site. Enter it once per
+      browser session (sessionStorage — cleared on tab/browser close) and moving
+      between the calculator and the deck won't ask again.═══════════════════════════════════════════════════════════════════════════ */
 .pw-gate{
   position:fixed;inset:0;z-index:99999;
   display:flex;align-items:center;justify-content:center;padding:24px;
@@ -634,6 +634,7 @@ footer{
 <script>
 (function(){
   var GATE_PASSWORD = "Odoo20";
+  var SESSION_KEY = "odooGateUnlocked";
   function init(){
     var gate = document.getElementById('pwGate');
     var form = document.getElementById('pwForm');
@@ -641,10 +642,25 @@ footer{
     var error = document.getElementById('pwError');
     var locked = [document.querySelector('header.appbar'), document.querySelector('div.wrap')];
 
+    function alreadyUnlocked(){
+      try { return sessionStorage.getItem(SESSION_KEY) === '1'; } catch(e){ return false; }
+    }
+
+    // One password for the whole site: if it was already entered earlier in
+    // this browser tab/session (including on the Deck page), skip the gate —
+    // no re-prompt when navigating back and forth. A brand-new tab or
+    // browser restart clears this and asks again.
+    if (alreadyUnlocked()) {
+      if (gate && gate.parentNode) gate.parentNode.removeChild(gate);
+      locked.forEach(function(el){ if (el) el.removeAttribute('inert'); });
+      return;
+    }
+
     document.body.style.overflow = 'hidden';
     locked.forEach(function(el){ if (el) el.setAttribute('inert',''); });
 
     function unlock(){
+      try { sessionStorage.setItem(SESSION_KEY, '1'); } catch(e){}
       gate.classList.add('pw-hide');
       document.body.style.overflow = '';
       locked.forEach(function(el){ if (el) el.removeAttribute('inert'); });
