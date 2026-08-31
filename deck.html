@@ -103,7 +103,7 @@ body{
 .hl-wrap{
   position:relative;display:inline-block;padding:0 .1em;
   background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/blue_highlight_01.svg");
-  background-size:contain;background-repeat:no-repeat;background-position:50% 100%;
+    background-size:106% auto;background-repeat:no-repeat;background-position:50% 100%;padding-bottom:.26em;
 }
 .hl-wrap:has(.hl-yellow),.hl-yellow .hl-wrap{background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/yellow_highlight_03.svg");}
 .hl-wrap:has(.hl-coral),.hl-red .hl-wrap{background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/red_highlight_01.svg");}
@@ -579,7 +579,8 @@ body.present-page #appRoot{display:none;}
         </span>
       </a>
       <div class="appbar-actions">
-        <button id="exportPdfBtn" type="button" class="btn btn-sm">Export PDF</button>
+                <button id="resetDeck" type="button" class="btn btn-sm" title="Put every slide back and clear the names">Reset</button>
+<button id="exportPdfBtn" type="button" class="btn btn-sm">Export PDF</button>
         <button id="presentBtn" type="button" class="btn btn-sm btn-primary">▶ Present</button>
       </div>
     </div>
@@ -1358,7 +1359,9 @@ function savePrefs(){
   try {
     localStorage.setItem(PREFS_KEY, JSON.stringify({
       order: deckSlides.map(s => s.key),
-      included: deckSlides.filter(s => s.included).map(s => s.key)
+      included: deckSlides.filter(s => s.included).map(s => s.key),
+      presenterName: state.presenterName,
+      customerName: state.customerName
     }));
   } catch (e) {}
 }
@@ -1366,14 +1369,23 @@ function savePrefs(){
 function applyPrefs(){
   let p = null;
   try { p = JSON.parse(localStorage.getItem(PREFS_KEY) || 'null'); } catch (e) {}
-  if (!p || !Array.isArray(p.order)) return;
-  const rank = new Map(p.order.map((k, i) => [k, i]));
-  deckSlides.sort((a, b) =>
-    (rank.has(a.key) ? rank.get(a.key) : 999) - (rank.has(b.key) ? rank.get(b.key) : 999));
+  if (!p) return;
+  if (Array.isArray(p.order)) {
+    const rank = new Map(p.order.map((k, i) => [k, i]));
+    deckSlides.sort((a, b) =>
+      (rank.has(a.key) ? rank.get(a.key) : 999) - (rank.has(b.key) ? rank.get(b.key) : 999));
+  }
   if (Array.isArray(p.included)) {
     const inc = new Set(p.included);
     deckSlides.forEach(s => { s.included = inc.has(s.key); });
   }
+  ['presenter', 'customer'].forEach(which => {
+    const key = which + 'Name';
+    if (typeof p[key] !== 'string') return;
+    state[key] = p[key];
+    const el = document.getElementById(key);
+    if (el) el.value = p[key];
+  });
 }
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -1394,10 +1406,21 @@ function openPresentPage(){
 // ═════════════════════════════════════════════════════════════════════════
 // INIT
 // ═════════════════════════════════════════════════════════════════════════
-if (PRESENT_PAGE) {
-  applyPrefs();
-  document.body.classList.add('present-page');
-}
+applyPrefs();
+if (PRESENT_PAGE) document.body.classList.add('present-page');
+
+// The builder remembers whatever deck a rep set up. Every change to the slide
+// list funnels through renderPanel(), so that is where the save goes.
+const renderPanelInner = renderPanel;
+renderPanel = function(){ renderPanelInner.apply(this, arguments); if (!PRESENT_PAGE) savePrefs(); };
+document.getElementById('presenterName').addEventListener('input', savePrefs);
+document.getElementById('customerName').addEventListener('input', savePrefs);
+
+document.getElementById('resetDeck').addEventListener('click', () => {
+  if (!confirm('Reset the deck?\n\nEvery slide comes back, in the original order, and the presenter and customer names are cleared.')) return;
+  try { localStorage.removeItem(PREFS_KEY); } catch (e) {}
+  location.reload();
+});
 document.getElementById('sampleBanner').style.display = (IS_SAMPLE && !PRESENT_PAGE) ? 'flex' : 'none';
 renderPanel();
 renderStage();
