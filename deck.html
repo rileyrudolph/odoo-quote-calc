@@ -1,0 +1,1206 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='23' fill='none' stroke='%23714B67' stroke-width='11'/%3E%3Ctext x='32' y='43' font-family='Helvetica,Arial,sans-serif' font-size='30' font-weight='700' fill='%23714B67' text-anchor='middle'%3E$%3C/text%3E%3C/svg%3E">
+<title>Slide Deck — Odoo Quote Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — identical to the calculator (odoo-quote-calc.html) so the
+   deck reads as the same product, not a bolted-on tool.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#f3f4f6; --surface:#ffffff; --surface-2:#f9fafb; --surface-3:#f3f4f6;
+  --ink:#111827; --ink-2:#374151; --sub:#4b5563; --faint:#5b6474;
+  --accent:#714b67; --accent-rgb:113,75,103; --accent-soft:#f4eff3; --accent-deep:#5a3c53;
+  --teal:#017e84; --teal-rgb:1,126,132; --teal-soft:#e6f3f4;
+  --blue:#47738f; --blue-rgb:71,115,143;
+  --amber:#f07346; --amber-rgb:240,115,70;
+  --teal-text:#016b70; --blue-text:#3b6079; --amber-text:#a9481d;
+  --warn:#c0392b; --warn-soft:#fdf1ef;
+  --hl-blue:#6ab7e8;
+  --line:#e5e7eb; --line-soft:#f0f1f3;
+  --r-sm:4px; --r-md:6px; --r-lg:10px; --r-xl:14px;
+  --sh-1:0 1px 2px rgba(17,24,39,.05), 0 1px 3px rgba(17,24,39,.04);
+  --sh-2:0 1px 3px rgba(17,24,39,.06), 0 8px 24px -12px rgba(17,24,39,.16);
+  --sh-3:0 4px 8px rgba(17,24,39,.06), 0 20px 40px -20px rgba(17,24,39,.20);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111318; --surface:#1a1d24; --surface-2:#20242c; --surface-3:#272b34;
+    --ink:#f3f4f6; --ink-2:#d5d9e0; --sub:#a6adba; --faint:#8b93a1;
+    --accent:#d4a3c6; --accent-rgb:212,163,198; --accent-soft:#2c2230; --accent-deep:#ecc9e2;
+    --teal:#3fc9cf; --teal-rgb:63,201,207; --teal-soft:#12303240;
+    --blue:#8fb6d4; --blue-rgb:143,182,212;
+    --amber:#f79a72; --amber-rgb:247,154,114;
+    --teal-text:#5fd8dd; --blue-text:#a9c9e2; --amber-text:#f9b494;
+    --warn:#f08a7e; --warn-soft:#3220204d;
+    --hl-blue:#4a90c4;
+    --line:#2f343e; --line-soft:#262a33;
+    --sh-1:0 1px 2px rgba(0,0,0,.4);
+    --sh-2:0 2px 6px rgba(0,0,0,.45), 0 10px 28px -14px rgba(0,0,0,.6);
+    --sh-3:0 6px 14px rgba(0,0,0,.5), 0 24px 48px -20px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#17131a; --surface:#211b24; --surface-2:#271f2a; --surface-3:#2e2532;
+  --ink:#f4eef1; --ink-2:#d3c6ce; --sub:#a99ca4; --faint:#7e7079;
+  --accent:#d199bd; --accent-rgb:209,153,189; --accent-soft:#33243040; --accent-deep:#eebfdd;
+  --teal:#3fcdbb; --teal-rgb:63,205,187; --teal-soft:#12352f80;
+  --blue:#5cc0ef; --blue-rgb:92,192,239;
+  --amber:#eaa84f; --amber-rgb:234,168,79;
+  --teal-text:#4fd8c6; --blue-text:#7fd0f5; --amber-text:#f0b968;
+  --warn:#e08b86; --warn-soft:#3a222180;
+  --line:#3a2f3e; --line-soft:#2f2733;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--bg); color:var(--ink); font-family:"Inter","Segoe UI",system-ui,Arial,sans-serif;
+  font-feature-settings:"cv05" 1,"ss01" 1; margin:0; line-height:1.5; -webkit-font-smoothing:antialiased;
+  height:100vh; overflow:hidden;
+}
+
+/* ── App bar (identical language to the calculator) ── */
+.appbar{
+  position:relative;z-index:40;background:rgba(255,255,255,.82);
+  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+  border-bottom:1px solid var(--line);padding:0 20px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .appbar{background:rgba(33,27,36,.82);}}
+:root[data-theme="dark"] .appbar{background:rgba(33,27,36,.82);}
+.appbar-inner{height:58px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none;}
+.brand-mark{
+  width:22px;height:22px;border-radius:7px;flex:none;
+  background:linear-gradient(140deg,var(--accent) 0%,var(--accent-deep) 100%);
+  box-shadow:0 2px 6px rgba(var(--accent-rgb),.4);
+}
+.brand-text{display:flex;flex-direction:column;line-height:1.15;min-width:0;}
+.brand-name{font-weight:700;font-size:.92rem;letter-spacing:-.01em;color:var(--ink);white-space:nowrap;}
+.brand-sub{font-size:.68rem;color:var(--sub);white-space:nowrap;}
+.appbar-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.ico{width:13px;height:13px;flex:none;color:currentColor;}
+.btn{
+  font-family:inherit;font-weight:650;font-size:.83rem;border-radius:999px;
+  padding:10px 19px;cursor:pointer;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink-2);
+  transition:border-color .16s,color .16s,background .16s,box-shadow .16s,transform .06s;
+  box-shadow:var(--sh-1);display:inline-flex;align-items:center;
+}
+.btn:hover{border-color:rgba(var(--accent-rgb),.5);color:var(--accent);box-shadow:var(--sh-2);}
+.btn:active{transform:translateY(1px);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 6px rgba(var(--accent-rgb),.3),0 10px 22px -10px rgba(var(--accent-rgb),.6);}
+.btn-primary:hover{color:#fff;background:var(--accent-deep);border-color:var(--accent-deep);}
+.btn-sm{padding:7px 14px;font-size:.78rem;}
+.btn-icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:50%;}
+
+/* ── Marker highlight, reused verbatim from the calculator ── */
+.hl-wrap{position:relative;display:inline-block;}
+.hl-bar{position:absolute;left:-2px;right:-2px;bottom:6%;height:52%;background:var(--hl-blue);opacity:.6;transform:skewX(-4deg);border-radius:3px;z-index:0;pointer-events:none;}
+.hl-text{position:relative;z-index:1;}
+.hl-yellow{background:#f5c518;opacity:.6;}
+.hl-coral{background:#f08a7e;opacity:.5;}
+.mark-ul{position:relative;display:inline-block;}
+.mark-ul::after{
+  content:"";position:absolute;left:-3px;right:-3px;bottom:-5px;height:6px;
+  background:var(--hl-blue);opacity:.55;border-radius:8px 4px 9px 3px;transform:skewX(-5deg);pointer-events:none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PASSWORD GATE — same lock as the calculator. Direct links to this page must
+   not bypass it.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.pw-gate{
+  position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:
+    radial-gradient(760px 520px at 10% -12%, rgba(var(--accent-rgb),.20), transparent 60%),
+    radial-gradient(680px 480px at 108% 112%, rgba(var(--teal-rgb),.16), transparent 60%),
+    var(--bg);
+  animation:pwFadeIn .4s ease both;
+}
+@keyframes pwFadeIn{from{opacity:0}to{opacity:1}}
+.pw-gate.pw-hide{animation:pwFadeOut .35s ease both;pointer-events:none;}
+@keyframes pwFadeOut{to{opacity:0;visibility:hidden;}}
+.pw-card{
+  width:100%;max-width:392px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-xl);box-shadow:var(--sh-3);padding:40px 36px 32px;text-align:center;
+  animation:pwRise .5s cubic-bezier(.2,.7,.3,1) both;
+}
+@keyframes pwRise{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+.pw-mark{
+  width:58px;height:58px;border-radius:17px;margin:0 auto 20px;
+  background:linear-gradient(140deg,var(--accent) 0%,var(--accent-deep) 100%);
+  box-shadow:0 8px 18px -4px rgba(var(--accent-rgb),.5);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-family:"Inter",sans-serif;font-weight:800;font-size:27px;
+}
+.pw-title{font-family:"Caveat",cursive;font-weight:700;font-size:2.15rem;color:var(--ink);margin:0 0 3px;line-height:1.15;}
+.pw-sub{font-size:.87rem;color:var(--sub);margin:0 0 26px;}
+.pw-field{margin-bottom:6px;}
+.pw-field input{
+  width:100%;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface-2);
+  color:var(--ink);font-family:inherit;font-size:1rem;font-weight:650;padding:13px 16px;text-align:center;
+  letter-spacing:.08em;transition:border-color .16s,box-shadow .16s;
+}
+.pw-field input::placeholder{font-weight:500;letter-spacing:normal;color:var(--faint);}
+.pw-field input:focus{outline:none;border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.15);}
+.pw-gate.pw-shake .pw-card{animation:pwShake .4s;}
+@keyframes pwShake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-5px)}40%,60%{transform:translateX(5px)}}
+.pw-error{font-size:.8rem;color:var(--warn);margin:10px 0 4px;min-height:1.1em;opacity:0;transition:opacity .15s;}
+.pw-error.pw-show{opacity:1;}
+.pw-submit{
+  width:100%;margin-top:16px;font-family:inherit;font-weight:700;font-size:.94rem;border-radius:999px;
+  padding:13px 19px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff;
+  box-shadow:0 2px 6px rgba(var(--accent-rgb),.3),0 10px 22px -10px rgba(var(--accent-rgb),.6);
+  transition:background .16s,border-color .16s,transform .06s;
+}
+.pw-submit:hover{background:var(--accent-deep);border-color:var(--accent-deep);}
+.pw-submit:active{transform:translateY(1px);}
+.pw-foot{margin-top:22px;font-size:.72rem;color:var(--faint);}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DECK SHELL — left panel (slide picker + data controls) + main stage.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.deck-shell{display:grid;grid-template-columns:284px minmax(0,1fr);height:calc(100vh - 59px);}
+@media(max-width:860px){.deck-shell{grid-template-columns:1fr;height:auto;overflow:auto;}}
+
+.deck-panel{
+  border-right:1px solid var(--line);background:var(--surface);overflow-y:auto;
+  padding:18px 16px 24px;display:flex;flex-direction:column;gap:18px;
+}
+.panel-sec{padding-bottom:16px;border-bottom:1px solid var(--line-soft);}
+.panel-sec:last-child{border-bottom:none;padding-bottom:0;}
+.panel-label{
+  display:flex;align-items:center;gap:7px;font-size:.63rem;text-transform:uppercase;
+  letter-spacing:.13em;font-weight:700;color:var(--sub);margin-bottom:10px;
+}
+.panel-field{margin-bottom:10px;}
+.panel-field label{display:block;font-size:.72rem;color:var(--sub);margin-bottom:5px;font-weight:600;}
+.panel-field input[type=text],.panel-field select{
+  width:100%;padding:8px 10px;border-radius:var(--r-md);border:1px solid var(--line);
+  background:var(--surface-2);color:var(--ink);font-family:inherit;font-size:.83rem;
+  transition:border-color .15s,box-shadow .15s;
+}
+.panel-field input[type=text]:focus,.panel-field select:focus{
+  outline:none;border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13);
+}
+.chk-row{display:flex;align-items:center;gap:7px;font-size:.78rem;color:var(--sub);padding:4px 0;cursor:pointer;}
+.chk-row input{width:14px;height:14px;accent-color:var(--accent);cursor:pointer;flex:none;}
+.chk-row .amt{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--ink-2);font-weight:600;font-size:.74rem;}
+.sample-note{
+  font-size:.72rem;color:var(--sub);line-height:1.5;background:var(--surface-2);
+  border-radius:var(--r-md);padding:9px 11px;
+}
+
+/* ── Slide list ── */
+.slide-list{display:flex;flex-direction:column;gap:6px;}
+.slide-row{
+  display:flex;align-items:center;gap:7px;padding:8px 8px 8px 6px;border-radius:var(--r-md);
+  border:1px solid var(--line);background:var(--surface-2);cursor:pointer;transition:border-color .15s,background .15s;
+}
+.slide-row:hover{border-color:rgba(var(--accent-rgb),.4);}
+.slide-row.focused{border-color:var(--accent);background:var(--accent-soft);}
+.slide-row input[type=checkbox]{width:14px;height:14px;accent-color:var(--accent);cursor:pointer;flex:none;}
+.slide-row .sr-num{font-size:.68rem;color:var(--faint);width:14px;flex:none;text-align:right;font-variant-numeric:tabular-nums;}
+.slide-row .sr-main{flex:1;min-width:0;}
+.slide-row .sr-title{font-size:.79rem;font-weight:650;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.slide-row .sr-tag{font-size:.62rem;color:var(--sub);}
+.slide-row .sr-moves{display:flex;flex-direction:column;flex:none;}
+.sr-move{
+  width:16px;height:13px;line-height:1;padding:0;border:none;background:transparent;color:var(--faint);
+  font-size:.6rem;cursor:pointer;border-radius:3px;
+}
+.sr-move:hover:not(:disabled){color:var(--accent);}
+.sr-move:disabled{opacity:.25;cursor:not-allowed;}
+.sr-remove{
+  flex:none;width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);
+  color:var(--sub);font-size:.72rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.sr-remove:hover{background:var(--warn);border-color:var(--warn);color:#fff;}
+
+/* ── Upload zone ── */
+.upload-zone{
+  border:1.5px dashed var(--line);border-radius:var(--r-md);padding:16px 12px;text-align:center;
+  cursor:pointer;transition:border-color .15s,background .15s;background:var(--surface-2);
+}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-soft);}
+.upload-zone .uz-title{font-size:.79rem;font-weight:650;color:var(--ink);margin-bottom:3px;}
+.upload-zone .uz-hint{font-size:.7rem;color:var(--sub);line-height:1.45;}
+.upload-status{font-size:.72rem;color:var(--sub);margin-top:8px;line-height:1.5;}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STAGE — the slide canvas. A fixed 960×540 (16:9) design is scaled to fit via
+   CSS transform, so typography stays pixel-identical in the panel preview, the
+   fullscreen presenter, and the print/export output.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.stage-wrap{display:flex;flex-direction:column;min-width:0;background:var(--bg);}
+.stage-toolbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 22px;border-bottom:1px solid var(--line);flex:none;
+}
+.stage-nav{display:flex;align-items:center;gap:10px;}
+.stage-count{font-size:.78rem;color:var(--sub);font-variant-numeric:tabular-nums;min-width:52px;text-align:center;}
+.stage-frame-outer{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;min-height:0;}
+.stage-frame{
+  width:100%;height:100%;max-width:1040px;display:flex;align-items:center;justify-content:center;position:relative;
+}
+.slide-scale-wrap{position:relative;overflow:hidden;}
+.slide{
+  width:960px;height:540px;background:#fff;color:#1b1b1f;position:relative;overflow:hidden;
+  border-radius:10px;box-shadow:var(--sh-3);transform-origin:top left;flex:none;
+}
+
+/* ── Slide inner content vocabulary — echoes the source deck's own look:
+   handwritten Caveat headline with a marker underline, grey rounded stat
+   cards, small accent circles. All colours pull from the same tokens. ── */
+.sl-pad{position:absolute;inset:0;padding:46px 56px;display:flex;flex-direction:column;}
+.sl-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8a8f9b;margin-bottom:10px;}
+.sl-h{font-family:"Caveat",cursive;font-weight:700;font-size:2.5rem;color:#1b1b1f;margin:0 0 26px;line-height:1;}
+.sl-h .hl-bar{background:var(--hl-blue);}
+.sl-h.sl-h-sm{font-size:1.9rem;margin-bottom:20px;}
+.sl-body{flex:1;min-height:0;}
+.sl-foot{
+  position:absolute;left:56px;right:56px;bottom:22px;display:flex;justify-content:space-between;
+  font-size:.68rem;color:#9aa0ab;border-top:1px solid #eceef1;padding-top:10px;
+}
+
+.sl-title-slide{align-items:flex-start;justify-content:center;padding:0 72px;}
+.sl-title-slide .sl-hero{font-family:"Caveat",cursive;font-weight:700;font-size:4.4rem;margin:0;line-height:1;color:#1b1b1f;}
+.sl-title-slide .sl-hero .hl-bar{background:#3fb6ea;height:44%;bottom:2%;}
+.sl-title-slide .sl-sub2{font-family:"Caveat",cursive;font-weight:600;font-size:1.9rem;color:#1b1b1f;margin:10px 0 30px;}
+.sl-logo-box{
+  width:92px;height:92px;border:5px solid #2c2f36;border-radius:16px;display:flex;align-items:center;justify-content:center;
+  font-family:"Inter",sans-serif;font-weight:800;font-size:1.5rem;color:#2c2f36;letter-spacing:-.03em;margin-bottom:26px;
+}
+.sl-presenter{font-size:.92rem;color:#4b5563;}
+.sl-presenter b{color:var(--accent);font-weight:700;}
+
+.sl-cols{display:grid;grid-template-columns:1fr 1fr;gap:22px;height:100%;}
+.sl-box{background:#f3f4f6;border-radius:14px;padding:22px 24px;}
+.sl-box-h{font-family:"Caveat",cursive;font-weight:700;font-size:1.5rem;color:#1b1b1f;margin:0 0 14px;text-decoration:line-through;text-decoration-color:#f08a7e;text-decoration-thickness:2px;}
+.sl-box-h.on{text-decoration:none;color:var(--accent);}
+.sl-box ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;}
+.sl-box li{display:flex;gap:9px;align-items:flex-start;font-size:.94rem;color:#2c2f36;line-height:1.4;}
+.sl-box li::before{content:"";width:6px;height:6px;border-radius:50%;background:#1b1b1f;margin-top:8px;flex:none;}
+
+.sl-year-cols{display:grid;grid-template-columns:120px repeat(2,1fr);gap:14px;align-items:center;}
+.sl-year-h{font-family:"Caveat",cursive;font-weight:700;font-size:1.4rem;text-align:center;color:#2c2f36;}
+.sl-year-lbl{font-family:"Caveat",cursive;font-weight:600;font-size:1.15rem;color:#2c2f36;}
+.sl-stat-box{background:#eceef1;border-radius:12px;padding:16px 10px;text-align:center;}
+.sl-stat-box.circled{position:relative;}
+.sl-stat-box.circled::before{
+  content:"";position:absolute;inset:-6px;border:3px solid var(--amber);border-radius:50%;opacity:.85;
+  transform:rotate(-4deg);
+}
+.sl-stat-num{font-size:1.7rem;font-weight:800;color:#1b1b1f;font-variant-numeric:tabular-nums;position:relative;}
+.sl-stat-sub{font-size:.72rem;color:#6b7280;margin-top:2px;}
+
+.sl-adv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;height:100%;align-content:center;}
+.sl-adv-card{text-align:center;padding:0 6px;}
+.sl-adv-dot{width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.3rem;font-weight:800;}
+.sl-adv-t{font-family:"Caveat",cursive;font-weight:700;font-size:1.35rem;color:#1b1b1f;margin-bottom:6px;}
+.sl-adv-d{font-size:.82rem;color:#5b6474;line-height:1.5;}
+
+.sl-schedule{display:flex;gap:10px;height:100%;align-items:center;}
+.sl-yr-card{flex:1;background:#f3f4f6;border-radius:12px;padding:16px 8px;text-align:center;}
+.sl-yr-card.first{background:var(--accent-soft);}
+.sl-yr-card .yr-h{font-family:"Caveat",cursive;font-weight:700;font-size:1.1rem;color:#2c2f36;margin-bottom:8px;}
+.sl-yr-card .yr-permo{font-size:1.28rem;font-weight:800;color:#1b1b1f;font-variant-numeric:tabular-nums;}
+.sl-yr-card .yr-permo-lbl{font-size:.63rem;color:#8a8f9b;margin-top:1px;}
+.sl-yr-card .yr-total{font-size:.72rem;color:#6b7280;margin-top:8px;font-variant-numeric:tabular-nums;}
+
+.sl-rate-row{display:flex;gap:16px;height:100%;align-items:center;}
+.sl-rate-card{flex:1;background:#f3f4f6;border-radius:12px;padding:20px 12px;text-align:center;}
+.sl-rate-card .rc-h{font-size:.78rem;font-weight:700;color:#5b6474;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.sl-rate-card .rc-amt{font-size:1.5rem;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;}
+.sl-rate-card .rc-sub{font-size:.72rem;color:#8a8f9b;margin-top:3px;}
+
+.sl-bd-wrap{display:flex;gap:26px;height:100%;}
+.sl-bd-lines{flex:1;display:flex;flex-direction:column;justify-content:center;gap:13px;}
+.sl-bd-line{display:flex;justify-content:space-between;font-size:.95rem;color:#374151;padding-bottom:11px;border-bottom:1px dashed #e5e7eb;}
+.sl-bd-line span:last-child{font-weight:700;color:#1b1b1f;font-variant-numeric:tabular-nums;}
+.sl-bd-total{border-bottom:none;border-top:2px solid #1b1b1f;padding-top:12px;font-size:1.15rem;font-weight:800;}
+.sl-bd-side{width:230px;flex:none;background:var(--accent);color:#fff;border-radius:14px;padding:22px;display:flex;flex-direction:column;justify-content:center;}
+.sl-bd-side .sb-lbl{font-size:.7rem;opacity:.8;text-transform:uppercase;letter-spacing:.08em;}
+.sl-bd-side .sb-amt{font-size:2.1rem;font-weight:800;margin:5px 0 2px;font-variant-numeric:tabular-nums;}
+.sl-bd-side .sb-sub{font-size:.78rem;opacity:.85;}
+.sl-bd-side .sb-save{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.3);font-size:.82rem;}
+
+.sl-cmp-table{width:100%;border-collapse:collapse;font-size:.76rem;}
+.sl-cmp-table th{text-align:left;font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:#8a8f9b;padding:0 8px 8px;border-bottom:1px solid #e5e7eb;font-weight:700;}
+.sl-cmp-table th.num,.sl-cmp-table td.num{text-align:right;}
+.sl-cmp-table td{padding:9px 8px;border-bottom:1px solid #f0f1f3;color:#374151;}
+.sl-cmp-table tr:last-child td{border-bottom:none;}
+.sl-cmp-table td.grand{font-weight:800;color:#1b1b1f;}
+
+.sl-pay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.sl-pay-card{background:#f3f4f6;border-radius:12px;padding:18px 16px;}
+.sl-pay-t{font-family:"Caveat",cursive;font-weight:700;font-size:1.3rem;color:#1b1b1f;margin-bottom:8px;}
+.sl-pay-d{font-size:.78rem;color:#5b6474;line-height:1.55;}
+.sl-fin-note{
+  margin-top:18px;background:var(--accent-soft);border:1px dashed rgba(var(--accent-rgb),.4);border-radius:10px;
+  padding:12px 16px;font-size:.85rem;color:var(--accent-deep);
+}
+
+.sl-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#9aa0ab;gap:8px;}
+.sl-empty a{color:var(--accent);font-weight:600;text-decoration:none;}
+
+.sl-file-card{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;}
+.sl-file-icon{width:64px;height:64px;border-radius:14px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:800;}
+.sl-file-name{font-weight:650;color:#1b1b1f;font-size:.95rem;max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sl-file-sub{font-size:.78rem;color:#8a8f9b;}
+
+.sample-banner{
+  display:flex;align-items:center;gap:10px;background:var(--accent-soft);border-bottom:1px solid rgba(var(--accent-rgb),.25);
+  color:var(--accent-deep);font-size:.8rem;padding:9px 22px;flex:none;
+}
+.sample-banner a{color:inherit;font-weight:700;text-decoration:underline;}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRESENT MODE — fullscreen, letterboxed, click/keys to advance.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.present-overlay{
+  position:fixed;inset:0;z-index:5000;background:#111318;display:none;align-items:center;justify-content:center;
+}
+.present-overlay.on{display:flex;}
+.present-frame{width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;}
+.present-controls{
+  position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;
+  background:rgba(255,255,255,.08);backdrop-filter:blur(10px);border-radius:999px;padding:8px 10px;
+}
+.present-controls button{
+  width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.12);color:#fff;
+  cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background .15s;
+}
+.present-controls button:hover:not(:disabled){background:rgba(255,255,255,.24);}
+.present-controls button:disabled{opacity:.3;cursor:not-allowed;}
+.present-controls .pc-count{color:#fff;font-size:.78rem;font-variant-numeric:tabular-nums;padding:0 4px;min-width:44px;text-align:center;}
+.present-exit{
+  position:absolute;top:20px;right:20px;width:38px;height:38px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.1);color:#fff;font-size:1.1rem;cursor:pointer;
+}
+.present-exit:hover{background:rgba(255,255,255,.22);}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRINT / EXPORT — one included slide per landscape page.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media print{
+  @page{margin:0;size:landscape;}
+  body{overflow:visible;height:auto;background:#fff;}
+  .no-print{display:none !important;}
+  .deck-shell{display:block;height:auto;}
+  .deck-panel{display:none;}
+  .stage-wrap{display:block;}
+  .stage-toolbar{display:none;}
+  .stage-frame-outer{display:block;padding:0;}
+  #printSlides{display:block;}
+  #printSlides .print-slide{
+    width:100vw;height:100vh;page-break-after:always;display:flex;align-items:center;justify-content:center;
+  }
+  #printSlides .print-slide:last-child{page-break-after:auto;}
+  #printSlides .slide{box-shadow:none;border-radius:0;transform:none !important;width:100vw !important;height:100vh !important;}
+}
+#printSlides{display:none;}
+</style>
+
+<!-- ═══ PASSWORD GATE ═══ -->
+<div class="pw-gate no-print" id="pwGate">
+  <div class="pw-card">
+    <div class="pw-mark" aria-hidden="true">$</div>
+    <h1 class="pw-title">Odoo Quote Calculator</h1>
+    <p class="pw-sub">Enter the password to continue</p>
+    <form id="pwForm" autocomplete="off">
+      <div class="pw-field">
+        <input type="password" id="pwInput" name="pwInput" placeholder="Password" autocomplete="new-password" spellcheck="false">
+      </div>
+      <p class="pw-error" id="pwError">Incorrect password — try again.</p>
+      <button type="submit" class="pw-submit">Unlock</button>
+    </form>
+    <p class="pw-foot">Access is restricted to authorized users.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var GATE_PASSWORD = "Odoo20";
+  function init(){
+    var gate = document.getElementById('pwGate');
+    var form = document.getElementById('pwForm');
+    var input = document.getElementById('pwInput');
+    var error = document.getElementById('pwError');
+    var locked = [document.getElementById('appRoot')];
+
+    document.body.style.overflow = 'hidden';
+    locked.forEach(function(el){ if (el) el.setAttribute('inert',''); });
+
+    function unlock(){
+      gate.classList.add('pw-hide');
+      document.body.style.overflow = '';
+      locked.forEach(function(el){ if (el) el.removeAttribute('inert'); });
+      setTimeout(function(){ if (gate && gate.parentNode) gate.parentNode.removeChild(gate); }, 400);
+      window.dispatchEvent(new Event('deck-unlocked'));
+    }
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      if (input.value === GATE_PASSWORD) {
+        unlock();
+      } else {
+        error.classList.add('pw-show');
+        gate.classList.add('pw-shake');
+        input.value = '';
+        input.focus();
+        setTimeout(function(){ gate.classList.remove('pw-shake'); }, 400);
+      }
+    });
+
+    input.focus();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+<div id="appRoot">
+  <!-- ═══ APP BAR ═══ -->
+  <header class="appbar no-print">
+    <div class="appbar-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <span class="brand-name">Odoo Quote Calculator</span>
+          <span class="brand-sub">← Back to calculator</span>
+        </span>
+      </a>
+      <div class="appbar-actions">
+        <button id="exportPdfBtn" type="button" class="btn btn-sm">Export PDF</button>
+        <button id="presentBtn" type="button" class="btn btn-sm btn-primary">▶ Present</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="sampleBanner" class="sample-banner no-print" style="display:none;">
+    Showing example numbers — this deck isn't connected to a saved scenario yet.
+    <a href="index.html">Build scenarios in the calculator</a>, then click <strong>Deck</strong> to pull in your real pricing.
+  </div>
+
+  <!-- ═══ DECK SHELL ═══ -->
+  <div class="deck-shell">
+    <aside class="deck-panel no-print">
+
+      <div class="panel-sec">
+        <div class="panel-label">Personalize</div>
+        <div class="panel-field">
+          <label for="presenterName">Presenter name</label>
+          <input type="text" id="presenterName" placeholder="Your name">
+        </div>
+        <div class="panel-field" style="margin-bottom:0;">
+          <label for="customerName">Customer / company</label>
+          <input type="text" id="customerName" placeholder="Optional">
+        </div>
+      </div>
+
+      <div class="panel-sec" id="featuredSec">
+        <div class="panel-label">Featured scenario</div>
+        <div class="panel-field" style="margin-bottom:0;">
+          <select id="featuredSelect"></select>
+        </div>
+      </div>
+
+      <div class="panel-sec" id="compareSec">
+        <div class="panel-label">Compare on the comparison slide</div>
+        <div id="compareList"></div>
+      </div>
+
+      <div class="panel-sec" style="flex:1;min-height:120px;display:flex;flex-direction:column;">
+        <div class="panel-label">Slides</div>
+        <div class="slide-list" id="slideList" style="overflow-y:auto;"></div>
+      </div>
+
+      <div class="panel-sec">
+        <div class="panel-label">Bring your own deck</div>
+        <div class="upload-zone" id="uploadZone">
+          <div class="uz-title">Upload a PDF or PowerPoint</div>
+          <div class="uz-hint">PDF pages are added as slides you can pick and reorder. PowerPoint files attach as a file to open or present separately.</div>
+        </div>
+        <input type="file" id="uploadInput" accept=".pdf,.pptx" style="display:none;" multiple>
+        <div class="upload-status" id="uploadStatus"></div>
+      </div>
+
+    </aside>
+
+    <main class="stage-wrap">
+      <div class="stage-toolbar no-print">
+        <div class="stage-nav">
+          <button type="button" class="btn btn-sm btn-icon" id="prevBtn" aria-label="Previous slide">‹</button>
+          <span class="stage-count" id="stageCount">1 / 1</span>
+          <button type="button" class="btn btn-sm btn-icon" id="nextBtn" aria-label="Next slide">›</button>
+        </div>
+        <div style="font-size:.78rem;color:var(--sub);" id="stageTitle"></div>
+      </div>
+      <div class="stage-frame-outer">
+        <div class="stage-frame" id="stageFrame">
+          <div class="slide-scale-wrap" id="stageScaleWrap">
+            <div class="slide" id="stageSlide"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ═══ PRESENT MODE ═══ -->
+<div class="present-overlay no-print" id="presentOverlay">
+  <button class="present-exit" id="presentExit" aria-label="Exit presentation">×</button>
+  <div class="present-frame" id="presentFrame">
+    <div class="slide-scale-wrap" id="presentScaleWrap">
+      <div class="slide" id="presentSlide"></div>
+    </div>
+  </div>
+  <div class="present-controls">
+    <button type="button" id="presentPrev" aria-label="Previous">‹</button>
+    <span class="pc-count" id="presentCount">1 / 1</span>
+    <button type="button" id="presentNext" aria-label="Next">›</button>
+  </div>
+</div>
+
+<!-- ═══ PRINT OUTPUT (built just-in-time before window.print()) ═══ -->
+<div id="printSlides"></div>
+
+
+<script>
+// ═════════════════════════════════════════════════════════════════════════
+// DATA — read the calculator's hand-off (compute() output, customer-facing
+// only) if present; otherwise fall back to an example scenario so the deck
+// is still a useful, honestly-labeled preview on its own.
+// ═════════════════════════════════════════════════════════════════════════
+function loadHandoff(){
+  try {
+    const raw = localStorage.getItem('odooDeckHandoff');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return (parsed && Array.isArray(parsed.scenarios)) ? parsed : null;
+  } catch(e){ return null; }
+}
+function buildSampleData(){
+  const schedule3 = [
+    {year:1, total:8412, perMonth:701},
+    {year:2, total:7332, perMonth:611},
+    {year:3, total:7332, perMonth:611}
+  ];
+  return {
+    v:1, country:'US', sym:'$', masterUsers:10,
+    scenarios:[{
+      idx:1, users:10, term:3, termLabel:'3 Yrs', plan:'custom', planLabel:'Custom',
+      hosting:'sh', hostingLabel:'Odoo.sh', hours:50,
+      q:{ isMo:false, years:3, months:36, licTotal:18324, implTotal:7000, shTotal:1752,
+          grand:27076, perMonth:752, savings:6100, finLow:824, finHigh:912, schedule:schedule3 }
+    },{
+      idx:2, users:10, term:'mo', termLabel:'Monthly', plan:'custom', planLabel:'Custom',
+      hosting:'sh', hostingLabel:'Odoo.sh', hours:0,
+      q:{ isMo:true, years:1, months:12, licTotal:9144, implTotal:0, shTotal:691,
+          grand:9835, perMonth:820, savings:0, finLow:0, finHigh:0,
+          schedule:[{year:1,total:9835,perMonth:820}] }
+    }],
+    packs:[{hours:4,rate:145,label:'Starter'},{hours:25,rate:144,label:'Basic'},{hours:50,rate:140,label:'Standard'},{hours:100,rate:125,label:'Custom'},{hours:200,rate:125,label:'Pro'}],
+    shRates:{ yearly:{worker:57.60, storage:0.20, staging:14.40, dedicated:480, base:0}, monthly:{worker:72.00, storage:0.25, staging:18.00, dedicated:600, base:0} },
+    discountSchedule:{1:0, 2:0.05, 3:0.10, 4:0.125, 5:0.15}
+  };
+}
+const REAL = loadHandoff();
+const DATA = REAL || buildSampleData();
+const IS_SAMPLE = !REAL;
+
+// ═════════════════════════════════════════════════════════════════════════
+// FORMAT HELPERS
+// ═════════════════════════════════════════════════════════════════════════
+const fmt = n => DATA.sym + Math.round(n||0).toLocaleString('en-US');
+const fmtDec = n => DATA.sym + (n||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+function escapeHtml(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// STATE
+// ═════════════════════════════════════════════════════════════════════════
+const state = {
+  presenterName: '',
+  customerName: '',
+  featuredIdx: 0,
+  compareSet: new Set(DATA.scenarios.map((_, i) => i)),
+};
+
+function emptyState(msg){
+  return `<div class="sl-pad"><div class="sl-empty"><div style="font-size:2rem;">—</div><div>${escapeHtml(msg)}</div><a href="index.html">Open the calculator →</a></div></div>`;
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// SLIDE TEMPLATES — every dynamic figure below comes straight from the
+// calculator's own compute() output (see DATA.scenarios[i].q). Nothing here
+// re-derives pricing, so the deck can never disagree with the calculator.
+// ═════════════════════════════════════════════════════════════════════════
+function featured(){ return DATA.scenarios[state.featuredIdx] || null; }
+
+function slTitle(text, cls){
+  return `<h2 class="sl-h${cls?(' '+cls):''}"><span class="hl-wrap"><span class="hl-bar" aria-hidden="true"></span><span class="hl-text">${text}</span></span></h2>`;
+}
+
+function renderTitleSlide(){
+  const presenter = state.presenterName.trim() ? escapeHtml(state.presenterName) : '[Your Name]';
+  const customer = state.customerName.trim();
+  return `
+    <div class="sl-pad sl-title-slide">
+      ${customer ? `<div class="sl-eyebrow">PREPARED FOR ${escapeHtml(customer.toUpperCase())}</div>` : ''}
+      <h1 class="sl-hero"><span class="hl-wrap"><span class="hl-bar" aria-hidden="true"></span><span class="hl-text">Odoo Pricing</span></span></h1>
+      <div class="sl-sub2">Subscription &amp; Implementation</div>
+      <div class="sl-logo-box">odoo</div>
+      <div class="sl-presenter"><b>${presenter}</b>, Business Advisor</div>
+    </div>`;
+}
+
+function renderSubBreakdown(){
+  return `
+    <div class="sl-pad">
+      ${slTitle('Subscription Breakdown')}
+      <div class="sl-body sl-cols">
+        <div class="sl-box">
+          <div class="sl-box-h">Monthly / Yearly</div>
+          <ul>
+            <li>Available on the Odoo website</li>
+            <li>Flexible — cancel or change anytime</li>
+            <li>Variable rate, billed as you go</li>
+          </ul>
+        </div>
+        <div class="sl-box">
+          <div class="sl-box-h on">Multi-Year</div>
+          <ul>
+            <li>Available via your sales consultant</li>
+            <li>Cost savings vs. paying monthly</li>
+            <li>Price protection — rate is locked</li>
+          </ul>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderYearPricing(){
+  const f = featured();
+  if (!f) return `<div class="sl-pad">${slTitle('Pricing by Year')}${emptyState('Add a scenario to show Year 1 vs. ongoing pricing.')}</div>`;
+  const q = f.q, sched = q.schedule;
+  const y1 = sched[0], rest = sched.length > 1 ? sched[1] : null;
+  return `
+    <div class="sl-pad">
+      ${slTitle('Pricing by Year')}
+      <div class="sl-body sl-year-cols">
+        <div></div>
+        <div class="sl-year-h">Year 1</div>
+        <div class="sl-year-h">${rest ? 'Years 2+' : (q.isMo ? 'Every month after' : '—')}</div>
+        <div class="sl-year-lbl">Per month</div>
+        <div class="sl-stat-box circled">
+          <div class="sl-stat-num">${fmt(y1.perMonth)}</div>
+          <div class="sl-stat-sub">${escapeHtml(f.termLabel)}</div>
+        </div>
+        <div class="sl-stat-box">
+          <div class="sl-stat-num">${rest ? fmt(rest.perMonth) : fmt(y1.perMonth)}</div>
+          <div class="sl-stat-sub">${rest ? 'ongoing rate' : 'no further years'}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderMultiAdvantages(){
+  const items = [
+    ['Predictability', 'Lock in your rate before annual increases apply.'],
+    ['Cost Savings', 'Save against paying month-to-month across the term.'],
+    ['Value', 'One negotiated price covers your full commitment.']
+  ];
+  return `
+    <div class="sl-pad">
+      ${slTitle('Advantages of Multi-Year')}
+      <div class="sl-body sl-adv-grid">
+        ${items.map((it,i) => `
+          <div class="sl-adv-card">
+            <div class="sl-adv-dot">${i+1}</div>
+            <div class="sl-adv-t">${it[0]}</div>
+            <div class="sl-adv-d">${it[1]}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderFiveYear(){
+  const f = featured();
+  if (!f) return `<div class="sl-pad">${slTitle('Your Term, Year by Year')}${emptyState('Add a scenario to show a year-by-year schedule.')}</div>`;
+  const sched = f.q.schedule;
+  return `
+    <div class="sl-pad">
+      ${slTitle(sched.length > 1 ? `Your ${sched.length}-Year Schedule` : 'Your Schedule', 'sl-h-sm')}
+      <div class="sl-body sl-schedule">
+        ${sched.map(y => `
+          <div class="sl-yr-card${y.year===1?' first':''}">
+            <div class="yr-h">Year ${y.year}</div>
+            <div class="yr-permo">${fmt(y.perMonth)}</div>
+            <div class="yr-permo-lbl">per month</div>
+            <div class="yr-total">${fmt(y.total)} total</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderDifferent(){
+  const items = [
+    ['Free Trial', 'Experience the UI of the product firsthand.'],
+    ['Immediate Pricing', 'See real pricing in the first meeting.'],
+    ['Live Demo', 'See how the product actually works.']
+  ];
+  return `
+    <div class="sl-pad">
+      ${slTitle('What Makes Odoo Different?')}
+      <div class="sl-body sl-adv-grid">
+        ${items.map((it,i) => `
+          <div class="sl-adv-card">
+            <div class="sl-adv-dot">${i+1}</div>
+            <div class="sl-adv-t">${it[0]}</div>
+            <div class="sl-adv-d">${it[1]}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderImplRates(){
+  const packs = DATA.packs;
+  return `
+    <div class="sl-pad">
+      ${slTitle('Implementation Rates')}
+      <div class="sl-body sl-rate-row">
+        ${packs.map(p => `
+          <div class="sl-rate-card">
+            <div class="rc-h">${p.hours}+ Hours</div>
+            <div class="rc-amt">${fmtDec(p.rate)}</div>
+            <div class="rc-sub">per hour · ${escapeHtml(p.label)}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderShRates(){
+  const r = DATA.shRates.yearly;
+  const rows = [['Workers', fmtDec(r.worker) + '/worker/mo'], ['Storage', fmtDec(r.storage) + '/GB/mo'], ['Staging Environments', fmtDec(r.staging) + '/branch/mo']];
+  return `
+    <div class="sl-pad">
+      ${slTitle('Odoo.sh Hosting')}
+      <div class="sl-body sl-rate-row">
+        ${rows.map(r => `
+          <div class="sl-rate-card">
+            <div class="rc-h">${r[0]}</div>
+            <div class="rc-amt">${r[1].split('/')[0]}</div>
+            <div class="rc-sub">/${r[1].split('/').slice(1).join('/')}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderCostBreakdown(){
+  const f = featured();
+  if (!f) return `<div class="sl-pad">${slTitle('Cost Breakdown')}${emptyState('Add a scenario to show its cost breakdown.')}</div>`;
+  const q = f.q;
+  const lines = [['License', q.licTotal], ['Implementation', q.implTotal]];
+  if (q.shTotal) lines.push(['Hosting', q.shTotal]);
+  return `
+    <div class="sl-pad">
+      ${slTitle('Cost Breakdown')}
+      <div class="sl-body sl-bd-wrap">
+        <div class="sl-bd-lines">
+          ${lines.map(l => `<div class="sl-bd-line"><span>${l[0]}</span><span>${fmt(l[1])}</span></div>`).join('')}
+          <div class="sl-bd-line sl-bd-total"><span>Total (${escapeHtml(f.termLabel)})</span><span>${fmt(q.grand)}</span></div>
+        </div>
+        <div class="sl-bd-side">
+          <div class="sb-lbl">All-in, ${escapeHtml(f.termLabel)}</div>
+          <div class="sb-amt">${fmt(q.grand)}</div>
+          <div class="sb-sub">${fmt(q.perMonth)} / month equivalent</div>
+          ${q.savings > 0 ? `<div class="sb-save">Saves ${fmt(q.savings)} vs. paying monthly</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderComparison(){
+  const rows = DATA.scenarios.filter((_, i) => state.compareSet.has(i));
+  if (rows.length === 0) {
+    return `<div class="sl-pad">${slTitle('Scenario Comparison')}${emptyState('Select at least one scenario in the panel to compare.')}</div>`;
+  }
+  return `
+    <div class="sl-pad">
+      ${slTitle('Scenario Comparison', 'sl-h-sm')}
+      <div class="sl-body">
+        <table class="sl-cmp-table">
+          <thead><tr>
+            <th>Users</th><th>Term</th><th>Plan</th><th>Hosting</th>
+            <th class="num">License</th><th class="num">Impl.</th><th class="num">All-in</th><th class="num">Per mo.</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map(s => `
+              <tr>
+                <td>${s.users}</td>
+                <td>${escapeHtml(s.termLabel)}</td>
+                <td>${escapeHtml(s.planLabel)}</td>
+                <td>${escapeHtml(s.hostingLabel)}</td>
+                <td class="num">${fmt(s.q.licTotal)}</td>
+                <td class="num">${fmt(s.q.implTotal)}</td>
+                <td class="num grand">${fmt(s.q.grand)}</td>
+                <td class="num">${fmt(s.q.perMonth)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderPayment(){
+  const f = featured();
+  const fin = f && !f.q.isMo && f.q.grand > 0 && f.q.finLow ? `
+    <div class="sl-fin-note">As low as <strong>${fmt(f.q.finLow)}–${fmt(f.q.finHigh)}/mo</strong> financed for ${escapeHtml(f.termLabel)}.</div>` : '';
+  return `
+    <div class="sl-pad">
+      ${slTitle('Payment Options')}
+      <div class="sl-body">
+        <div class="sl-pay-grid">
+          <div class="sl-pay-card"><div class="sl-pay-t">Paid in Full</div><div class="sl-pay-d">Due at signing. ACH (US only) or bank wire.</div></div>
+          <div class="sl-pay-card"><div class="sl-pay-t">Flexible Terms</div><div class="sl-pay-d">Available across the US and Canada.</div></div>
+          <div class="sl-pay-card"><div class="sl-pay-t">Financing</div><div class="sl-pay-d">Spread the cost over the length of your term.</div></div>
+        </div>
+        ${fin}
+      </div>
+    </div>`;
+}
+
+const DEFAULT_SLIDE_DEFS = [
+  {id:'title',    label:'Title Slide',              tag:'Title',     build: renderTitleSlide},
+  {id:'subBreak', label:'Subscription Breakdown',    tag:'Overview',  build: renderSubBreakdown},
+  {id:'yearPr',   label:'Pricing by Year',           tag:'Pricing',   build: renderYearPricing},
+  {id:'multiAdv', label:'Advantages of Multi-Year',  tag:'Overview',  build: renderMultiAdvantages},
+  {id:'fiveYr',   label:'Year-by-Year Schedule',     tag:'Pricing',   build: renderFiveYear},
+  {id:'differ',   label:'What Makes Odoo Different', tag:'Overview',  build: renderDifferent},
+  {id:'implR',    label:'Implementation Rates',      tag:'Pricing',   build: renderImplRates},
+  {id:'shR',      label:'Odoo.sh Hosting',           tag:'Pricing',   build: renderShRates},
+  {id:'costBd',   label:'Cost Breakdown',            tag:'Pricing',   build: renderCostBreakdown},
+  {id:'compare',  label:'Scenario Comparison',       tag:'Pricing',   build: renderComparison},
+  {id:'payment',  label:'Payment Options',           tag:'Overview',  build: renderPayment},
+];
+
+// ═════════════════════════════════════════════════════════════════════════
+// DECK STATE — the ordered, checkable list backing the left panel. Default
+// template slides plus anything the user uploads.
+// ═════════════════════════════════════════════════════════════════════════
+let deckSlides = DEFAULT_SLIDE_DEFS.map(def => ({
+  key: def.id, kind: 'template', label: def.label, tag: def.tag,
+  included: def.id !== 'compare' || DATA.scenarios.length > 1,
+  build: def.build
+}));
+let focusedIndex = 0;
+let uploadCount = 0;
+
+function activeSlides(){ return deckSlides.filter(s => s.included); }
+
+function slideHtml(s){
+  if (s.kind === 'template') return s.build();
+  if (s.kind === 'upload-pdf-page') return `<img src="${s.dataUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;">`;
+  if (s.kind === 'upload-file') return `
+    <div class="sl-pad"><div class="sl-file-card">
+      <div class="sl-file-icon">${escapeHtml(s.ext.toUpperCase())}</div>
+      <div class="sl-file-name">${escapeHtml(s.name)}</div>
+      <div class="sl-file-sub">Can't preview in-browser — open it to present.</div>
+      <button type="button" class="btn btn-sm" onclick="window.open('${s.url}', '_blank')">Open file</button>
+    </div></div>`;
+  return '';
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// SCALING — a fixed 960×540 design, transform-scaled to fit its container.
+// ═════════════════════════════════════════════════════════════════════════
+function fitSlide(outerEl, scaleWrapEl, slideEl){
+  const cw = outerEl.clientWidth, ch = outerEl.clientHeight;
+  if (!cw || !ch) return;
+  const scale = Math.min(cw / 960, ch / 540);
+  slideEl.style.transform = `scale(${scale})`;
+  scaleWrapEl.style.width = (960 * scale) + 'px';
+  scaleWrapEl.style.height = (540 * scale) + 'px';
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// PANEL RENDERING
+// ═════════════════════════════════════════════════════════════════════════
+const featuredSelect = document.getElementById('featuredSelect');
+const compareList = document.getElementById('compareList');
+const slideListEl = document.getElementById('slideList');
+const featuredSec = document.getElementById('featuredSec');
+const compareSec = document.getElementById('compareSec');
+
+function scenarioLabel(s){
+  return `#${s.idx} · ${s.users} users · ${s.termLabel} · ${s.planLabel} · ${fmt(s.q.grand)}`;
+}
+
+function renderPanel(){
+  // Featured scenario picker
+  if (DATA.scenarios.length === 0) {
+    featuredSec.style.display = 'none';
+  } else {
+    featuredSec.style.display = '';
+    featuredSelect.innerHTML = DATA.scenarios.map((s, i) =>
+      `<option value="${i}"${i===state.featuredIdx?' selected':''}>${escapeHtml(scenarioLabel(s))}</option>`).join('');
+  }
+
+  // Compare checklist
+  if (DATA.scenarios.length < 2) {
+    compareSec.style.display = 'none';
+  } else {
+    compareSec.style.display = '';
+    compareList.innerHTML = DATA.scenarios.map((s, i) => `
+      <label class="chk-row">
+        <input type="checkbox" data-cmp="${i}" ${state.compareSet.has(i) ? 'checked' : ''}>
+        <span>#${s.idx} · ${s.users}u · ${escapeHtml(s.termLabel)}</span>
+        <span class="amt">${fmt(s.q.grand)}</span>
+      </label>`).join('');
+    compareList.querySelectorAll('input[data-cmp]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const i = +cb.dataset.cmp;
+        if (cb.checked) state.compareSet.add(i); else state.compareSet.delete(i);
+        renderStage();
+      });
+    });
+  }
+
+  // Slide list
+  slideListEl.innerHTML = deckSlides.map((s, i) => `
+    <div class="slide-row${i===focusedIndex?' focused':''}" data-idx="${i}">
+      <input type="checkbox" data-inc="${i}" ${s.included ? 'checked' : ''} aria-label="Include ${escapeHtml(s.label)}">
+      <span class="sr-num">${i+1}</span>
+      <div class="sr-main">
+        <div class="sr-title">${escapeHtml(s.label)}</div>
+        <div class="sr-tag">${escapeHtml(s.tag)}</div>
+      </div>
+      <div class="sr-moves">
+        <button type="button" class="sr-move" data-mv="up" data-i="${i}" ${i===0?'disabled':''} aria-label="Move up">▲</button>
+        <button type="button" class="sr-move" data-mv="down" data-i="${i}" ${i===deckSlides.length-1?'disabled':''} aria-label="Move down">▼</button>
+      </div>
+      ${s.kind !== 'template' ? `<button type="button" class="sr-remove" data-rm="${i}" aria-label="Remove">×</button>` : ''}
+    </div>`).join('');
+
+  slideListEl.querySelectorAll('.slide-row').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('input,button')) return;
+      focusedIndex = +row.dataset.idx;
+      renderPanel(); renderStage();
+    });
+  });
+  slideListEl.querySelectorAll('input[data-inc]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      deckSlides[+cb.dataset.inc].included = cb.checked;
+      renderPanel();
+    });
+  });
+  slideListEl.querySelectorAll('[data-mv]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = +btn.dataset.i, dir = btn.dataset.mv === 'up' ? -1 : 1, j = i + dir;
+      if (j < 0 || j >= deckSlides.length) return;
+      [deckSlides[i], deckSlides[j]] = [deckSlides[j], deckSlides[i]];
+      if (focusedIndex === i) focusedIndex = j; else if (focusedIndex === j) focusedIndex = i;
+      renderPanel(); renderStage();
+    });
+  });
+  slideListEl.querySelectorAll('[data-rm]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = +btn.dataset.rm;
+      deckSlides.splice(i, 1);
+      if (focusedIndex >= deckSlides.length) focusedIndex = deckSlides.length - 1;
+      renderPanel(); renderStage();
+    });
+  });
+}
+
+featuredSelect.addEventListener('change', () => { state.featuredIdx = +featuredSelect.value; renderStage(); });
+document.getElementById('presenterName').addEventListener('input', (e) => { state.presenterName = e.target.value; renderStage(); });
+document.getElementById('customerName').addEventListener('input', (e) => { state.customerName = e.target.value; renderStage(); });
+
+// ═════════════════════════════════════════════════════════════════════════
+// STAGE RENDERING
+// ═════════════════════════════════════════════════════════════════════════
+const stageSlide = document.getElementById('stageSlide');
+const stageScaleWrap = document.getElementById('stageScaleWrap');
+const stageFrame = document.getElementById('stageFrame');
+const stageCount = document.getElementById('stageCount');
+const stageTitle = document.getElementById('stageTitle');
+
+function renderStage(){
+  if (deckSlides.length === 0) {
+    stageSlide.innerHTML = `<div class="sl-pad"><div class="sl-empty">No slides. Add one from the panel.</div></div>`;
+    stageCount.textContent = '0 / 0';
+    stageTitle.textContent = '';
+  } else {
+    if (focusedIndex >= deckSlides.length) focusedIndex = deckSlides.length - 1;
+    const s = deckSlides[focusedIndex];
+    stageSlide.innerHTML = slideHtml(s);
+    stageCount.textContent = (focusedIndex + 1) + ' / ' + deckSlides.length;
+    stageTitle.textContent = s.label + (s.included ? '' : '  ·  excluded from deck');
+  }
+  requestAnimationFrame(() => fitSlide(stageFrame, stageScaleWrap, stageSlide));
+}
+
+document.getElementById('prevBtn').addEventListener('click', () => { if (focusedIndex > 0) { focusedIndex--; renderPanel(); renderStage(); } });
+document.getElementById('nextBtn').addEventListener('click', () => { if (focusedIndex < deckSlides.length - 1) { focusedIndex++; renderPanel(); renderStage(); } });
+
+window.addEventListener('resize', () => { fitSlide(stageFrame, stageScaleWrap, stageSlide); if (presentOn) fitSlide(presentFrame, presentScaleWrap, presentSlideEl); });
+
+// ═════════════════════════════════════════════════════════════════════════
+// PRESENT MODE
+// ═════════════════════════════════════════════════════════════════════════
+const presentOverlay = document.getElementById('presentOverlay');
+const presentFrame = document.getElementById('presentFrame');
+const presentScaleWrap = document.getElementById('presentScaleWrap');
+const presentSlideEl = document.getElementById('presentSlide');
+const presentCount = document.getElementById('presentCount');
+let presentOn = false;
+let presentIdx = 0;
+
+function presentList(){ return activeSlides(); }
+
+function renderPresent(){
+  const list = presentList();
+  if (list.length === 0) { exitPresent(); return; }
+  if (presentIdx >= list.length) presentIdx = list.length - 1;
+  if (presentIdx < 0) presentIdx = 0;
+  presentSlideEl.innerHTML = slideHtml(list[presentIdx]);
+  presentCount.textContent = (presentIdx + 1) + ' / ' + list.length;
+  document.getElementById('presentPrev').disabled = presentIdx === 0;
+  document.getElementById('presentNext').disabled = presentIdx === list.length - 1;
+  requestAnimationFrame(() => fitSlide(presentFrame, presentScaleWrap, presentSlideEl));
+}
+function enterPresent(){
+  const list = presentList();
+  if (list.length === 0) { alert('No slides are included in the deck yet — tick at least one in the panel.'); return; }
+  const focusedKey = deckSlides[focusedIndex];
+  const startAt = list.indexOf(focusedKey);
+  presentIdx = startAt >= 0 ? startAt : 0;
+  presentOn = true;
+  presentOverlay.classList.add('on');
+  renderPresent();
+  const el = document.documentElement;
+  if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+}
+function exitPresent(){
+  presentOn = false;
+  presentOverlay.classList.remove('on');
+  if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+}
+document.getElementById('presentBtn').addEventListener('click', enterPresent);
+document.getElementById('presentExit').addEventListener('click', exitPresent);
+document.getElementById('presentPrev').addEventListener('click', () => { presentIdx--; renderPresent(); });
+document.getElementById('presentNext').addEventListener('click', () => { presentIdx++; renderPresent(); });
+presentOverlay.addEventListener('click', (e) => {
+  if (e.target === presentOverlay || e.target === presentFrame) {
+    const list = presentList();
+    if (presentIdx < list.length - 1) { presentIdx++; renderPresent(); }
+  }
+});
+document.addEventListener('keydown', (e) => {
+  if (!presentOn) return;
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); if (presentIdx < presentList().length - 1) { presentIdx++; renderPresent(); } }
+  else if (e.key === 'ArrowLeft') { if (presentIdx > 0) { presentIdx--; renderPresent(); } }
+  else if (e.key === 'Escape') { exitPresent(); }
+});
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && presentOn) exitPresent(); });
+
+// ═════════════════════════════════════════════════════════════════════════
+// EXPORT / PRINT — build one .slide per printed page, then print.
+// ═════════════════════════════════════════════════════════════════════════
+document.getElementById('exportPdfBtn').addEventListener('click', () => {
+  const list = activeSlides();
+  if (list.length === 0) { alert('No slides are included in the deck yet — tick at least one in the panel.'); return; }
+  const host = document.getElementById('printSlides');
+  host.innerHTML = list.map(s => `<div class="print-slide"><div class="slide">${slideHtml(s)}</div></div>`).join('');
+  window.print();
+});
+
+// ═════════════════════════════════════════════════════════════════════════
+// UPLOAD — PDF pages become individual, reorderable slides via pdf.js.
+// PowerPoint files attach as an openable file (no in-browser rendering).
+// ═════════════════════════════════════════════════════════════════════════
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+const uploadZone = document.getElementById('uploadZone');
+const uploadInput = document.getElementById('uploadInput');
+const uploadStatus = document.getElementById('uploadStatus');
+
+uploadZone.addEventListener('click', () => uploadInput.click());
+['dragenter','dragover'].forEach(ev => uploadZone.addEventListener(ev, e => { e.preventDefault(); uploadZone.classList.add('drag'); }));
+['dragleave','drop'].forEach(ev => uploadZone.addEventListener(ev, e => { e.preventDefault(); uploadZone.classList.remove('drag'); }));
+uploadZone.addEventListener('drop', e => { handleFiles(e.dataTransfer.files); });
+uploadInput.addEventListener('change', e => { handleFiles(e.target.files); e.target.value = ''; });
+
+async function handleFiles(fileList){
+  const files = Array.from(fileList || []);
+  for (const file of files) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext === 'pdf') {
+      await addPdfPages(file);
+    } else if (ext === 'pptx') {
+      addFileAttachment(file, 'pptx');
+    } else {
+      uploadStatus.textContent = `"${file.name}" isn't a PDF or PowerPoint file — skipped.`;
+    }
+  }
+  renderPanel(); renderStage();
+}
+
+async function addPdfPages(file){
+  uploadStatus.textContent = `Reading ${file.name}…`;
+  try {
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+    uploadCount++;
+    const groupLabel = file.name.replace(/\.pdf$/i, '');
+    for (let p = 1; p <= pdf.numPages; p++) {
+      const page = await pdf.getPage(p);
+      const viewport = page.getViewport({scale: 2});
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width; canvas.height = viewport.height;
+      await page.render({canvasContext: canvas.getContext('2d'), viewport}).promise;
+      deckSlides.push({
+        key: 'up' + uploadCount + '_p' + p, kind: 'upload-pdf-page',
+        label: `${groupLabel} — p.${p}`, tag: 'Uploaded',
+        included: true, dataUrl: canvas.toDataURL('image/png')
+      });
+    }
+    uploadStatus.textContent = `Added ${pdf.numPages} slide${pdf.numPages===1?'':'s'} from ${file.name}.`;
+  } catch(err) {
+    console.error(err);
+    uploadStatus.textContent = `Couldn't read ${file.name} as a PDF.`;
+  }
+}
+
+function addFileAttachment(file, ext){
+  const url = URL.createObjectURL(file);
+  uploadCount++;
+  deckSlides.push({
+    key: 'upf' + uploadCount, kind: 'upload-file',
+    label: file.name, tag: 'Uploaded file', ext, name: file.name, url,
+    included: true
+  });
+  uploadStatus.textContent = `Attached ${file.name}. PowerPoint files can't preview here — use "Open file" to present it separately.`;
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// INIT
+// ═════════════════════════════════════════════════════════════════════════
+document.getElementById('sampleBanner').style.display = IS_SAMPLE ? 'flex' : 'none';
+renderPanel();
+renderStage();
+window.addEventListener('deck-unlocked', () => { renderStage(); });
+</script>
