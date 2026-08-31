@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
    DESIGN TOKENS — identical to the calculator (odoo-quote-calc.html) so the
@@ -438,6 +438,12 @@ body{
    PRESENT MODE — a large windowed overlay by default so the browser's own
    tab/address bar stays visible; true fullscreen is an opt-in toggle.
    ═══════════════════════════════════════════════════════════════════════════ */
+/* ── Presentation page (deck.html?present=1) ─────────────────────────────
+   The slides and nothing else: no app bar, no panel, no slide picker, so a
+   shared screen never shows what was left out of the deck.               */
+body.present-page{background:#111318;}
+body.present-page #appRoot{display:none;}
+
 .present-overlay{
   position:fixed;inset:0;z-index:5000;background:#111318;display:none;align-items:center;justify-content:center;
 }
@@ -617,16 +623,7 @@ body{
         <div class="slide-list" id="slideList" style="overflow-y:auto;"></div>
       </div>
 
-      <div class="panel-sec">
-        <div class="panel-label">Bring your own deck</div>
-        <div class="upload-zone" id="uploadZone">
-          <div class="uz-title">Upload a PDF or PowerPoint</div>
-          <div class="uz-hint">PDF pages are added as slides you can pick and reorder. PowerPoint files attach as a file to open or present separately.</div>
-        </div>
-        <input type="file" id="uploadInput" accept=".pdf,.pptx" style="display:none;" multiple>
-        <div class="upload-status" id="uploadStatus"></div>
-      </div>
-
+      
     </aside>
 
     <main class="stage-wrap">
@@ -1317,8 +1314,8 @@ function toggleFullscreen(){
     if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
   }
 }
-document.getElementById('presentBtn').addEventListener('click', enterPresent);
-document.getElementById('presentExit').addEventListener('click', exitPresent);
+document.getElementById('presentBtn').addEventListener('click', openPresentPage);
+document.getElementById('presentExit').addEventListener('click', () => { if (PRESENT_PAGE) window.close(); else exitPresent(); });
 presentFsToggle.addEventListener('click', toggleFullscreen);
 document.getElementById('presentPrev').addEventListener('click', () => { presentIdx--; renderPresent(); });
 document.getElementById('presentNext').addEventListener('click', () => { presentIdx++; renderPresent(); });
@@ -1350,79 +1347,60 @@ document.getElementById('exportPdfBtn').addEventListener('click', () => {
 });
 
 // ═════════════════════════════════════════════════════════════════════════
-// UPLOAD — PDF pages become individual, reorderable slides via pdf.js.
-// PowerPoint files attach as an openable file (no in-browser rendering).
 // ═════════════════════════════════════════════════════════════════════════
-if (window.pdfjsLib) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-}
-const uploadZone = document.getElementById('uploadZone');
-const uploadInput = document.getElementById('uploadInput');
-const uploadStatus = document.getElementById('uploadStatus');
+// DECK PREFS — the slide selection and running order are written to
+// localStorage the moment a presentation starts, so the presentation page
+// can rebuild exactly the deck that was set up here.
+// ═════════════════════════════════════════════════════════════════════════
+const PREFS_KEY = 'odooDeckPrefs';
 
-uploadZone.addEventListener('click', () => uploadInput.click());
-['dragenter','dragover'].forEach(ev => uploadZone.addEventListener(ev, e => { e.preventDefault(); uploadZone.classList.add('drag'); }));
-['dragleave','drop'].forEach(ev => uploadZone.addEventListener(ev, e => { e.preventDefault(); uploadZone.classList.remove('drag'); }));
-uploadZone.addEventListener('drop', e => { handleFiles(e.dataTransfer.files); });
-uploadInput.addEventListener('change', e => { handleFiles(e.target.files); e.target.value = ''; });
-
-async function handleFiles(fileList){
-  const files = Array.from(fileList || []);
-  for (const file of files) {
-    const ext = file.name.split('.').pop().toLowerCase();
-    if (ext === 'pdf') {
-      await addPdfPages(file);
-    } else if (ext === 'pptx') {
-      addFileAttachment(file, 'pptx');
-    } else {
-      uploadStatus.textContent = `"${file.name}" isn't a PDF or PowerPoint file — skipped.`;
-    }
-  }
-  renderPanel(); renderStage();
-}
-
-async function addPdfPages(file){
-  uploadStatus.textContent = `Reading ${file.name}…`;
+function savePrefs(){
   try {
-    const buf = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({data: buf}).promise;
-    uploadCount++;
-    const groupLabel = file.name.replace(/\.pdf$/i, '');
-    for (let p = 1; p <= pdf.numPages; p++) {
-      const page = await pdf.getPage(p);
-      const viewport = page.getViewport({scale: 2});
-      const canvas = document.createElement('canvas');
-      canvas.width = viewport.width; canvas.height = viewport.height;
-      await page.render({canvasContext: canvas.getContext('2d'), viewport}).promise;
-      deckSlides.push({
-        key: 'up' + uploadCount + '_p' + p, kind: 'upload-pdf-page',
-        label: `${groupLabel} — p.${p}`, tag: 'Uploaded', live: false,
-        included: true, dataUrl: canvas.toDataURL('image/png')
-      });
-    }
-    uploadStatus.textContent = `Added ${pdf.numPages} slide${pdf.numPages===1?'':'s'} from ${file.name}.`;
-  } catch(err) {
-    console.error(err);
-    uploadStatus.textContent = `Couldn't read ${file.name} as a PDF.`;
+    localStorage.setItem(PREFS_KEY, JSON.stringify({
+      order: deckSlides.map(s => s.key),
+      included: deckSlides.filter(s => s.included).map(s => s.key)
+    }));
+  } catch (e) {}
+}
+
+function applyPrefs(){
+  let p = null;
+  try { p = JSON.parse(localStorage.getItem(PREFS_KEY) || 'null'); } catch (e) {}
+  if (!p || !Array.isArray(p.order)) return;
+  const rank = new Map(p.order.map((k, i) => [k, i]));
+  deckSlides.sort((a, b) =>
+    (rank.has(a.key) ? rank.get(a.key) : 999) - (rank.has(b.key) ? rank.get(b.key) : 999));
+  if (Array.isArray(p.included)) {
+    const inc = new Set(p.included);
+    deckSlides.forEach(s => { s.included = inc.has(s.key); });
   }
 }
 
-function addFileAttachment(file, ext){
-  const url = URL.createObjectURL(file);
-  uploadCount++;
-  deckSlides.push({
-    key: 'upf' + uploadCount, kind: 'upload-file',
-    label: file.name, tag: 'Uploaded file', live: false, ext, name: file.name, url,
-    included: true
-  });
-  uploadStatus.textContent = `Attached ${file.name}. PowerPoint files can't preview here — use "Open file" to present it separately.`;
-}
+// ═════════════════════════════════════════════════════════════════════════
+// PRESENTATION PAGE — deck.html?present=1 is a page in its own right. It
+// shows the chosen slides and nothing else: no panel, no checkboxes, no
+// trace of anything that was left out. Setting a deck up and showing it to
+// a customer never share a window.
+// ═════════════════════════════════════════════════════════════════════════
+const PRESENT_PAGE = new URLSearchParams(location.search).has('present');
 
+function openPresentPage(){
+  const list = presentList();
+  if (list.length === 0) { alert('No slides are included yet — tick at least one in the panel.'); return; }
+  savePrefs();
+  const w = window.open('deck.html?present=1', 'odooDeckPresentation');
+  if (!w) alert('Your browser blocked the presentation window. Allow pop-ups for this site and try again.');
+}
 // ═════════════════════════════════════════════════════════════════════════
 // INIT
 // ═════════════════════════════════════════════════════════════════════════
-document.getElementById('sampleBanner').style.display = IS_SAMPLE ? 'flex' : 'none';
+if (PRESENT_PAGE) {
+  applyPrefs();
+  document.body.classList.add('present-page');
+}
+document.getElementById('sampleBanner').style.display = (IS_SAMPLE && !PRESENT_PAGE) ? 'flex' : 'none';
 renderPanel();
 renderStage();
-window.addEventListener('deck-unlocked', () => { renderStage(); });
+window.addEventListener('deck-unlocked', () => { renderStage(); if (PRESENT_PAGE) enterPresent(); });
+if (PRESENT_PAGE) enterPresent();
 </script>
