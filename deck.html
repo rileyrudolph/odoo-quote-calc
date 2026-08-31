@@ -843,7 +843,7 @@ function renderMultiAdvantages(){
 function renderFiveYear(){
   const f = featured();
   if (!f || !f.q.schedule || f.q.schedule.length < 2) {
-    return `<div class="sl-pad">${slTitle('Pricing| by Year','hl-yellow')}${emptyState('Add a multi-year scenario in the calculator to show its year-by-year schedule here.')}</div>`;
+    return `<div class="sl-pad">${slTitle('Your| Year by Year','hl-yellow')}${emptyState('Add a multi-year scenario in the calculator to show its year-by-year schedule here.')}</div>`;
   }
   const sched = f.q.schedule;
   const cells = [];
@@ -860,7 +860,7 @@ function renderFiveYear(){
   const cols = sched.map(() => '1fr').join(' 44px ');
   return `
     <div class="sl-pad">
-      ${slTitle('Pricing| by Year','hl-yellow')}
+      ${slTitle('Your| Year by Year','hl-yellow')}
       <div class="sl-body sl-yr-flow" style="grid-template-columns:${cols};">
         ${cells.join('')}
       </div>
@@ -980,12 +980,12 @@ function renderQuoteSummary(){
 function renderComparison(){
   const rows = DATA.scenarios.filter((_, i) => state.compareSet.has(i));
   if (rows.length === 0) {
-    return `<div class="sl-pad">${slTitle('Scenario| Comparison','hl-yellow')}${emptyState('Select at least one scenario in the panel to compare.')}</div>`;
+    return `<div class="sl-pad">${slTitle('Your| Options','hl-yellow')}${emptyState('Select at least one scenario in the panel to compare.')}</div>`;
   }
   const tight = rows.length > 3 ? ' sm' : '';
   return `
     <div class="sl-pad">
-      ${slTitle('Scenario| Comparison','hl-yellow')}
+      ${slTitle('Your| Options','hl-yellow')}
       <div class="sl-body sl-cmp-grid" style="grid-template-rows:auto repeat(${rows.length},1fr);">
         <div></div><div class="sl-colh">All-in</div><div></div><div class="sl-colh">Per month</div>
         ${rows.map(sc => `
@@ -1096,9 +1096,9 @@ const DEFAULT_SLIDE_DEFS = [
   {id:'implR',    label:'Implementation Rates',      tag:'Source deck', live:false, build: REF_DEFS.implR},
   {id:'shR',      label:'Odoo.sh Hosting',           tag:'Source deck', live:false, build: REF_DEFS.shR},
   {id:'costBd',   label:'Cost Breakdown',            tag:'Source deck', live:false, build: REF_DEFS.costBd},
-  {id:'fiveYr',   label:'Year-by-Year Schedule',     tag:'Your quote',  live:true,  build: renderFiveYear},
-  {id:'quoteSum', label:'Your Quote Summary',        tag:'Your quote',  live:true,  build: renderQuoteSummary},
-  {id:'compare',  label:'Scenario Comparison',       tag:'Your quote',  live:true,  build: renderComparison},
+  {id:'fiveYr',   label:'Your Year by Year',     tag:'Your quote',  live:true,  build: renderFiveYear},
+  {id:'quoteSum', label:'Your Quote',        tag:'Your quote',  live:true,  build: renderQuoteSummary},
+  {id:'compare',  label:'Your Options',       tag:'Your quote',  live:true,  build: renderComparison},
   {id:'payment',  label:'Payment Options',           tag:'Source deck', live:false, build: REF_DEFS.payment},
 ];
 
