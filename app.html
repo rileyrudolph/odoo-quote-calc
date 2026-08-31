@@ -2955,7 +2955,7 @@ function openPreview(){
   if (!f.scenario) return;
   emailPreviewSub.textContent =
     `${f.subject} — to ${emailToInput.value.trim() || 'your recipient'}`;
-  emailPreviewFrame.srcdoc = buildProposalHtml(f);
+  emailPreviewFrame.src = 'data:application/pdf;base64,' + buildQuotePdf(f);
   emailPreviewOverlay.classList.add('on');
 }
 function closePreview(){ emailPreviewOverlay.classList.remove('on'); }
