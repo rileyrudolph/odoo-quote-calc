@@ -1054,7 +1054,7 @@ function refImg(i){
 // folder degrades quietly instead of showing ten broken images mid-presentation.
 (function probeRefSlides(){
   var probe = new Image();
-  probe.onload = function(){ HAS_REF = true; renderPanel(); renderStage(); };
+  probe.onload = function(){ HAS_REF = true; renderPanel(); renderStage(); if (presentOn) renderPresent(); };
   probe.src = REF[0].file;
 })();
 
@@ -1301,7 +1301,7 @@ function enterPresent(){
   presentOverlay.classList.add('on');
   renderPresent();
 }
-function exitPresent(){
+function exitPresent(){ if (PRESENT_PAGE) { window.close(); return; }
   presentOn = false;
   presentOverlay.classList.remove('on');
   if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
