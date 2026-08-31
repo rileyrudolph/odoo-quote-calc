@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -2992,12 +2993,14 @@ emailSubmitBtn.addEventListener('click', async () => {
   composeStatus.textContent = 'Sending…';
 
     try {
-    const f = emailFields();
-    const htmlBody = buildProposalHtml(f);
-    const textBody = buildProposalText(f);
+        const f = emailFields();
+    const bodyText = emailMessageInput.value.replace(/\r/g, '');
+    const pdfB64 = buildQuotePdf(f);
+    const safeCo = (f.company || '').replace(/[^\w \-]/g, '').trim();
+    const fileName = 'Odoo Quote' + (safeCo ? ' - ' + safeCo : '') + '.pdf';
 
-    // multipart/alternative: text-only clients and spam filters both want a real
-    // plain-text part, and sending one materially improves deliverability.
+    // multipart/mixed: a plain message the customer reads like any other email,
+    // with the pricing attached as a document rather than pasted into the body.
     const boundary = 'odooquote_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
     const headers = [
       `From: ${senderHeader()}`,
@@ -3007,7 +3010,7 @@ emailSubmitBtn.addEventListener('click', async () => {
     headers.push(
       `Subject: ${encodeHeaderValue(subject)}`,
       'MIME-Version: 1.0',
-      `Content-Type: multipart/alternative; boundary="${boundary}"`
+      `Content-Type: multipart/mixed; boundary="${boundary}"`
     );
 
     const emailContent = [
@@ -3017,13 +3020,14 @@ emailSubmitBtn.addEventListener('click', async () => {
       'Content-Type: text/plain; charset="UTF-8"',
       'Content-Transfer-Encoding: base64',
       '',
-      wrap76(b64utf8(textBody)),
+      wrap76(b64utf8(bodyText)),
       '',
       `--${boundary}`,
-      'Content-Type: text/html; charset="UTF-8"',
+      `Content-Type: application/pdf; name="${fileName}"`,
+      `Content-Disposition: attachment; filename="${fileName}"`,
       'Content-Transfer-Encoding: base64',
       '',
-      wrap76(b64utf8(htmlBody)),
+      wrap76(pdfB64),
       '',
       `--${boundary}--`,
       ''
