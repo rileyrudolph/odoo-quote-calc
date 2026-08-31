@@ -85,7 +85,7 @@ body{
 .appbar-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 .ico{width:13px;height:13px;flex:none;color:currentColor;}
 .btn{
-  font-family:inherit;font-weight:650;font-size:.83rem;border-radius:999px;
+  font-family:inherit;font-weight:650;font-size:.83rem;border-radius:4px;
   padding:10px 19px;cursor:pointer;border:1px solid var(--line);
   background:var(--surface);color:var(--ink-2);
   transition:border-color .16s,color .16s,background .16s,box-shadow .16s,transform .06s;
@@ -99,9 +99,16 @@ body{
 .btn-sm{padding:7px 14px;font-size:.78rem;}
 .btn-icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:50%;}
 
-/* ── Marker highlight, reused verbatim from the calculator ── */
-.hl-wrap{position:relative;display:inline-block;}
-.hl-bar{position:absolute;left:-2px;right:-2px;bottom:6%;height:52%;background:var(--hl-blue);opacity:.6;transform:skewX(-4deg);border-radius:3px;z-index:0;pointer-events:none;}
+/* ── Marker highlight — Odoo's own highlight SVGs, same as odoo.com ── */
+.hl-wrap{
+  position:relative;display:inline-block;padding:0 .1em;
+  background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/blue_highlight_01.svg");
+  background-size:contain;background-repeat:no-repeat;background-position:50% 100%;
+}
+.hl-wrap:has(.hl-yellow),.hl-yellow .hl-wrap{background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/yellow_highlight_03.svg");}
+.hl-wrap:has(.hl-coral),.hl-red .hl-wrap{background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/red_highlight_01.svg");}
+.hl-wrap:has(.hl-green),.hl-green .hl-wrap{background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/green_highlight_03.svg");}
+.hl-bar{display:none;}
 .hl-text{position:relative;z-index:1;}
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -148,7 +155,7 @@ body{
 .pw-error{font-size:.8rem;color:var(--warn);margin:10px 0 4px;min-height:1.1em;opacity:0;transition:opacity .15s;}
 .pw-error.pw-show{opacity:1;}
 .pw-submit{
-  width:100%;margin-top:16px;font-family:inherit;font-weight:700;font-size:.94rem;border-radius:999px;
+  width:100%;margin-top:16px;font-family:inherit;font-weight:700;font-size:.94rem;border-radius:4px;
   padding:13px 19px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff;
   box-shadow:0 2px 6px rgba(var(--accent-rgb),.3),0 10px 22px -10px rgba(var(--accent-rgb),.6);
   transition:background .16s,border-color .16s,transform .06s;
@@ -266,7 +273,7 @@ body{
 .sl-badge{
   position:absolute;top:34px;right:42px;display:inline-flex;align-items:center;gap:6px;
   background:var(--accent-soft);color:var(--accent-deep);font-family:"Inter",sans-serif;
-  font-weight:700;font-size:.64rem;letter-spacing:.02em;padding:6px 12px 6px 10px;border-radius:999px;z-index:2;
+  font-weight:700;font-size:.64rem;letter-spacing:.02em;padding:6px 12px 6px 10px;border-radius:4px;z-index:2;
 }
 .sl-badge .dot{width:6px;height:6px;border-radius:50%;background:#00CEB3;flex:none;}
 
@@ -400,7 +407,7 @@ body{
 .present-frame{width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;}
 .present-controls{
   position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;
-  background:rgba(255,255,255,.08);backdrop-filter:blur(10px);border-radius:999px;padding:8px 10px;
+  background:rgba(255,255,255,.08);backdrop-filter:blur(10px);border-radius:4px;padding:8px 10px;
 }
 .present-controls button{
   width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.12);color:#fff;
