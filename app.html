@@ -171,26 +171,35 @@ body{
 .bd-chip{
   display:inline-block;font-family:"Inter",sans-serif;font-size:.72rem;font-weight:700;
   background:var(--accent-soft);color:var(--accent);border:1px solid rgba(var(--accent-rgb),.28);
-  padding:3px 11px;border-radius:999px;vertical-align:middle;margin-left:8px;letter-spacing:0;
+  padding:3px 11px;border-radius:4px;vertical-align:middle;margin-left:8px;letter-spacing:0;
 }
 
-/* ── Marker highlight: Odoo's own device, one component reused at three weights ── */
-.hl-wrap{position:relative;display:inline-block;}
-.hl-bar{position:absolute;left:-2px;right:-2px;bottom:6%;height:52%;background:var(--hl-blue);opacity:.6;transform:skewX(-4deg);border-radius:3px;z-index:0;pointer-events:none;}
+/* ── Marker highlight ──────────────────────────────────────────────────────────
+   Odoo's own highlight strokes, loaded from their CDN, rather than shapes drawn to
+   look like them. Same files odoo.com and the pricing deck use, applied the same
+   way: contain-fitted behind the text, anchored bottom for an underline and 60%
+   down for a struck-through mark. The legacy .hl-bar element stays in the markup
+   but is no longer painted, so nothing had to be re-tagged.
+   ────────────────────────────────────────────────────────────────────────────── */
+.hl-wrap{
+  position:relative;display:inline-block;
+  background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/blue_highlight_01.svg");
+  background-size:contain;background-repeat:no-repeat;background-position:50% 100%;
+}
+.hl-wrap:has(.hl-yellow){
+  background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/yellow_highlight_03.svg");
+}
+.hl-wrap:has(.hl-coral){
+  background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/red_highlight_01.svg");
+}
+.hl-bar{display:none;}
 .hl-text{position:relative;z-index:1;}
-.hl-yellow{background:#f5c518;opacity:.6;}
-.hl-coral{background:#f08a7e;opacity:.5;}
-.hl-sm{height:34%;opacity:.42;}
-.hl-bar::before,.hl-bar::after{content:"";position:absolute;left:0;right:0;height:2px;background:inherit;opacity:.55;}
-.hl-bar::before{top:-2px;border-radius:2px 6px 3px 8px;}
-.hl-bar::after{bottom:-2px;border-radius:8px 3px 6px 2px;}
 .handwritten{font-family:"Caveat",cursive;}
-/* A drawn underline for section headings: same marker device, one stroke instead of a block. */
-.mark-ul{position:relative;display:inline-block;}
-.mark-ul::after{
-  content:"";position:absolute;left:-3px;right:-3px;bottom:-5px;height:6px;
-  background:var(--hl-blue);opacity:.55;border-radius:8px 4px 9px 3px;
-  transform:skewX(-5deg);pointer-events:none;
+/* Section headings get the same device with a single drawn stroke. */
+.mark-ul{
+  position:relative;display:inline-block;
+  background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/blue_highlight_04.svg");
+  background-size:contain;background-repeat:no-repeat;background-position:50% 100%;
 }
 
 /* ── Masthead ── */
@@ -262,7 +271,7 @@ select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb),.55);box-s
 
 /* ── Buttons ── */
 .btn{
-  font-family:inherit;font-weight:650;font-size:.83rem;border-radius:999px;
+  font-family:inherit;font-weight:650;font-size:.83rem;border-radius:4px;
   padding:10px 19px;cursor:pointer;border:1px solid var(--line);
   background:var(--surface);color:var(--ink-2);
   transition:border-color .16s,color .16s,background .16s,box-shadow .16s,transform .06s;
@@ -465,7 +474,7 @@ select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb),.55);box-s
 #internalCard{border:1px dashed rgba(var(--accent-rgb),.55);background:var(--surface-2);}
 .tag-internal{
   font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
-  background:var(--accent);color:#fff;padding:3px 9px;border-radius:999px;vertical-align:middle;margin-left:8px;
+  background:var(--accent);color:#fff;padding:3px 9px;border-radius:4px;vertical-align:middle;margin-left:8px;
 }
 
 footer{
@@ -546,7 +555,7 @@ footer{
   padding:12px 16px 16px;display:flex;align-items:center;gap:14px;
   border-top:1px solid var(--line-soft);
 }
-.compose-send{border-radius:20px;padding:8px 24px;}
+.compose-send{border-radius:4px;padding:8px 24px;}
 .compose-send:disabled{opacity:.6;cursor:default;}
 .compose-status{font-size:.78rem;color:var(--sub);flex:1;}
 .compose-discard{
