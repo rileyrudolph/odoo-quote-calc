@@ -690,7 +690,9 @@ footer{
         <button id="gmailSignOut" type="button" class="btn btn-sm" style="display:none;color:var(--sub);">Sign out</button>
       </div>
       <button id="sendEmail" type="button" class="btn btn-sm" style="display:none;">Send Email</button>
-      <button id="exportPdf" type="button" class="btn btn-sm btn-primary">Export PDF</button>
+            <button id="openDeck" type="button" class="btn btn-sm"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:13px;height:13px;margin:0 5px -2px 0;"><rect x="1.5" y="2.5" width="13" height="9" rx="1.2"/><path d="M5.5 14h5M8 11.5V14"/></svg>Deck</button>
+      <button id="openDeck" type="button" class="btn btn-sm"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:13px;height:13px;margin:0 5px -2px 0;"><rect x="1.5" y="2.5" width="13" height="9" rx="1.2"/><path d="M5.5 14h5M8 11.5V14"/></svg>Deck</button>
+<button id="exportPdf" type="button" class="btn btn-sm btn-primary">Export PDF</button>
     </div>
   </div>
 </header>
@@ -2290,6 +2292,41 @@ internalBtn.addEventListener('click', () => {
   internalBtn.textContent = internalView ? 'Internal ✓' : 'Internal';
   internalBtn.classList.toggle('btn-primary', internalView);
   render();
+});
+   
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DECK HAND-OFF — the slide deck (deck.html) is a pure renderer with no pricing
+// logic of its own. Everything it shows is computed here, by the exact same
+// compute() used on screen, so the deck can never drift from the calculator.
+// Only customer-facing figures are included — nothing from renderInternal()'s
+// commission math is ever touched or exported.
+// ─────────────────────────────────────────────────────────────────────────────
+function buildDeckHandoff(){
+  return {
+    v: 1,
+    generatedAt: Date.now(),
+    country,
+    sym: sym(),
+    masterUsers: masterUsers(),
+    scenarios: scenarios.map((s, i) => ({
+      idx: i + 1,
+      users: scenarioUsers(s),
+      term: s.term, termLabel: termLabel(s.term),
+      plan: s.plan, planLabel: planLabel(s.plan),
+      hosting: s.sh, hostingLabel: HOSTING[s.sh].label,
+      hours: s.hours,
+      q: compute(s)
+    })),
+    packs: PACKS_(),
+    shRates: SH_RATES_(),
+    discountSchedule: DISCOUNT_SCHEDULE
+  };
+}
+document.getElementById('openDeck').addEventListener('click', () => {
+  try { localStorage.setItem('odooDeckHandoff', JSON.stringify(buildDeckHandoff())); }
+  catch(e) { /* storage unavailable — deck.html falls back to sample numbers */ }
+  window.location.href = 'deck.html';
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
