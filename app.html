@@ -1681,7 +1681,7 @@ function renderWarnings(){
   // typical rather than a hard ceiling, so the wording says "above", not "over the limit".
   const implOver = scenarios.filter(s => s.hours > 0 && s.implDisc > TYPICAL_IMPL_DISCOUNT && s.implDisc <= 100);
   if (implOver.length) {
-    add(box, 'Impl %', `Implementation discount above ${TYPICAL_IMPL_DISCOUNT}%; the 30% only reaches the first ${DISCOUNT_ELIGIBLE_HOURS} hours, on the initial invoice: `
+    add(box, 'Impl %', `Over the ${TYPICAL_IMPL_DISCOUNT}% implementation maximum, and the ${TYPICAL_IMPL_DISCOUNT}% only reaches the first ${DISCOUNT_ELIGIBLE_HOURS} hours, on the initial invoice: `
       + implOver.map(s => `${termLabel(s.term)} (${s.implDisc}%)`).join(', '));
   }
 
