@@ -177,14 +177,14 @@ body{
 /* ── Marker highlight ──────────────────────────────────────────────────────────
    Odoo's own highlight strokes, loaded from their CDN, rather than shapes drawn to
    look like them. Same files odoo.com and the pricing deck use, applied the same
-   way: contain-fitted behind the text, anchored bottom for an underline and 60%
-   down for a struck-through mark. The legacy .hl-bar element stays in the markup
+   way: stretched across the width of the phrase and anchored just under it, the
+   way the pricing deck draws it. The legacy .hl-bar element stays in the markup
    but is no longer painted, so nothing had to be re-tagged.
    ────────────────────────────────────────────────────────────────────────────── */
 .hl-wrap{
   position:relative;display:inline-block;
   background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/blue_highlight_01.svg");
-  background-size:contain;background-repeat:no-repeat;background-position:50% 100%;
+    background-size:106% auto;background-repeat:no-repeat;background-position:50% 100%;padding-bottom:.26em;
 }
 .hl-wrap:has(.hl-yellow){
   background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/yellow_highlight_03.svg");
@@ -199,7 +199,7 @@ body{
 .mark-ul{
   position:relative;display:inline-block;
   background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/blue_highlight_04.svg");
-  background-size:contain;background-repeat:no-repeat;background-position:50% 100%;
+    background-size:103% auto;background-repeat:no-repeat;background-position:50% 100%;padding-bottom:.14em;
 }
 
 /* ── Masthead ── */
@@ -756,6 +756,7 @@ footer{
       </div>
       <button id="sendEmail" type="button" class="btn btn-sm" style="display:none;">Send Email</button>
             <button id="openDeck" type="button" class="btn btn-sm"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:13px;height:13px;margin:0 5px -2px 0;"><rect x="1.5" y="2.5" width="13" height="9" rx="1.2"/><path d="M5.5 14h5M8 11.5V14"/></svg>Deck</button>
+      <button id="resetAll" type="button" class="btn btn-sm" title="Clear every scenario and start again">Reset</button>
 <button id="exportPdf" type="button" class="btn btn-sm btn-primary">Export PDF</button>
     </div>
   </div>
@@ -1680,7 +1681,7 @@ function renderWarnings(){
   // typical rather than a hard ceiling, so the wording says "above", not "over the limit".
   const implOver = scenarios.filter(s => s.hours > 0 && s.implDisc > TYPICAL_IMPL_DISCOUNT && s.implDisc <= 100);
   if (implOver.length) {
-    add(box, 'Impl %', `Implementation discount above ${TYPICAL_IMPL_DISCOUNT}%: `
+    add(box, 'Impl %', `Implementation discount above ${TYPICAL_IMPL_DISCOUNT}%, and it only comes off the first ${DISCOUNT_ELIGIBLE_HOURS} hours, on the initial invoice: `
       + implOver.map(s => `${termLabel(s.term)} (${s.implDisc}%)`).join(', '));
   }
 
@@ -2987,6 +2988,60 @@ window.PAYOUT_CAP_MULTIPLE = PAYOUT_CAP_MULTIPLE;
 window.MRR_RATE = MRR_RATE;
 window.setSegment = function(v){ segment = v; render(); };
 window.setPayCurrency = function(v){ payCurrency = v; render(); };
+// ─────────────────────────────────────────────────────────────────────────────
+// SESSION MEMORY — a rep's work stays exactly where they left it, through a
+// reload or a week later. The commission view is deliberately not remembered:
+// it always opens closed, so it can never be on screen by accident.
+// ─────────────────────────────────────────────────────────────────────────────
+const STATE_KEY = 'odooCalcState';
+
+function saveState(){
+  try {
+    localStorage.setItem(STATE_KEY, JSON.stringify({
+      v: 1, country, scenarios, nextId,
+      users: usersEl.value,
+      usersLinked: document.getElementById('usersLinked').checked,
+      shWorkers: shWorkersEl.value, shStorage: shStorageEl.value, shStaging: shStagingEl.value,
+      detailOpen, yearsOpen, showFinancing, segment, payCurrency
+    }));
+  } catch (e) {}
+}
+
+function restoreState(){
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(STATE_KEY) || 'null'); } catch (e) {}
+  if (!s || s.v !== 1) return;
+  if (s.country === 'CA') {
+    country = 'CA';
+    countryCABtn.classList.add('active');
+    countryUSBtn.classList.remove('active');
+  }
+  if (Array.isArray(s.scenarios)) scenarios = s.scenarios;
+  if (typeof s.nextId === 'number') nextId = s.nextId;
+  if (s.users) usersEl.value = s.users;
+  const linked = document.getElementById('usersLinked');
+  if (linked && typeof s.usersLinked === 'boolean') linked.checked = s.usersLinked;
+  if (s.shWorkers) shWorkersEl.value = s.shWorkers;
+  if (s.shStorage) shStorageEl.value = s.shStorage;
+  if (s.shStaging) shStagingEl.value = s.shStaging;
+  if (typeof s.detailOpen === 'boolean') detailOpen = s.detailOpen;
+  if (typeof s.yearsOpen === 'boolean') yearsOpen = s.yearsOpen;
+  if (typeof s.showFinancing === 'boolean') showFinancing = s.showFinancing;
+  if (s.segment) segment = s.segment;
+  if (s.payCurrency) payCurrency = s.payCurrency;
+}
+
+// Every change funnels through render(), so that is the one place the save needs to go.
+const renderInner = render;
+render = function(){ renderInner.apply(this, arguments); saveState(); };
+
+document.getElementById('resetAll').addEventListener('click', () => {
+  if (!confirm('Start over?\n\nThis clears every scenario and puts the calculator back to its defaults. It cannot be undone.')) return;
+  try { localStorage.removeItem(STATE_KEY); } catch (e) {}
+  location.reload();
+});
+
+restoreState();
 
 render();
 </script>
