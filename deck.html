@@ -5,7 +5,7 @@
 <title>Slide Deck — Odoo Quote Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -103,17 +103,12 @@ body{
 .hl-wrap{position:relative;display:inline-block;}
 .hl-bar{position:absolute;left:-2px;right:-2px;bottom:6%;height:52%;background:var(--hl-blue);opacity:.6;transform:skewX(-4deg);border-radius:3px;z-index:0;pointer-events:none;}
 .hl-text{position:relative;z-index:1;}
-.hl-yellow{background:#f5c518;opacity:.6;}
-.hl-coral{background:#f08a7e;opacity:.5;}
-.mark-ul{position:relative;display:inline-block;}
-.mark-ul::after{
-  content:"";position:absolute;left:-3px;right:-3px;bottom:-5px;height:6px;
-  background:var(--hl-blue);opacity:.55;border-radius:8px 4px 9px 3px;transform:skewX(-5deg);pointer-events:none;
-}
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PASSWORD GATE — same lock as the calculator. Direct links to this page must
-   not bypass it.
+   PASSWORD GATE — one shared unlock for the whole site. Enter it once per
+   browser session (sessionStorage — cleared when the tab/browser closes) and
+   moving between the calculator and the deck won't ask again. A fresh visit
+   still requires the password.
    ═══════════════════════════════════════════════════════════════════════════ */
 .pw-gate{
   position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;
@@ -207,7 +202,8 @@ body{
 .slide-row input[type=checkbox]{width:14px;height:14px;accent-color:var(--accent);cursor:pointer;flex:none;}
 .slide-row .sr-num{font-size:.68rem;color:var(--faint);width:14px;flex:none;text-align:right;font-variant-numeric:tabular-nums;}
 .slide-row .sr-main{flex:1;min-width:0;}
-.slide-row .sr-title{font-size:.79rem;font-weight:650;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.slide-row .sr-title{font-size:.79rem;font-weight:650;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px;}
+.slide-row .sr-live{width:6px;height:6px;border-radius:50%;background:#00CEB3;flex:none;}
 .slide-row .sr-tag{font-size:.62rem;color:var(--sub);}
 .slide-row .sr-moves{display:flex;flex-direction:column;flex:none;}
 .sr-move{
@@ -235,7 +231,7 @@ body{
 /* ═══════════════════════════════════════════════════════════════════════════
    STAGE — the slide canvas. A fixed 960×540 (16:9) design is scaled to fit via
    CSS transform, so typography stays pixel-identical in the panel preview, the
-   fullscreen presenter, and the print/export output.
+   presenter view, and the print/export output.
    ═══════════════════════════════════════════════════════════════════════════ */
 .stage-wrap{display:flex;flex-direction:column;min-width:0;background:var(--bg);}
 .stage-toolbar{
@@ -250,109 +246,142 @@ body{
 }
 .slide-scale-wrap{position:relative;overflow:hidden;}
 .slide{
-  width:960px;height:540px;background:#fff;color:#1b1b1f;position:relative;overflow:hidden;
+  width:960px;height:540px;background:#fff;color:#21272B;position:relative;overflow:hidden;
   border-radius:10px;box-shadow:var(--sh-3);transform-origin:top left;flex:none;
 }
 
-/* ── Slide inner content vocabulary — echoes the source deck's own look:
-   handwritten Caveat headline with a marker underline, grey rounded stat
-   cards, small accent circles. All colours pull from the same tokens. ── */
+/* ── Slide vocabulary — matches the source reference deck: Caveat handwritten
+   headline with a marker underline, Inter for numbers/body, the Odoo brand
+   palette (purple / teal / amber / coral / blue) pulled from its own theme. ── */
 .sl-pad{position:absolute;inset:0;padding:46px 56px;display:flex;flex-direction:column;}
-.sl-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8a8f9b;margin-bottom:10px;}
-.sl-h{font-family:"Caveat",cursive;font-weight:700;font-size:2.5rem;color:#1b1b1f;margin:0 0 26px;line-height:1;}
+.sl-h{font-family:"Caveat",cursive;font-weight:700;font-size:2.5rem;color:#21272B;margin:0 0 26px;line-height:1;}
 .sl-h .hl-bar{background:var(--hl-blue);}
 .sl-h.sl-h-sm{font-size:1.9rem;margin-bottom:20px;}
 .sl-body{flex:1;min-height:0;}
-.sl-foot{
-  position:absolute;left:56px;right:56px;bottom:22px;display:flex;justify-content:space-between;
-  font-size:.68rem;color:#9aa0ab;border-top:1px solid #eceef1;padding-top:10px;
+.sl-cap{font-family:"Inter",sans-serif;font-size:.72rem;color:#9aa0ab;margin-top:10px;}
+
+/* live-data badge — marks the slides whose numbers come straight out of the
+   calculator's own compute(), so a presenter (or their customer) can tell at
+   a glance which slides are the generic reference deck vs. this quote. */
+.sl-badge{
+  position:absolute;top:34px;right:42px;display:inline-flex;align-items:center;gap:6px;
+  background:var(--accent-soft);color:var(--accent-deep);font-family:"Inter",sans-serif;
+  font-weight:700;font-size:.64rem;letter-spacing:.02em;padding:6px 12px 6px 10px;border-radius:999px;z-index:2;
 }
+.sl-badge .dot{width:6px;height:6px;border-radius:50%;background:#00CEB3;flex:none;}
 
 .sl-title-slide{align-items:flex-start;justify-content:center;padding:0 72px;}
-.sl-title-slide .sl-hero{font-family:"Caveat",cursive;font-weight:700;font-size:4.4rem;margin:0;line-height:1;color:#1b1b1f;}
-.sl-title-slide .sl-hero .hl-bar{background:#3fb6ea;height:44%;bottom:2%;}
-.sl-title-slide .sl-sub2{font-family:"Caveat",cursive;font-weight:600;font-size:1.9rem;color:#1b1b1f;margin:10px 0 30px;}
+.sl-title-slide .sl-hero{font-family:"Caveat",cursive;font-weight:700;font-size:4.4rem;margin:0;line-height:1;color:#21272B;}
+.sl-title-slide .sl-hero .hl-bar{background:#1BB6F9;height:40%;bottom:4%;}
+.sl-title-slide .sl-sub2{font-family:"Caveat",cursive;font-weight:600;font-size:1.9rem;color:#21272B;margin:10px 0 30px;}
 .sl-logo-box{
-  width:92px;height:92px;border:5px solid #2c2f36;border-radius:16px;display:flex;align-items:center;justify-content:center;
-  font-family:"Inter",sans-serif;font-weight:800;font-size:1.5rem;color:#2c2f36;letter-spacing:-.03em;margin-bottom:26px;
+  width:92px;height:92px;border:5px solid #21272B;border-radius:16px;display:flex;align-items:center;justify-content:center;
+  font-family:"Inter",sans-serif;font-weight:800;font-size:1.5rem;color:#21272B;letter-spacing:-.03em;margin-bottom:26px;
 }
-.sl-presenter{font-size:.92rem;color:#4b5563;}
+.sl-presenter{font-family:"Inter",sans-serif;font-size:.92rem;color:#4b5563;}
 .sl-presenter b{color:var(--accent);font-weight:700;}
+.sl-eyebrow{font-family:"Inter",sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#714B67;margin-bottom:8px;}
 
-.sl-cols{display:grid;grid-template-columns:1fr 1fr;gap:22px;height:100%;}
-.sl-box{background:#f3f4f6;border-radius:14px;padding:22px 24px;}
-.sl-box-h{font-family:"Caveat",cursive;font-weight:700;font-size:1.5rem;color:#1b1b1f;margin:0 0 14px;text-decoration:line-through;text-decoration-color:#f08a7e;text-decoration-thickness:2px;}
-.sl-box-h.on{text-decoration:none;color:var(--accent);}
-.sl-box ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;}
-.sl-box li{display:flex;gap:9px;align-items:flex-start;font-size:.94rem;color:#2c2f36;line-height:1.4;}
-.sl-box li::before{content:"";width:6px;height:6px;border-radius:50%;background:#1b1b1f;margin-top:8px;flex:none;}
+/* Subscription Breakdown */
+.sl-cols2{display:grid;grid-template-columns:1fr 1fr;gap:32px;height:100%;padding-top:4px;}
+.sl-cardbox{background:#F3F4F6;border-radius:16px;padding:26px 28px;}
+.sl-cardbox-h{font-family:"Caveat",cursive;font-weight:700;font-size:1.6rem;color:#21272B;margin:0 0 18px;display:inline-block;position:relative;}
+.sl-cardbox-h.strike::after{content:"";position:absolute;left:-2px;right:-2px;top:54%;height:3px;background:#FC787D;transform:rotate(-2deg);border-radius:2px;}
+.sl-cardbox-h.underline::after{content:"";position:absolute;left:-2px;right:-2px;bottom:-5px;height:3px;background:#1BB6F9;border-radius:2px;}
+.sl-cardbox ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;}
+.sl-cardbox li{display:flex;gap:10px;align-items:flex-start;font-family:"Inter",sans-serif;font-size:.98rem;color:#21272B;line-height:1.4;}
+.sl-cardbox li::before{content:"";width:7px;height:7px;border-radius:50%;background:#21272B;margin-top:8px;flex:none;}
 
-.sl-year-cols{display:grid;grid-template-columns:120px repeat(2,1fr);gap:14px;align-items:center;}
-.sl-year-h{font-family:"Caveat",cursive;font-weight:700;font-size:1.4rem;text-align:center;color:#2c2f36;}
-.sl-year-lbl{font-family:"Caveat",cursive;font-weight:600;font-size:1.15rem;color:#2c2f36;}
-.sl-stat-box{background:#eceef1;border-radius:12px;padding:16px 10px;text-align:center;}
-.sl-stat-box.circled{position:relative;}
-.sl-stat-box.circled::before{
-  content:"";position:absolute;inset:-6px;border:3px solid var(--amber);border-radius:50%;opacity:.85;
-  transform:rotate(-4deg);
-}
-.sl-stat-num{font-size:1.7rem;font-weight:800;color:#1b1b1f;font-variant-numeric:tabular-nums;position:relative;}
-.sl-stat-sub{font-size:.72rem;color:#6b7280;margin-top:2px;}
+/* Pricing by Year — Monthly vs. Multi-Year (illustrative, matches source) */
+.sl-py-grid{display:grid;grid-template-columns:108px 1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:14px 16px;height:100%;align-items:center;padding-top:4px;}
+.sl-py-colh{font-family:"Caveat",cursive;font-weight:600;font-size:1.3rem;text-align:center;color:#21272B;}
+.sl-py-rowh{font-family:"Caveat",cursive;font-weight:600;font-size:1.02rem;color:#21272B;text-align:right;padding-right:4px;}
+.sl-py-cell{background:#EEEEEE;border-radius:12px;padding:18px 8px;text-align:center;position:relative;}
+.sl-py-cell .amt{font-family:"Inter",sans-serif;font-size:1.45rem;font-weight:700;color:#21272B;}
+.sl-py-cell .star{font-size:.9rem;vertical-align:top;color:#5b6474;}
+.sl-py-cell.circled::before{content:"";position:absolute;inset:-7px;border:3px solid #FBB130;border-radius:50%;transform:rotate(-4deg);opacity:.9;}
 
-.sl-adv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;height:100%;align-content:center;}
-.sl-adv-card{text-align:center;padding:0 6px;}
-.sl-adv-dot{width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.3rem;font-weight:800;}
-.sl-adv-t{font-family:"Caveat",cursive;font-weight:700;font-size:1.35rem;color:#1b1b1f;margin-bottom:6px;}
-.sl-adv-d{font-size:.82rem;color:#5b6474;line-height:1.5;}
+/* Advantages of Multi-Year */
+.sl-adv-card2{background:#F3F4F6;border-radius:16px;padding:34px 40px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;}
+.sl-adv-item{font-family:"Inter",sans-serif;font-weight:800;font-size:1.85rem;color:#714B67;}
 
-.sl-schedule{display:flex;gap:10px;height:100%;align-items:center;}
-.sl-yr-card{flex:1;background:#f3f4f6;border-radius:12px;padding:16px 8px;text-align:center;}
-.sl-yr-card.first{background:var(--accent-soft);}
-.sl-yr-card .yr-h{font-family:"Caveat",cursive;font-weight:700;font-size:1.1rem;color:#2c2f36;margin-bottom:8px;}
-.sl-yr-card .yr-permo{font-size:1.28rem;font-weight:800;color:#1b1b1f;font-variant-numeric:tabular-nums;}
-.sl-yr-card .yr-permo-lbl{font-size:.63rem;color:#8a8f9b;margin-top:1px;}
-.sl-yr-card .yr-total{font-size:.72rem;color:#6b7280;margin-top:8px;font-variant-numeric:tabular-nums;}
+/* Year-by-Year Schedule (live) */
+.sl-yrrow{display:flex;gap:10px;height:70%;align-items:center;}
+.sl-yrrow .ycard{flex:1;text-align:center;}
+.sl-yrrow .ycard .yh{font-family:"Caveat",cursive;font-weight:600;font-size:1.25rem;color:#21272B;margin-bottom:12px;}
+.sl-yrrow .ycard .yamt{position:relative;display:inline-block;font-family:"Inter",sans-serif;font-size:1.6rem;font-weight:700;color:#21272B;padding:8px 6px;}
+.sl-yrrow .ycard.first .yamt::before{content:"";position:absolute;inset:-8px -16px;border:3px solid #FBB130;border-radius:50%;transform:rotate(-4deg);opacity:.9;}
+.sl-yr-arrow{display:flex;align-items:center;gap:10px;margin-top:6px;padding:0 4px;}
+.sl-yr-arrow .vlbl{font-family:"Inter",sans-serif;font-size:.82rem;color:#21272B;font-weight:700;}
+.sl-yr-arrow .line{flex:1;height:2px;background:#017E84;position:relative;}
+.sl-yr-arrow .line::after{content:"";position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left-color:#017E84;}
 
-.sl-rate-row{display:flex;gap:16px;height:100%;align-items:center;}
-.sl-rate-card{flex:1;background:#f3f4f6;border-radius:12px;padding:20px 12px;text-align:center;}
-.sl-rate-card .rc-h{font-size:.78rem;font-weight:700;color:#5b6474;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
-.sl-rate-card .rc-amt{font-size:1.5rem;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;}
-.sl-rate-card .rc-sub{font-size:.72rem;color:#8a8f9b;margin-top:3px;}
+/* What Makes Odoo Different */
+.sl-diff-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;height:calc(100% - 34px);}
+.sl-diff-card{background:#F3F4F6;border-radius:16px;padding:24px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
+.sl-diff-t{font-family:"Caveat",cursive;font-weight:700;font-size:1.32rem;color:#21272B;}
+.sl-diff-d{font-family:"Caveat",cursive;font-weight:500;font-size:1.06rem;color:#21272B;line-height:1.3;}
+.sl-diff-caption{text-align:center;margin-top:14px;font-family:"Caveat",cursive;font-size:1rem;color:#714B67;font-weight:600;}
 
+/* Implementation Rates + Odoo.sh Hosting — 3-col rate cards, matches source */
+.sl-rate3{background:#fff;border:1px solid #eceef1;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:grid;grid-template-columns:repeat(3,1fr);height:100%;}
+.sl-rate3 .rcell{padding:0 18px;text-align:center;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.sl-rate3 .rcell:not(:first-child)::before{content:"";position:absolute;left:0;top:18%;bottom:18%;width:1px;background:#e5e0e6;}
+.sl-rate3 .rcell .rt{font-family:"Caveat",cursive;font-weight:700;font-size:1.32rem;color:#21272B;display:inline-block;padding-bottom:4px;border-bottom:3px solid var(--tier-c,#1BB6F9);}
+.sl-rate3 .rcell .ra{font-family:"Inter",sans-serif;font-size:1.35rem;font-weight:700;color:#21272B;}
+.sl-rate3 .rcell .ru{font-family:"Inter",sans-serif;font-size:.8rem;color:#5b6474;margin-top:-10px;}
+.sl-sh-banner{background:#714B67;color:#fff;border-radius:14px;padding:16px 24px;margin-bottom:16px;display:flex;gap:26px;flex-wrap:wrap;}
+.sl-sh-banner span{display:flex;align-items:center;gap:8px;font-family:"Inter",sans-serif;font-weight:700;font-size:.86rem;}
+.sl-sh-banner span::before{content:"";width:6px;height:6px;border-radius:50%;background:#fff;flex:none;}
+
+/* Cost Breakdown (static explainer, matches source) */
+.sl-cb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;height:100%;}
+.sl-cb-card{display:flex;flex-direction:column;border-radius:14px;overflow:hidden;border:1px solid #21272B;}
+.sl-cb-top{background:#fff;padding:20px 14px 8px;text-align:center;font-family:"Inter",sans-serif;font-weight:800;font-size:1.12rem;color:#21272B;}
+.sl-cb-arrow{width:24px;height:24px;margin:6px auto 0;}
+.sl-cb-bot{background:#21272B;color:#fff;flex:1;padding:14px 16px 18px;}
+.sl-cb-bot ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px;}
+.sl-cb-bot li{display:flex;gap:8px;align-items:flex-start;font-family:"Inter",sans-serif;font-size:.8rem;line-height:1.4;}
+.sl-cb-bot li::before{content:"";width:5px;height:5px;border-radius:50%;background:#fff;margin-top:6px;flex:none;}
+
+/* Your Quote Summary (live) — this customer's actual computed numbers */
 .sl-bd-wrap{display:flex;gap:26px;height:100%;}
 .sl-bd-lines{flex:1;display:flex;flex-direction:column;justify-content:center;gap:13px;}
-.sl-bd-line{display:flex;justify-content:space-between;font-size:.95rem;color:#374151;padding-bottom:11px;border-bottom:1px dashed #e5e7eb;}
-.sl-bd-line span:last-child{font-weight:700;color:#1b1b1f;font-variant-numeric:tabular-nums;}
-.sl-bd-total{border-bottom:none;border-top:2px solid #1b1b1f;padding-top:12px;font-size:1.15rem;font-weight:800;}
+.sl-bd-line{display:flex;justify-content:space-between;font-family:"Inter",sans-serif;font-size:.95rem;color:#374151;padding-bottom:11px;border-bottom:1px dashed #e5e7eb;}
+.sl-bd-line span:last-child{font-weight:700;color:#21272B;font-variant-numeric:tabular-nums;}
+.sl-bd-total{border-bottom:none;border-top:2px solid #21272B;padding-top:12px;font-size:1.15rem;font-weight:800;}
 .sl-bd-side{width:230px;flex:none;background:var(--accent);color:#fff;border-radius:14px;padding:22px;display:flex;flex-direction:column;justify-content:center;}
-.sl-bd-side .sb-lbl{font-size:.7rem;opacity:.8;text-transform:uppercase;letter-spacing:.08em;}
-.sl-bd-side .sb-amt{font-size:2.1rem;font-weight:800;margin:5px 0 2px;font-variant-numeric:tabular-nums;}
-.sl-bd-side .sb-sub{font-size:.78rem;opacity:.85;}
-.sl-bd-side .sb-save{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.3);font-size:.82rem;}
+.sl-bd-side .sb-lbl{font-family:"Inter",sans-serif;font-size:.7rem;opacity:.8;text-transform:uppercase;letter-spacing:.08em;}
+.sl-bd-side .sb-amt{font-family:"Inter",sans-serif;font-size:2.1rem;font-weight:800;margin:5px 0 2px;font-variant-numeric:tabular-nums;}
+.sl-bd-side .sb-sub{font-family:"Inter",sans-serif;font-size:.78rem;opacity:.85;}
+.sl-bd-side .sb-save{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.3);font-family:"Inter",sans-serif;font-size:.82rem;}
 
-.sl-cmp-table{width:100%;border-collapse:collapse;font-size:.76rem;}
+/* Scenario Comparison (live) */
+.sl-cmp-table{width:100%;border-collapse:collapse;font-family:"Inter",sans-serif;font-size:.76rem;}
 .sl-cmp-table th{text-align:left;font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:#8a8f9b;padding:0 8px 8px;border-bottom:1px solid #e5e7eb;font-weight:700;}
 .sl-cmp-table th.num,.sl-cmp-table td.num{text-align:right;}
 .sl-cmp-table td{padding:9px 8px;border-bottom:1px solid #f0f1f3;color:#374151;}
 .sl-cmp-table tr:last-child td{border-bottom:none;}
-.sl-cmp-table td.grand{font-weight:800;color:#1b1b1f;}
+.sl-cmp-table td.grand{font-weight:800;color:#21272B;}
 
-.sl-pay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
-.sl-pay-card{background:#f3f4f6;border-radius:12px;padding:18px 16px;}
-.sl-pay-t{font-family:"Caveat",cursive;font-weight:700;font-size:1.3rem;color:#1b1b1f;margin-bottom:8px;}
-.sl-pay-d{font-size:.78rem;color:#5b6474;line-height:1.55;}
-.sl-fin-note{
-  margin-top:18px;background:var(--accent-soft);border:1px dashed rgba(var(--accent-rgb),.4);border-radius:10px;
-  padding:12px 16px;font-size:.85rem;color:var(--accent-deep);
-}
+/* Payment Options — static 2-column, matches source */
+.sl-pay2{display:grid;grid-template-columns:1fr 1fr;gap:28px;height:100%;align-content:center;}
+.sl-pay2-card{background:#F3F4F6;border-radius:16px;padding:26px 24px;display:flex;gap:16px;align-items:flex-start;}
+.sl-pay2-icon{width:52px;height:52px;flex:none;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;}
+.sl-pay2-icon.full{background:#00CEB3;}
+.sl-pay2-icon.fin{background:#1BB6F9;}
+.sl-pay2-h{font-family:"Caveat",cursive;font-weight:600;font-size:1.5rem;color:#21272B;margin-bottom:10px;}
+.sl-pay2 ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;}
+.sl-pay2 li{font-family:"Inter",sans-serif;font-size:.92rem;color:#21272B;display:flex;gap:8px;align-items:flex-start;}
+.sl-pay2 li::before{content:"";width:6px;height:6px;border-radius:50%;background:#21272B;margin-top:7px;flex:none;}
 
-.sl-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#9aa0ab;gap:8px;}
+.sl-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#9aa0ab;gap:8px;font-family:"Inter",sans-serif;}
 .sl-empty a{color:var(--accent);font-weight:600;text-decoration:none;}
 
 .sl-file-card{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;}
 .sl-file-icon{width:64px;height:64px;border-radius:14px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:800;}
-.sl-file-name{font-weight:650;color:#1b1b1f;font-size:.95rem;max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.sl-file-sub{font-size:.78rem;color:#8a8f9b;}
+.sl-file-name{font-family:"Inter",sans-serif;font-weight:650;color:#21272B;font-size:.95rem;max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sl-file-sub{font-family:"Inter",sans-serif;font-size:.78rem;color:#8a8f9b;}
 
 .sample-banner{
   display:flex;align-items:center;gap:10px;background:var(--accent-soft);border-bottom:1px solid rgba(var(--accent-rgb),.25);
@@ -361,7 +390,8 @@ body{
 .sample-banner a{color:inherit;font-weight:700;text-decoration:underline;}
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PRESENT MODE — fullscreen, letterboxed, click/keys to advance.
+   PRESENT MODE — a large windowed overlay by default so the browser's own
+   tab/address bar stays visible; true fullscreen is an opt-in toggle.
    ═══════════════════════════════════════════════════════════════════════════ */
 .present-overlay{
   position:fixed;inset:0;z-index:5000;background:#111318;display:none;align-items:center;justify-content:center;
@@ -369,7 +399,7 @@ body{
 .present-overlay.on{display:flex;}
 .present-frame{width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;}
 .present-controls{
-  position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;
+  position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;
   background:rgba(255,255,255,.08);backdrop-filter:blur(10px);border-radius:999px;padding:8px 10px;
 }
 .present-controls button{
@@ -378,12 +408,14 @@ body{
 }
 .present-controls button:hover:not(:disabled){background:rgba(255,255,255,.24);}
 .present-controls button:disabled{opacity:.3;cursor:not-allowed;}
-.present-controls .pc-count{color:#fff;font-size:.78rem;font-variant-numeric:tabular-nums;padding:0 4px;min-width:44px;text-align:center;}
+.present-controls button.on{background:rgba(255,255,255,.32);}
+.present-controls .pc-count{color:#fff;font-size:.78rem;font-variant-numeric:tabular-nums;padding:0 6px;min-width:44px;text-align:center;}
 .present-exit{
-  position:absolute;top:20px;right:20px;width:38px;height:38px;border-radius:50%;border:none;
-  background:rgba(255,255,255,.1);color:#fff;font-size:1.1rem;cursor:pointer;
+  position:absolute;top:20px;right:20px;z-index:5001;width:38px;height:38px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.14);color:#fff;font-size:1.1rem;cursor:pointer;
 }
-.present-exit:hover{background:rgba(255,255,255,.22);}
+.present-exit:hover{background:rgba(255,255,255,.26);}
+.present-hint{position:absolute;top:20px;left:20px;color:rgba(255,255,255,.55);font-family:"Inter",sans-serif;font-size:.72rem;}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PRINT / EXPORT — one included slide per landscape page.
@@ -426,6 +458,7 @@ body{
 <script>
 (function(){
   var GATE_PASSWORD = "Odoo20";
+  var SESSION_KEY = "odooGateUnlocked";
   function init(){
     var gate = document.getElementById('pwGate');
     var form = document.getElementById('pwForm');
@@ -433,10 +466,26 @@ body{
     var error = document.getElementById('pwError');
     var locked = [document.getElementById('appRoot')];
 
+    function alreadyUnlocked(){
+      try { return sessionStorage.getItem(SESSION_KEY) === '1'; } catch(e){ return false; }
+    }
+
+    // One password for the whole site: if it was already entered earlier in
+    // this browser tab/session, skip the gate — no re-prompt when navigating
+    // between the calculator and the deck. A brand-new tab or browser restart
+    // clears this and asks again.
+    if (alreadyUnlocked()) {
+      if (gate && gate.parentNode) gate.parentNode.removeChild(gate);
+      locked.forEach(function(el){ if (el) el.removeAttribute('inert'); });
+      window.dispatchEvent(new Event('deck-unlocked'));
+      return;
+    }
+
     document.body.style.overflow = 'hidden';
     locked.forEach(function(el){ if (el) el.setAttribute('inert',''); });
 
     function unlock(){
+      try { sessionStorage.setItem(SESSION_KEY, '1'); } catch(e){}
       gate.classList.add('pw-hide');
       document.body.style.overflow = '';
       locked.forEach(function(el){ if (el) el.removeAttribute('inert'); });
@@ -519,7 +568,7 @@ body{
       </div>
 
       <div class="panel-sec" style="flex:1;min-height:120px;display:flex;flex-direction:column;">
-        <div class="panel-label">Slides</div>
+        <div class="panel-label">Slides <span style="font-weight:500;text-transform:none;letter-spacing:0;">— <span class="sr-live" style="display:inline-block;position:relative;top:-1px;"></span> = your numbers</span></div>
         <div class="slide-list" id="slideList" style="overflow-y:auto;"></div>
       </div>
 
@@ -557,13 +606,15 @@ body{
 
 <!-- ═══ PRESENT MODE ═══ -->
 <div class="present-overlay no-print" id="presentOverlay">
-  <button class="present-exit" id="presentExit" aria-label="Exit presentation">×</button>
+  <div class="present-hint" id="presentHint">Esc to exit</div>
+  <button class="present-exit" id="presentExit" type="button" aria-label="Exit presentation">×</button>
   <div class="present-frame" id="presentFrame">
     <div class="slide-scale-wrap" id="presentScaleWrap">
       <div class="slide" id="presentSlide"></div>
     </div>
   </div>
   <div class="present-controls">
+    <button type="button" id="presentFsToggle" aria-label="Toggle full screen" title="Full screen">⛶</button>
     <button type="button" id="presentPrev" aria-label="Previous">‹</button>
     <span class="pc-count" id="presentCount">1 / 1</span>
     <button type="button" id="presentNext" aria-label="Next">›</button>
@@ -572,7 +623,6 @@ body{
 
 <!-- ═══ PRINT OUTPUT (built just-in-time before window.print()) ═══ -->
 <div id="printSlides"></div>
-
 
 <script>
 // ═════════════════════════════════════════════════════════════════════════
@@ -641,11 +691,16 @@ function emptyState(msg){
 }
 
 // ═════════════════════════════════════════════════════════════════════════
-// SLIDE TEMPLATES — every dynamic figure below comes straight from the
-// calculator's own compute() output (see DATA.scenarios[i].q). Nothing here
-// re-derives pricing, so the deck can never disagree with the calculator.
+// SLIDE TEMPLATES
+// Two kinds of slides here, and each one says which it is:
+//   • Reference slides — copied from the source Odoo pricing deck (same
+//     copy, layout, fonts and colors). These never touch the calculator.
+//   • Live slides (marked with the teal "● from your calculator" badge) —
+//     every figure comes straight from the calculator's own compute()
+//     output (DATA.scenarios[i].q), so they can never disagree with it.
 // ═════════════════════════════════════════════════════════════════════════
 function featured(){ return DATA.scenarios[state.featuredIdx] || null; }
+function liveBadge(){ return IS_SAMPLE ? '' : `<div class="sl-badge"><span class="dot"></span>From your calculator</div>`; }
 
 function slTitle(text, cls){
   return `<h2 class="sl-h${cls?(' '+cls):''}"><span class="hl-wrap"><span class="hl-bar" aria-hidden="true"></span><span class="hl-text">${text}</span></span></h2>`;
@@ -656,7 +711,7 @@ function renderTitleSlide(){
   const customer = state.customerName.trim();
   return `
     <div class="sl-pad sl-title-slide">
-      ${customer ? `<div class="sl-eyebrow">PREPARED FOR ${escapeHtml(customer.toUpperCase())}</div>` : ''}
+      ${customer ? `<div class="sl-eyebrow">Prepared for ${escapeHtml(customer)}</div>` : ''}
       <h1 class="sl-hero"><span class="hl-wrap"><span class="hl-bar" aria-hidden="true"></span><span class="hl-text">Odoo Pricing</span></span></h1>
       <div class="sl-sub2">Subscription &amp; Implementation</div>
       <div class="sl-logo-box">odoo</div>
@@ -668,21 +723,21 @@ function renderSubBreakdown(){
   return `
     <div class="sl-pad">
       ${slTitle('Subscription Breakdown')}
-      <div class="sl-body sl-cols">
-        <div class="sl-box">
-          <div class="sl-box-h">Monthly / Yearly</div>
+      <div class="sl-body sl-cols2">
+        <div class="sl-cardbox">
+          <div class="sl-cardbox-h strike">Monthly/Yearly</div>
           <ul>
             <li>Available on the Odoo website</li>
-            <li>Flexible — cancel or change anytime</li>
-            <li>Variable rate, billed as you go</li>
+            <li>Flexible</li>
+            <li>Variable rate</li>
           </ul>
         </div>
-        <div class="sl-box">
-          <div class="sl-box-h on">Multi-Year</div>
+        <div class="sl-cardbox">
+          <div class="sl-cardbox-h underline">Multi-Year</div>
           <ul>
-            <li>Available via your sales consultant</li>
-            <li>Cost savings vs. paying monthly</li>
-            <li>Price protection — rate is locked</li>
+            <li>Available via Sales Consultant</li>
+            <li>Cost savings</li>
+            <li>Price Protection/Lock</li>
           </ul>
         </div>
       </div>
@@ -690,131 +745,159 @@ function renderSubBreakdown(){
 }
 
 function renderYearPricing(){
-  const f = featured();
-  if (!f) return `<div class="sl-pad">${slTitle('Pricing by Year')}${emptyState('Add a scenario to show Year 1 vs. ongoing pricing.')}</div>`;
-  const q = f.q, sched = q.schedule;
-  const y1 = sched[0], rest = sched.length > 1 ? sched[1] : null;
   return `
     <div class="sl-pad">
       ${slTitle('Pricing by Year')}
-      <div class="sl-body sl-year-cols">
+      <div class="sl-body sl-py-grid">
         <div></div>
-        <div class="sl-year-h">Year 1</div>
-        <div class="sl-year-h">${rest ? 'Years 2+' : (q.isMo ? 'Every month after' : '—')}</div>
-        <div class="sl-year-lbl">Per month</div>
-        <div class="sl-stat-box circled">
-          <div class="sl-stat-num">${fmt(y1.perMonth)}</div>
-          <div class="sl-stat-sub">${escapeHtml(f.termLabel)}</div>
-        </div>
-        <div class="sl-stat-box">
-          <div class="sl-stat-num">${rest ? fmt(rest.perMonth) : fmt(y1.perMonth)}</div>
-          <div class="sl-stat-sub">${rest ? 'ongoing rate' : 'no further years'}</div>
-        </div>
+        <div class="sl-py-colh">Year 1</div>
+        <div class="sl-py-colh">Years 2-5</div>
+        <div class="sl-py-rowh">Monthly</div>
+        <div class="sl-py-cell"><span class="amt">$61.10</span><span class="star">*</span></div>
+        <div class="sl-py-cell"><span class="amt" style="font-size:1.1rem;">Variable Rate</span></div>
+        <div class="sl-py-rowh">Multi-Year</div>
+        <div class="sl-py-cell circled"><span class="amt">$49</span></div>
+        <div class="sl-py-cell"><span class="amt">$61.10</span></div>
       </div>
+      <div class="sl-cap">*Illustrative example pricing — not this customer's quote. Your numbers are on the Year-by-Year Schedule slide.</div>
     </div>`;
 }
 
 function renderMultiAdvantages(){
-  const items = [
-    ['Predictability', 'Lock in your rate before annual increases apply.'],
-    ['Cost Savings', 'Save against paying month-to-month across the term.'],
-    ['Value', 'One negotiated price covers your full commitment.']
-  ];
   return `
     <div class="sl-pad">
-      ${slTitle('Advantages of Multi-Year')}
-      <div class="sl-body sl-adv-grid">
-        ${items.map((it,i) => `
-          <div class="sl-adv-card">
-            <div class="sl-adv-dot">${i+1}</div>
-            <div class="sl-adv-t">${it[0]}</div>
-            <div class="sl-adv-d">${it[1]}</div>
-          </div>`).join('')}
+      ${slTitle('Advantages of Multi-year')}
+      <div class="sl-body">
+        <div class="sl-adv-card2">
+          <div class="sl-adv-item">Predictability</div>
+          <div class="sl-adv-item">Cost Savings</div>
+          <div class="sl-adv-item">Value</div>
+        </div>
       </div>
     </div>`;
 }
 
 function renderFiveYear(){
   const f = featured();
-  if (!f) return `<div class="sl-pad">${slTitle('Your Term, Year by Year')}${emptyState('Add a scenario to show a year-by-year schedule.')}</div>`;
+  if (!f || !f.q.schedule || f.q.schedule.length < 2) {
+    return `<div class="sl-pad">${slTitle('Pricing by Year')}${emptyState('Add a multi-year scenario in the calculator to show its year-by-year schedule here.')}</div>`;
+  }
   const sched = f.q.schedule;
   return `
     <div class="sl-pad">
-      ${slTitle(sched.length > 1 ? `Your ${sched.length}-Year Schedule` : 'Your Schedule', 'sl-h-sm')}
-      <div class="sl-body sl-schedule">
-        ${sched.map(y => `
-          <div class="sl-yr-card${y.year===1?' first':''}">
-            <div class="yr-h">Year ${y.year}</div>
-            <div class="yr-permo">${fmt(y.perMonth)}</div>
-            <div class="yr-permo-lbl">per month</div>
-            <div class="yr-total">${fmt(y.total)} total</div>
-          </div>`).join('')}
+      ${liveBadge()}
+      ${slTitle('Pricing by Year')}
+      <div class="sl-body" style="display:flex;flex-direction:column;">
+        <div class="sl-yrrow">
+          ${sched.map(y => `
+            <div class="ycard${y.year===1?' first':''}">
+              <div class="yh">Year ${y.year}</div>
+              <div class="yamt">${fmt(y.perMonth)}</div>
+            </div>`).join('')}
+        </div>
+        <div class="sl-yr-arrow">
+          <span class="vlbl">${escapeHtml(f.termLabel)}</span>
+          <span class="line"></span>
+          <span class="vlbl">${fmt(f.q.grand)} total</span>
+        </div>
       </div>
+      <div class="sl-cap">This is scenario #${f.idx} from your calculator — ${f.users} users, ${escapeHtml(f.planLabel)}, ${escapeHtml(f.hostingLabel)}.</div>
     </div>`;
 }
 
 function renderDifferent(){
   const items = [
-    ['Free Trial', 'Experience the UI of the product firsthand.'],
-    ['Immediate Pricing', 'See real pricing in the first meeting.'],
-    ['Live Demo', 'See how the product actually works.']
+    ['Free Trial', 'Experience the UI of the product'],
+    ['Immediate Pricing', 'See pricing in the 1st meeting'],
+    ['Live Demo', 'See how the product actually works']
   ];
   return `
     <div class="sl-pad">
       ${slTitle('What Makes Odoo Different?')}
-      <div class="sl-body sl-adv-grid">
-        ${items.map((it,i) => `
-          <div class="sl-adv-card">
-            <div class="sl-adv-dot">${i+1}</div>
-            <div class="sl-adv-t">${it[0]}</div>
-            <div class="sl-adv-d">${it[1]}</div>
-          </div>`).join('')}
+      <div class="sl-body">
+        <div class="sl-diff-grid">
+          ${items.map(it => `
+            <div class="sl-diff-card">
+              <div class="sl-diff-t">${it[0]}</div>
+              <div class="sl-diff-d">${it[1]}</div>
+            </div>`).join('')}
+        </div>
+        <div class="sl-diff-caption">↩ To make you confident in your Investment ↪</div>
       </div>
     </div>`;
 }
 
 function renderImplRates(){
   const packs = DATA.packs;
+  const colors = ['#00CEB3','#FC787D','#1BB6F9','#FBB130','#714B67'];
   return `
     <div class="sl-pad">
       ${slTitle('Implementation Rates')}
-      <div class="sl-body sl-rate-row">
-        ${packs.map(p => `
-          <div class="sl-rate-card">
-            <div class="rc-h">${p.hours}+ Hours</div>
-            <div class="rc-amt">${fmtDec(p.rate)}</div>
-            <div class="rc-sub">per hour · ${escapeHtml(p.label)}</div>
-          </div>`).join('')}
+      <div class="sl-body">
+        <div class="sl-rate3" style="grid-template-columns:repeat(${Math.min(packs.length,3)},1fr);">
+          ${packs.slice(0,3).map((p,i) => `
+            <div class="rcell">
+              <div class="rt" style="--tier-c:${colors[i%colors.length]}">${p.hours}+ Hours</div>
+              <div class="ra">${fmtDec(p.rate)}</div>
+              <div class="ru">per hour</div>
+            </div>`).join('')}
+        </div>
       </div>
     </div>`;
 }
 
 function renderShRates(){
   const r = DATA.shRates.yearly;
-  const rows = [['Workers', fmtDec(r.worker) + '/worker/mo'], ['Storage', fmtDec(r.storage) + '/GB/mo'], ['Staging Environments', fmtDec(r.staging) + '/branch/mo']];
+  const rows = [['Workers', fmtDec(r.worker), 'worker/mo'], ['Storage', fmtDec(r.storage), 'GB/mo'], ['Staging Environments', fmtDec(r.staging), 'branch']];
   return `
     <div class="sl-pad">
-      ${slTitle('Odoo.sh Hosting')}
-      <div class="sl-body sl-rate-row">
-        ${rows.map(r => `
-          <div class="sl-rate-card">
-            <div class="rc-h">${r[0]}</div>
-            <div class="rc-amt">${r[1].split('/')[0]}</div>
-            <div class="rc-sub">/${r[1].split('/').slice(1).join('/')}</div>
-          </div>`).join('')}
+      ${slTitle('Odoo.sh')}
+      <div class="sl-body" style="display:flex;flex-direction:column;">
+        <div class="sl-sh-banner">
+          <span>PaaS</span><span>Github Repository</span><span>Third-Party Apps &amp; Developments</span>
+        </div>
+        <div class="sl-rate3" style="flex:1;">
+          ${rows.map(r => `
+            <div class="rcell">
+              <div class="rt" style="--tier-c:#1BB6F9;">${r[0]}</div>
+              <div class="ra">${r[1]}</div>
+              <div class="ru">per ${r[2]}</div>
+            </div>`).join('')}
+        </div>
       </div>
     </div>`;
 }
 
 function renderCostBreakdown(){
+  const cats = [
+    ['Licensing', ['Upgrade/Support', 'All applications included', 'Per seat basis']],
+    ['Hosting', ['Online included - SaaS', '.SH* additional cost (Development Capabilities)']],
+    ['Implementation', ['Dedicated project manager', 'Internal Odoo employee', 'Success Pack hours']],
+  ];
+  const arrow = `<svg class="sl-cb-arrow" viewBox="0 0 24 24" fill="none" stroke="#21272B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v14M6 13l6 6 6-6"/></svg>`;
+  return `
+    <div class="sl-pad">
+      ${slTitle('Cost Breakdown')}
+      <div class="sl-body sl-cb-grid">
+        ${cats.map(c => `
+          <div class="sl-cb-card">
+            <div class="sl-cb-top">${c[0]}${arrow}</div>
+            <div class="sl-cb-bot"><ul>${c[1].map(li => `<li>${li}</li>`).join('')}</ul></div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderQuoteSummary(){
   const f = featured();
-  if (!f) return `<div class="sl-pad">${slTitle('Cost Breakdown')}${emptyState('Add a scenario to show its cost breakdown.')}</div>`;
+  if (!f) return `<div class="sl-pad">${slTitle('Your Quote Summary')}${emptyState('Add a scenario in the calculator to show its cost breakdown.')}</div>`;
   const q = f.q;
   const lines = [['License', q.licTotal], ['Implementation', q.implTotal]];
   if (q.shTotal) lines.push(['Hosting', q.shTotal]);
   return `
     <div class="sl-pad">
-      ${slTitle('Cost Breakdown')}
+      ${liveBadge()}
+      ${slTitle('Your Quote Summary')}
       <div class="sl-body sl-bd-wrap">
         <div class="sl-bd-lines">
           ${lines.map(l => `<div class="sl-bd-line"><span>${l[0]}</span><span>${fmt(l[1])}</span></div>`).join('')}
@@ -837,6 +920,7 @@ function renderComparison(){
   }
   return `
     <div class="sl-pad">
+      ${liveBadge()}
       ${slTitle('Scenario Comparison', 'sl-h-sm')}
       <div class="sl-body">
         <table class="sl-cmp-table">
@@ -863,35 +947,41 @@ function renderComparison(){
 }
 
 function renderPayment(){
-  const f = featured();
-  const fin = f && !f.q.isMo && f.q.grand > 0 && f.q.finLow ? `
-    <div class="sl-fin-note">As low as <strong>${fmt(f.q.finLow)}–${fmt(f.q.finHigh)}/mo</strong> financed for ${escapeHtml(f.termLabel)}.</div>` : '';
   return `
     <div class="sl-pad">
       ${slTitle('Payment Options')}
-      <div class="sl-body">
-        <div class="sl-pay-grid">
-          <div class="sl-pay-card"><div class="sl-pay-t">Paid in Full</div><div class="sl-pay-d">Due at signing. ACH (US only) or bank wire.</div></div>
-          <div class="sl-pay-card"><div class="sl-pay-t">Flexible Terms</div><div class="sl-pay-d">Available across the US and Canada.</div></div>
-          <div class="sl-pay-card"><div class="sl-pay-t">Financing</div><div class="sl-pay-d">Spread the cost over the length of your term.</div></div>
+      <div class="sl-body sl-pay2">
+        <div class="sl-pay2-card">
+          <div class="sl-pay2-icon full"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m9.5 17.5 1.8 1.8L15.5 15"/></svg></div>
+          <div>
+            <div class="sl-pay2-h">Paid in Full</div>
+            <ul><li>Due at Signing</li><li>ACH (US Only)</li><li>Bank Wire</li></ul>
+          </div>
         </div>
-        ${fin}
+        <div class="sl-pay2-card">
+          <div class="sl-pay2-icon fin"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg></div>
+          <div>
+            <div class="sl-pay2-h">Financing</div>
+            <ul><li>Flexible Term Options</li><li>US &amp; Canada</li></ul>
+          </div>
+        </div>
       </div>
     </div>`;
 }
 
 const DEFAULT_SLIDE_DEFS = [
-  {id:'title',    label:'Title Slide',              tag:'Title',     build: renderTitleSlide},
-  {id:'subBreak', label:'Subscription Breakdown',    tag:'Overview',  build: renderSubBreakdown},
-  {id:'yearPr',   label:'Pricing by Year',           tag:'Pricing',   build: renderYearPricing},
-  {id:'multiAdv', label:'Advantages of Multi-Year',  tag:'Overview',  build: renderMultiAdvantages},
-  {id:'fiveYr',   label:'Year-by-Year Schedule',     tag:'Pricing',   build: renderFiveYear},
-  {id:'differ',   label:'What Makes Odoo Different', tag:'Overview',  build: renderDifferent},
-  {id:'implR',    label:'Implementation Rates',      tag:'Pricing',   build: renderImplRates},
-  {id:'shR',      label:'Odoo.sh Hosting',           tag:'Pricing',   build: renderShRates},
-  {id:'costBd',   label:'Cost Breakdown',            tag:'Pricing',   build: renderCostBreakdown},
-  {id:'compare',  label:'Scenario Comparison',       tag:'Pricing',   build: renderComparison},
-  {id:'payment',  label:'Payment Options',           tag:'Overview',  build: renderPayment},
+  {id:'title',    label:'Title Slide',              tag:'Title',     live:false, build: renderTitleSlide},
+  {id:'subBreak', label:'Subscription Breakdown',    tag:'Reference', live:false, build: renderSubBreakdown},
+  {id:'yearPr',   label:'Pricing by Year (example)', tag:'Reference', live:false, build: renderYearPricing},
+  {id:'multiAdv', label:'Advantages of Multi-Year',  tag:'Reference', live:false, build: renderMultiAdvantages},
+  {id:'fiveYr',   label:'Year-by-Year Schedule',     tag:'Your quote',live:true,  build: renderFiveYear},
+  {id:'differ',   label:'What Makes Odoo Different', tag:'Reference', live:false, build: renderDifferent},
+  {id:'implR',    label:'Implementation Rates',      tag:'Reference', live:false, build: renderImplRates},
+  {id:'shR',      label:'Odoo.sh Hosting',           tag:'Reference', live:false, build: renderShRates},
+  {id:'costBd',   label:'Cost Breakdown',            tag:'Reference', live:false, build: renderCostBreakdown},
+  {id:'quoteSum', label:'Your Quote Summary',        tag:'Your quote',live:true,  build: renderQuoteSummary},
+  {id:'compare',  label:'Scenario Comparison',       tag:'Your quote',live:true,  build: renderComparison},
+  {id:'payment',  label:'Payment Options',           tag:'Reference', live:false, build: renderPayment},
 ];
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -899,7 +989,7 @@ const DEFAULT_SLIDE_DEFS = [
 // template slides plus anything the user uploads.
 // ═════════════════════════════════════════════════════════════════════════
 let deckSlides = DEFAULT_SLIDE_DEFS.map(def => ({
-  key: def.id, kind: 'template', label: def.label, tag: def.tag,
+  key: def.id, kind: 'template', label: def.label, tag: def.tag, live: def.live,
   included: def.id !== 'compare' || DATA.scenarios.length > 1,
   build: def.build
 }));
@@ -982,7 +1072,7 @@ function renderPanel(){
       <input type="checkbox" data-inc="${i}" ${s.included ? 'checked' : ''} aria-label="Include ${escapeHtml(s.label)}">
       <span class="sr-num">${i+1}</span>
       <div class="sr-main">
-        <div class="sr-title">${escapeHtml(s.label)}</div>
+        <div class="sr-title">${s.live ? '<span class="sr-live" title="From your calculator"></span>' : ''}${escapeHtml(s.label)}</div>
         <div class="sr-tag">${escapeHtml(s.tag)}</div>
       </div>
       <div class="sr-moves">
@@ -1058,13 +1148,16 @@ document.getElementById('nextBtn').addEventListener('click', () => { if (focused
 window.addEventListener('resize', () => { fitSlide(stageFrame, stageScaleWrap, stageSlide); if (presentOn) fitSlide(presentFrame, presentScaleWrap, presentSlideEl); });
 
 // ═════════════════════════════════════════════════════════════════════════
-// PRESENT MODE
+// PRESENT MODE — opens as a large in-page overlay so the browser's own tab
+// and address bar stay visible by default. True fullscreen is an explicit,
+// separate toggle (⛶) rather than something forced on entry.
 // ═════════════════════════════════════════════════════════════════════════
 const presentOverlay = document.getElementById('presentOverlay');
 const presentFrame = document.getElementById('presentFrame');
 const presentScaleWrap = document.getElementById('presentScaleWrap');
 const presentSlideEl = document.getElementById('presentSlide');
 const presentCount = document.getElementById('presentCount');
+const presentFsToggle = document.getElementById('presentFsToggle');
 let presentOn = false;
 let presentIdx = 0;
 
@@ -1090,16 +1183,23 @@ function enterPresent(){
   presentOn = true;
   presentOverlay.classList.add('on');
   renderPresent();
-  const el = document.documentElement;
-  if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
 }
 function exitPresent(){
   presentOn = false;
   presentOverlay.classList.remove('on');
   if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
 }
+function toggleFullscreen(){
+  if (document.fullscreenElement) {
+    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+  } else {
+    const el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+  }
+}
 document.getElementById('presentBtn').addEventListener('click', enterPresent);
 document.getElementById('presentExit').addEventListener('click', exitPresent);
+presentFsToggle.addEventListener('click', toggleFullscreen);
 document.getElementById('presentPrev').addEventListener('click', () => { presentIdx--; renderPresent(); });
 document.getElementById('presentNext').addEventListener('click', () => { presentIdx++; renderPresent(); });
 presentOverlay.addEventListener('click', (e) => {
@@ -1114,7 +1214,9 @@ document.addEventListener('keydown', (e) => {
   else if (e.key === 'ArrowLeft') { if (presentIdx > 0) { presentIdx--; renderPresent(); } }
   else if (e.key === 'Escape') { exitPresent(); }
 });
-document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && presentOn) exitPresent(); });
+document.addEventListener('fullscreenchange', () => {
+  presentFsToggle.classList.toggle('on', !!document.fullscreenElement);
+});
 
 // ═════════════════════════════════════════════════════════════════════════
 // EXPORT / PRINT — build one .slide per printed page, then print.
@@ -1174,7 +1276,7 @@ async function addPdfPages(file){
       await page.render({canvasContext: canvas.getContext('2d'), viewport}).promise;
       deckSlides.push({
         key: 'up' + uploadCount + '_p' + p, kind: 'upload-pdf-page',
-        label: `${groupLabel} — p.${p}`, tag: 'Uploaded',
+        label: `${groupLabel} — p.${p}`, tag: 'Uploaded', live: false,
         included: true, dataUrl: canvas.toDataURL('image/png')
       });
     }
@@ -1190,7 +1292,7 @@ function addFileAttachment(file, ext){
   uploadCount++;
   deckSlides.push({
     key: 'upf' + uploadCount, kind: 'upload-file',
-    label: file.name, tag: 'Uploaded file', ext, name: file.name, url,
+    label: file.name, tag: 'Uploaded file', live: false, ext, name: file.name, url,
     included: true
   });
   uploadStatus.textContent = `Attached ${file.name}. PowerPoint files can't preview here — use "Open file" to present it separately.`;
