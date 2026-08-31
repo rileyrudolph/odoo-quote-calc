@@ -351,6 +351,44 @@ body{
 .sl-cb-bot li{display:flex;gap:8px;align-items:flex-start;font-family:"Inter",sans-serif;font-size:.8rem;line-height:1.4;}
 .sl-cb-bot li::before{content:"";width:5px;height:5px;border-radius:50%;background:#fff;margin-top:6px;flex:none;}
 
+/* ── Source-deck vocabulary ──────────────────────────────────────────────
+   The quote slides are drawn from exactly the same parts as the reference
+   deck — Caveat labels, soft grey capsules, a hand-drawn amber ring on the
+   number that matters, thin teal arrows and the coral flourish — so a live
+   slide is indistinguishable from a slide that came out of the .pptx.     */
+.sl-colh{font-family:"Caveat",cursive;font-weight:600;font-size:1.55rem;color:#21272B;text-align:center;line-height:1;}
+.sl-rowl{font-family:"Caveat",cursive;font-weight:600;font-size:1.15rem;color:#21272B;text-align:right;line-height:1.1;}
+.sl-cap2{font-family:"Caveat",cursive;font-weight:600;font-size:1.15rem;color:#21272B;text-align:center;}
+.sl-pill{
+  background:#EFEFEF;border-radius:28px;padding:22px 12px;text-align:center;position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+}
+.sl-pill.sm{padding:15px 10px;border-radius:22px;}
+.sl-pill .amt{font-family:"Inter",sans-serif;font-size:1.75rem;font-weight:600;color:#21272B;font-variant-numeric:tabular-nums;letter-spacing:-.015em;line-height:1.1;}
+.sl-pill.sm .amt{font-size:1.3rem;}
+.sl-pill .amt-lg{font-size:2.5rem;}
+.sl-pill .sub{font-family:"Inter",sans-serif;font-size:.78rem;color:#5b6474;}
+.sl-pill.ring::before{
+  content:"";position:absolute;inset:-9px -6px;border:4px solid #FBB130;border-radius:50%;
+  transform:rotate(-3deg);pointer-events:none;
+}
+.sl-arrow{display:flex;align-items:center;justify-content:center;}
+.sl-arrow svg{width:100%;max-width:74px;height:15px;}
+.sl-flourish{position:absolute;right:40px;bottom:30px;width:52px;height:52px;pointer-events:none;}
+
+/* Year-by-year schedule — a run of capsules joined by teal arrows. */
+.sl-yr-flow{display:grid;align-items:center;gap:0 6px;padding-bottom:6px;}
+.sl-yr-col{display:flex;flex-direction:column;gap:14px;min-width:0;}
+.sl-arrow-cell{display:flex;align-items:center;justify-content:center;padding-top:34px;}
+
+/* Your quote — line items on the left, the all-in capsule on the right. */
+.sl-qs-grid{display:grid;grid-template-columns:132px 1fr 86px 1.15fr;gap:14px 16px;align-items:center;}
+.sl-qs-arrow{display:flex;align-items:center;justify-content:center;}
+.sl-qs-total{display:flex;flex-direction:column;justify-content:center;}
+
+/* Scenario comparison — one capsule row per scenario. */
+.sl-cmp-grid{display:grid;grid-template-columns:132px 1fr 86px 1fr;gap:12px 16px;align-items:center;}
+
 /* Your Quote Summary (live) — this customer's actual computed numbers */
 .sl-bd-wrap{display:flex;gap:26px;height:100%;}
 .sl-bd-lines{flex:1;display:flex;flex-direction:column;justify-content:center;gap:13px;}
@@ -710,7 +748,27 @@ function featured(){ return DATA.scenarios[state.featuredIdx] || null; }
 function liveBadge(){ return IS_SAMPLE ? '' : `<div class="sl-badge"><span class="dot"></span>From your calculator</div>`; }
 
 function slTitle(text, cls){
-  return `<h2 class="sl-h${cls?(' '+cls):''}"><span class="hl-wrap"><span class="hl-bar" aria-hidden="true"></span><span class="hl-text">${text}</span></span></h2>`;
+  // A "|" splits the heading into the marked run and the plain remainder, the
+  // way the source deck highlights only the first word ("Pricing by Year").
+  const i = String(text).indexOf('|');
+  const marked = i < 0 ? text : text.slice(0, i);
+  const rest   = i < 0 ? ''   : text.slice(i + 1);
+  return `<h2 class="sl-h${cls?(' '+cls):''}"><span class="hl-wrap"><span class="hl-bar" aria-hidden="true"></span><span class="hl-text">${marked}</span></span>${rest}</h2>`;
+}
+
+// Thin teal connector, traced from the arrows in the reference deck.
+function slArrow(){
+  return `<div class="sl-arrow"><svg viewBox="0 0 74 15" fill="none" aria-hidden="true"><path d="M2 7.5h62M57.5 2.5 66 7.5l-8.5 5" stroke="#017E84" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+}
+
+// The coral flourish that sits in the lower-right corner of the deck's slides.
+function slFlourish(){
+  return `<svg class="sl-flourish" viewBox="0 0 60 60" fill="none" aria-hidden="true">`
+    + `<path d="M4 41c6.5 4 12.5 6.8 18.5 8.6" stroke="#FC787D" stroke-width="4.2" stroke-linecap="round"/>`
+    + `<path d="M17 25c4 8.5 8.4 16 12.6 22.4" stroke="#FC787D" stroke-width="4.2" stroke-linecap="round"/>`
+    + `<path d="M34 17c1.2 9.4 1.8 18 1.8 26" stroke="#FC787D" stroke-width="4.2" stroke-linecap="round"/>`
+    + `<path d="M52 23c-3.4 8.4-7.6 15.8-12 21.8" stroke="#FC787D" stroke-width="4.2" stroke-linecap="round"/>`
+    + `</svg>`;
 }
 
 function renderTitleSlide(){
@@ -787,28 +845,29 @@ function renderMultiAdvantages(){
 function renderFiveYear(){
   const f = featured();
   if (!f || !f.q.schedule || f.q.schedule.length < 2) {
-    return `<div class="sl-pad">${slTitle('Pricing by Year')}${emptyState('Add a multi-year scenario in the calculator to show its year-by-year schedule here.')}</div>`;
+    return `<div class="sl-pad">${slTitle('Pricing| by Year','hl-yellow')}${emptyState('Add a multi-year scenario in the calculator to show its year-by-year schedule here.')}</div>`;
   }
   const sched = f.q.schedule;
+  const cells = [];
+  sched.forEach((y, i) => {
+    if (i) cells.push(`<div class="sl-arrow-cell">${slArrow()}</div>`);
+    cells.push(
+      `<div class="sl-yr-col">` +
+        `<div class="sl-colh">Year ${y.year}</div>` +
+        `<div class="sl-pill${y.year === 1 ? ' ring' : ''}">` +
+          `<div class="amt">${fmt(y.perMonth)}</div><div class="sub">per month</div>` +
+        `</div>` +
+      `</div>`);
+  });
+  const cols = sched.map(() => '1fr').join(' 44px ');
   return `
     <div class="sl-pad">
-      ${liveBadge()}
-      ${slTitle('Pricing by Year')}
-      <div class="sl-body" style="display:flex;flex-direction:column;">
-        <div class="sl-yrrow">
-          ${sched.map(y => `
-            <div class="ycard${y.year===1?' first':''}">
-              <div class="yh">Year ${y.year}</div>
-              <div class="yamt">${fmt(y.perMonth)}</div>
-            </div>`).join('')}
-        </div>
-        <div class="sl-yr-arrow">
-          <span class="vlbl">${escapeHtml(f.termLabel)}</span>
-          <span class="line"></span>
-          <span class="vlbl">${fmt(f.q.grand)} total</span>
-        </div>
+      ${slTitle('Pricing| by Year','hl-yellow')}
+      <div class="sl-body sl-yr-flow" style="grid-template-columns:${cols};">
+        ${cells.join('')}
       </div>
-      <div class="sl-cap">This is scenario #${f.idx} from your calculator — ${f.users} users, ${escapeHtml(f.planLabel)}, ${escapeHtml(f.hostingLabel)}.</div>
+      <div class="sl-cap2">${escapeHtml(f.termLabel)} &middot; ${fmt(f.q.grand)} all-in</div>
+      ${slFlourish()}
     </div>`;
 }
 
@@ -897,59 +956,46 @@ function renderCostBreakdown(){
 
 function renderQuoteSummary(){
   const f = featured();
-  if (!f) return `<div class="sl-pad">${slTitle('Your Quote Summary')}${emptyState('Add a scenario in the calculator to show its cost breakdown.')}</div>`;
+  if (!f) return `<div class="sl-pad">${slTitle('Your| Quote','hl-yellow')}${emptyState('Add a scenario in the calculator to show its cost breakdown.')}</div>`;
   const q = f.q;
   const lines = [['License', q.licTotal], ['Implementation', q.implTotal]];
   if (q.shTotal) lines.push(['Hosting', q.shTotal]);
   return `
     <div class="sl-pad">
-      ${liveBadge()}
-      ${slTitle('Your Quote Summary')}
-      <div class="sl-body sl-bd-wrap">
-        <div class="sl-bd-lines">
-          ${lines.map(l => `<div class="sl-bd-line"><span>${l[0]}</span><span>${fmt(l[1])}</span></div>`).join('')}
-          <div class="sl-bd-line sl-bd-total"><span>Total (${escapeHtml(f.termLabel)})</span><span>${fmt(q.grand)}</span></div>
-        </div>
-        <div class="sl-bd-side">
-          <div class="sb-lbl">All-in, ${escapeHtml(f.termLabel)}</div>
-          <div class="sb-amt">${fmt(q.grand)}</div>
-          <div class="sb-sub">${fmt(q.perMonth)} / month equivalent</div>
-          ${q.savings > 0 ? `<div class="sb-save">Saves ${fmt(q.savings)} vs. paying monthly</div>` : ''}
+      ${slTitle('Your| Quote','hl-yellow')}
+      <div class="sl-body sl-qs-grid" style="grid-template-rows:repeat(${lines.length},1fr);">
+        ${lines.map(l => `
+          <div class="sl-rowl">${l[0]}</div>
+          <div class="sl-pill sm"><div class="amt">${fmt(l[1])}</div></div>`).join('')}
+        <div class="sl-qs-arrow" style="grid-row:1 / span ${lines.length};">${slArrow()}</div>
+        <div class="sl-qs-total" style="grid-row:1 / span ${lines.length};">
+          <div class="sl-colh" style="margin-bottom:12px;">All-in &middot; ${escapeHtml(f.termLabel)}</div>
+          <div class="sl-pill ring"><div class="amt amt-lg">${fmt(q.grand)}</div><div class="sub">${fmt(q.perMonth)} per month</div></div>
+          ${q.savings > 0 ? `<div class="sl-cap2" style="margin-top:14px;">Saves ${fmt(q.savings)} vs. paying monthly</div>` : ''}
         </div>
       </div>
+      ${slFlourish()}
     </div>`;
 }
 
 function renderComparison(){
   const rows = DATA.scenarios.filter((_, i) => state.compareSet.has(i));
   if (rows.length === 0) {
-    return `<div class="sl-pad">${slTitle('Scenario Comparison')}${emptyState('Select at least one scenario in the panel to compare.')}</div>`;
+    return `<div class="sl-pad">${slTitle('Scenario| Comparison','hl-yellow')}${emptyState('Select at least one scenario in the panel to compare.')}</div>`;
   }
+  const tight = rows.length > 3 ? ' sm' : '';
   return `
     <div class="sl-pad">
-      ${liveBadge()}
-      ${slTitle('Scenario Comparison', 'sl-h-sm')}
-      <div class="sl-body">
-        <table class="sl-cmp-table">
-          <thead><tr>
-            <th>Users</th><th>Term</th><th>Plan</th><th>Hosting</th>
-            <th class="num">License</th><th class="num">Impl.</th><th class="num">All-in</th><th class="num">Per mo.</th>
-          </tr></thead>
-          <tbody>
-            ${rows.map(s => `
-              <tr>
-                <td>${s.users}</td>
-                <td>${escapeHtml(s.termLabel)}</td>
-                <td>${escapeHtml(s.planLabel)}</td>
-                <td>${escapeHtml(s.hostingLabel)}</td>
-                <td class="num">${fmt(s.q.licTotal)}</td>
-                <td class="num">${fmt(s.q.implTotal)}</td>
-                <td class="num grand">${fmt(s.q.grand)}</td>
-                <td class="num">${fmt(s.q.perMonth)}</td>
-              </tr>`).join('')}
-          </tbody>
-        </table>
+      ${slTitle('Scenario| Comparison','hl-yellow')}
+      <div class="sl-body sl-cmp-grid" style="grid-template-rows:auto repeat(${rows.length},1fr);">
+        <div></div><div class="sl-colh">All-in</div><div></div><div class="sl-colh">Per month</div>
+        ${rows.map(sc => `
+          <div class="sl-rowl">${sc.users} user${sc.users === 1 ? '' : 's'}<br><span style="font-size:.86em;">${escapeHtml(sc.termLabel)}</span></div>
+          <div class="sl-pill${tight}"><div class="amt">${fmt(sc.q.grand)}</div></div>
+          ${slArrow()}
+          <div class="sl-pill${tight}"><div class="amt">${fmt(sc.q.perMonth)}</div></div>`).join('')}
       </div>
+      ${slFlourish()}
     </div>`;
 }
 
