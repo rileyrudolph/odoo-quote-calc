@@ -400,6 +400,13 @@ select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb),.55);box-s
 .bd-yr .yr-mo{font-variant-numeric:tabular-nums;color:var(--sub);white-space:nowrap;font-size:.72rem;}
 .bd-yr.first .yr-amt{color:var(--ink);}
 .bd-yr-note{font-size:.68rem;color:var(--faint);margin-top:6px;line-height:1.45;}
+   .bd-yr-sub{
+  display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:baseline;
+  font-size:.72rem;padding:2px 0 2px 14px;color:var(--faint);
+}
+.bd-yr-sub .yr-amt{font-variant-numeric:tabular-nums;color:var(--sub);font-weight:600;text-align:right;}
+.bd-yr-sub + .bd-yr{border-top:1px dotted var(--line);}
+
 .month-roll{margin-top:18px;padding:16px 18px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-lg);}
 .mr-top{margin-bottom:12px;}
 .mr-pick{font-size:.72rem;font-weight:500;text-transform:none;letter-spacing:0;color:var(--faint);margin-top:3px;}
@@ -563,6 +570,23 @@ footer{
   padding:4px 6px;border-radius:var(--r-sm);margin-left:auto;
 }
 .compose-discard:hover{background:var(--surface-3);color:var(--sub);}
+/* ── Gmail-like compose ─────────────────────────────────────────────────────
+   The compose window is the one part of this tool that should NOT look like
+   Odoo. A rep reads it as their mail client, so it borrows Gmail's dark head,
+   blue Send pill and full-screen toggle rather than the app's purple.       */
+.compose-head{background:#404040;padding:10px 8px 10px 16px;}
+.compose-title{font-size:.8rem;font-weight:500;}
+.compose-send{background:#0b57d0;border-color:#0b57d0;border-radius:18px;padding:9px 26px;font-weight:600;}
+.compose-send:hover:not(:disabled){background:#0842a0;border-color:#0842a0;}
+.compose-panel.expanded{
+  right:50%;transform:translateX(50%);bottom:24px;top:24px;
+  width:min(900px,calc(100vw - 48px));
+  border-radius:var(--r-lg);border-bottom:1px solid var(--line);
+}
+.compose-panel.expanded .compose-body{flex:1;overflow-y:auto;}
+.compose-panel.expanded .compose-message{flex:1;min-height:260px;}
+.compose-sig-row{border-bottom:none;padding:0 0 10px;}
+.compose-sig{height:84px;resize:vertical;line-height:1.5;font-size:.82rem;color:var(--sub);}
 .compose-panel.collapsed{width:280px;}
 .compose-panel.collapsed .compose-body,
 .compose-panel.collapsed .compose-footer{display:none;}
@@ -977,6 +1001,7 @@ footer{
   <div class="compose-head" id="composeHead">
     <span class="compose-title">New message</span>
     <div class="compose-head-actions">
+      <button type="button" id="composeExpand" class="compose-icon-btn" title="Full screen" aria-label="Full screen">⤢</button>
       <button type="button" id="composeMinimize" class="compose-icon-btn" title="Minimize" aria-label="Minimize">−</button>
       <button type="button" id="composeClose" class="compose-icon-btn" title="Close" aria-label="Close">×</button>
     </div>
@@ -1006,6 +1031,10 @@ footer{
     </div>
     <div class="compose-row compose-message-row">
       <textarea id="emailMessage" class="compose-field compose-message" placeholder="Write a message..."></textarea>
+    </div>
+    <label class="compose-check"><input type="checkbox" id="emailSigOn"> Include signature</label>
+    <div class="compose-row compose-sig-row" id="composeSigRow" style="display:none;">
+      <textarea id="emailSignature" class="compose-field compose-sig" placeholder="Your name&#10;Title | Odoo Inc.&#10;Phone&#10;Street, City ST ZIP"></textarea>
     </div>
     <label class="compose-check"><input type="checkbox" id="emailCcSelf" checked> Send me a copy</label>
     <div class="compose-attachment" id="composeAttachNote">Pricing, term and payment options are laid out in the email.</div>
@@ -1726,7 +1755,7 @@ function renderWarnings(){
   }
   // The 200hr / initial-invoice rule only matters once someone is actually discounting hours.
   if (scenarios.some(s => s.hours > 0 && s.implDisc > 0)) {
-    add(box, 'Impl %', `The implementation discount only reaches the first ${DISCOUNT_ELIGIBLE_HOURS} hrs, on the initial invoice`);
+    add(box, 'Impl %', `The ${TYPICAL_IMPL_DISCOUNT}% only reaches the first ${DISCOUNT_ELIGIBLE_HOURS} hrs of implementation, on the initial invoice`);
   }
   // Hosting sizing — only when hosting is actually in play.
   if (scenarios.some(s => isPaidHosting(s.sh))) {
@@ -1801,10 +1830,23 @@ function renderDetail(){
       // Rows show whole dollars because that is what gets said out loud; the exact figure is on
       // the hover title, so the schedule still reconciles to the cent against the line items.
       const exact = `${fmtDec(y.total)} · ${fmtDec(y.perMonth)}/mo`;
-      return `<div class="bd-yr${y.year === 1 ? ' first' : ''}" title="${exact}">` +
+            let row = `<div class="bd-yr${y.year === 1 ? ' first' : ''}" title="${exact}">` +
         `<span>${label}</span>` +
         `<span class="yr-amt">${fmt(y.total)}</span>` +
         `<span class="yr-mo">${fmt(y.perMonth)}/mo</span></div>`;
+      // Year 1 is the only year with more than one moving part: the whole implementation
+      // lands on it, and its licence sits at the Year-1 promotional rate rather than the
+      // discounted Year-2-onward rate. Split it out so each piece can be pointed at.
+      if (y.year === 1 && !q.isMo) {
+        const parts = [];
+        if (y.lic)  parts.push(['Licence · Year-1 rate', y.lic]);
+        if (y.impl) parts.push(['Implementation', y.impl]);
+        if (y.sh)   parts.push(['Hosting', y.sh]);
+        if (parts.length > 1) row += parts.map(p =>
+          `<div class="bd-yr-sub"><span>${p[0]}</span>` +
+          `<span class="yr-amt">${fmt(p[1])}</span><span class="yr-mo"></span></div>`).join('');
+      }
+      return row;
     }).join('');
     // Year 1 is the odd one out, so say why rather than leaving the rep to explain the jump.
     // Careful with the wording: Year 1's LICENCE is the cheapest of the term — it sits at the
@@ -2603,7 +2645,7 @@ function openCompose() {
   emailCompanyInput.value = '';
   emailSenderNameInput.value = prof.name || '';
   emailSenderPhoneInput.value = prof.phone || '';
-  emailMessageInput.value = defaultMessage();
+  emailMessageInput.value = ''; composeSigRow.style.display = emailSigOn.checked ? '' : 'none'; applySig();
   syncSubject();
   refreshScenarioPicker();
   composeStatus.textContent = '';
@@ -2615,6 +2657,48 @@ function openCompose() {
 emailCompanyInput.addEventListener('input', syncSubject);
 emailSenderNameInput.addEventListener('change', saveSender);
 emailSenderPhoneInput.addEventListener('change', saveSender);
+// ─────────────────────────────────────────────────────────────────────────────
+// COMPOSE EXTRAS — full-screen toggle and an optional signature. Gmail keeps the
+// signature in the body under a "--" separator, so this does the same: switching
+// it on appends the block to whatever has been typed, switching it off strips it
+// again. The signature text lives in this browser only, never in the source.
+// ─────────────────────────────────────────────────────────────────────────────
+const composeExpandBtn = document.getElementById('composeExpand');
+const emailSigOn = document.getElementById('emailSigOn');
+const emailSignature = document.getElementById('emailSignature');
+const composeSigRow = document.getElementById('composeSigRow');
+const SIG_KEY = 'odooEmailSignature';
+const SIG_MARK = '\n\n--\n';
+
+composeExpandBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  composePanel.classList.remove('collapsed');
+  composePanel.classList.toggle('expanded');
+  composeExpandBtn.textContent = composePanel.classList.contains('expanded') ? '⤡' : '⤢';
+});
+
+try {
+  const st = JSON.parse(localStorage.getItem(SIG_KEY) || 'null');
+  if (st) { emailSignature.value = st.text || ''; emailSigOn.checked = !!st.on; }
+} catch (e) {}
+
+function saveSig(){
+  try { localStorage.setItem(SIG_KEY, JSON.stringify({ text: emailSignature.value, on: emailSigOn.checked })); } catch (e) {}
+}
+
+function applySig(){
+  const body = emailMessageInput.value;
+  const cut = body.indexOf(SIG_MARK);
+  const base = cut >= 0 ? body.slice(0, cut) : body;
+  const sig = emailSignature.value.trim();
+  emailMessageInput.value = (emailSigOn.checked && sig) ? base + SIG_MARK + sig : base;
+}
+
+emailSigOn.addEventListener('change', () => {
+  composeSigRow.style.display = emailSigOn.checked ? '' : 'none';
+  applySig(); saveSig();
+});
+emailSignature.addEventListener('input', () => { applySig(); saveSig(); });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PROPOSAL EMAIL
