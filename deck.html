@@ -969,19 +969,85 @@ function renderPayment(){
     </div>`;
 }
 
+// ═════════════════════════════════════════════════════════════════════════
+// REFERENCE SLIDES — rendered verbatim from the source PowerPoint, so they are
+// pixel-identical to the deck as authored: same fonts, artwork, spacing and
+// hand-drawn marks, with nothing re-interpreted. The only thing drawn over the
+// image is the presenter's name, which replaces the deck's own "[NAME]"
+// placeholder in exactly the spot the placeholder occupies.
+// ═════════════════════════════════════════════════════════════════════════
+const REF = [
+  {file:'deckimg/slide-01-title.webp',           label:'Title Slide'},
+  {file:'deckimg/slide-02-subscription.webp',    label:'Subscription Breakdown'},
+  {file:'deckimg/slide-03-pricing-by-year.webp', label:'Pricing by Year'},
+  {file:'deckimg/slide-04-advantages.webp',      label:'Advantages of Multi-Year'},
+  {file:'deckimg/slide-05-pricing-5yr.webp',     label:'Pricing by Year (5-Year)'},
+  {file:'deckimg/slide-06-different.webp',       label:'What Makes Odoo Different'},
+  {file:'deckimg/slide-07-implementation.webp',  label:'Implementation Rates'},
+  {file:'deckimg/slide-08-odoosh.webp',          label:'Odoo.sh Hosting'},
+  {file:'deckimg/slide-09-cost-breakdown.webp',  label:'Cost Breakdown'},
+  {file:'deckimg/slide-10-payment.webp',         label:'Payment Options'}
+];
+// Flipped to true once the slide images are confirmed present. Until then the HTML
+// rebuilds above stand in, so the deck is never broken — just not yet verbatim.
+let HAS_REF = false;
+
+function refImg(i){
+  // 1440x811 source on a 960x540 stage — the same 16:9 to within 0.1%, so this fills
+  // edge to edge with no crop and no visible distortion.
+  return `<img src="${REF[i].file}" alt="${escapeHtml(REF[i].label)}" draggable="false"
+    style="position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block;">`;
+}
+
+// One probe request decides which set to use. Cheap, and it means a missing assets
+// folder degrades quietly instead of showing ten broken images mid-presentation.
+(function probeRefSlides(){
+  var probe = new Image();
+  probe.onload = function(){ HAS_REF = true; renderPanel(); renderStage(); };
+  probe.src = REF[0].file;
+})();
+
+function renderRefTitle(){
+  const presenter = state.presenterName.trim();
+  // The deck's own byline sits at 2% / 88% of the page — cover just that line.
+  const overlay = presenter ? `
+    <div style="position:absolute;left:1.9%;top:87.2%;width:52%;height:9%;background:#fff;
+                display:flex;align-items:center;">
+      <span style="font-family:'Inter',sans-serif;font-size:15px;color:#21272B;white-space:nowrap;">
+        <b style="color:#714B67;font-weight:700;">${escapeHtml(presenter)}</b>, Business Advisor
+      </span>
+    </div>` : '';
+  return refImg(0) + overlay;
+}
+// Resolved at render time, not at load time, so the probe above can swap the whole
+// reference set over to the verbatim images the moment it confirms they are there.
+const REF_DEFS = {
+  title:     () => HAS_REF ? renderRefTitle()  : renderTitleSlide(),
+  subBreak:  () => HAS_REF ? refImg(1)         : renderSubBreakdown(),
+  yearPr:    () => HAS_REF ? refImg(2)         : renderYearPricing(),
+  multiAdv:  () => HAS_REF ? refImg(3)         : renderMultiAdvantages(),
+  fiveYrRef: () => HAS_REF ? refImg(4)         : renderYearPricing(),
+  differ:    () => HAS_REF ? refImg(5)         : renderDifferent(),
+  implR:     () => HAS_REF ? refImg(6)         : renderImplRates(),
+  shR:       () => HAS_REF ? refImg(7)         : renderShRates(),
+  costBd:    () => HAS_REF ? refImg(8)         : renderCostBreakdown(),
+  payment:   () => HAS_REF ? refImg(9)         : renderPayment()
+};
+
 const DEFAULT_SLIDE_DEFS = [
-  {id:'title',    label:'Title Slide',              tag:'Title',     live:false, build: renderTitleSlide},
-  {id:'subBreak', label:'Subscription Breakdown',    tag:'Reference', live:false, build: renderSubBreakdown},
-  {id:'yearPr',   label:'Pricing by Year (example)', tag:'Reference', live:false, build: renderYearPricing},
-  {id:'multiAdv', label:'Advantages of Multi-Year',  tag:'Reference', live:false, build: renderMultiAdvantages},
-  {id:'fiveYr',   label:'Year-by-Year Schedule',     tag:'Your quote',live:true,  build: renderFiveYear},
-  {id:'differ',   label:'What Makes Odoo Different', tag:'Reference', live:false, build: renderDifferent},
-  {id:'implR',    label:'Implementation Rates',      tag:'Reference', live:false, build: renderImplRates},
-  {id:'shR',      label:'Odoo.sh Hosting',           tag:'Reference', live:false, build: renderShRates},
-  {id:'costBd',   label:'Cost Breakdown',            tag:'Reference', live:false, build: renderCostBreakdown},
-  {id:'quoteSum', label:'Your Quote Summary',        tag:'Your quote',live:true,  build: renderQuoteSummary},
-  {id:'compare',  label:'Scenario Comparison',       tag:'Your quote',live:true,  build: renderComparison},
-  {id:'payment',  label:'Payment Options',           tag:'Reference', live:false, build: renderPayment},
+  {id:'title',    label:'Title Slide',               tag:'Source deck', live:false, build: REF_DEFS.title},
+  {id:'subBreak', label:'Subscription Breakdown',    tag:'Source deck', live:false, build: REF_DEFS.subBreak},
+  {id:'yearPr',   label:'Pricing by Year',           tag:'Source deck', live:false, build: REF_DEFS.yearPr},
+  {id:'multiAdv', label:'Advantages of Multi-Year',  tag:'Source deck', live:false, build: REF_DEFS.multiAdv},
+  {id:'fiveYrRef',label:'Pricing by Year (5-Year)',  tag:'Source deck', live:false, build: REF_DEFS.fiveYrRef},
+  {id:'differ',   label:'What Makes Odoo Different', tag:'Source deck', live:false, build: REF_DEFS.differ},
+  {id:'implR',    label:'Implementation Rates',      tag:'Source deck', live:false, build: REF_DEFS.implR},
+  {id:'shR',      label:'Odoo.sh Hosting',           tag:'Source deck', live:false, build: REF_DEFS.shR},
+  {id:'costBd',   label:'Cost Breakdown',            tag:'Source deck', live:false, build: REF_DEFS.costBd},
+  {id:'fiveYr',   label:'Year-by-Year Schedule',     tag:'Your quote',  live:true,  build: renderFiveYear},
+  {id:'quoteSum', label:'Your Quote Summary',        tag:'Your quote',  live:true,  build: renderQuoteSummary},
+  {id:'compare',  label:'Scenario Comparison',       tag:'Your quote',  live:true,  build: renderComparison},
+  {id:'payment',  label:'Payment Options',           tag:'Source deck', live:false, build: REF_DEFS.payment},
 ];
 
 // ═════════════════════════════════════════════════════════════════════════
