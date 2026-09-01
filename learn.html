@@ -225,6 +225,27 @@ button{font-family:inherit;cursor:pointer;}
 
 .mini{font-size:.66rem;color:var(--faint);line-height:1.55;}
 #btnPanel{display:none;} @media (max-width:1000px){ .panel{position:fixed;top:0;right:0;bottom:0;width:min(392px,92vw);z-index:60;transform:translateX(100%);transition:transform .22s ease;box-shadow:-14px 0 40px rgba(0,0,0,.55);} body.panel-open .panel{transform:none;} #btnPanel{display:inline-block;} }
+/* The three concessions on the table. Picking one is the whole game. */
+.offer{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px;}
+.oc{width:152px;background:var(--card);color:var(--ink);border-radius:8px;padding:10px 11px 9px;
+  text-align:left;border:2px solid transparent;cursor:pointer;position:relative;
+  box-shadow:0 6px 16px rgba(0,0,0,.35);transition:transform .12s ease,border-color .12s ease;}
+.oc:hover{transform:translateY(-4px);border-color:var(--gold);}
+.oc .ok{font-size:.58rem;letter-spacing:.09em;text-transform:uppercase;color:var(--sub);font-weight:700;}
+.oc .orank{font-size:1.1rem;font-weight:800;line-height:1.1;margin-top:1px;}
+.oc .olev{font-size:.67rem;color:#3c4a57;line-height:1.3;margin-top:5px;min-height:2.6em;}
+.oc .orow{display:flex;justify-content:space-between;align-items:baseline;margin-top:7px;
+  border-top:1px dashed #c9d2da;padding-top:6px;}
+.oc .opts{font-size:.72rem;font-weight:800;color:#16202b;}
+.oc .ocost{font-size:.72rem;font-weight:700;color:var(--red);}
+.oc .ocost.gain{color:#2f6b46;}
+.oc .oeff{font-size:.57rem;color:var(--sub);margin-top:3px;}
+.oc.viol{border-color:var(--red);}
+.oc .obadge{position:absolute;top:-8px;right:-8px;background:var(--red);color:#fff;font-size:.55rem;
+  font-weight:800;border-radius:9px;padding:2px 6px;letter-spacing:.03em;}
+.oc .okey{position:absolute;top:-8px;left:-8px;background:var(--gold);color:#16202b;font-size:.6rem;
+  font-weight:800;border-radius:50%;width:17px;height:17px;display:flex;align-items:center;justify-content:center;}
+@media (max-width:640px){ .oc{width:calc(50% - 6px);} }
 </style>
 
 <div class="shell">
@@ -267,6 +288,8 @@ button{font-family:inherit;cursor:pointer;}
           <span class="pill" id="payout">—</span>
         </div>
       </div>
+
+      <div class="offer" id="offer"></div>
     </div>
 
     <div class="actions">
@@ -339,7 +362,7 @@ button{font-family:inherit;cursor:pointer;}
 
     <div class="pane" id="pane-strategy">
       <h3>Basic strategy</h3>
-      <p>Solved exactly against the table you have set — every branch weighted, nothing sampled. Rows are your concession total, columns the customer's tell.</p>
+      <p>Solved exactly against the table you have set — every branch weighted, nothing sampled. This is the baseline customer; each archetype shifts their threshold by up to two, shown on the felt. Rows are your concession total, columns the customer's tell.</p>
       <div id="chartWrap"></div>
       <div class="legend">
         <span><i style="background:#5bc98a"></i>Close</span>
@@ -428,7 +451,28 @@ const ARCHETYPES = [
   {n:'Solent Marine',       t:'Marine services',           bias:-2, tell:'came to you already sold'},
   {n:'Kestrel Aviation',    t:'Aviation parts',            bias:+1, tell:'is renewing off a rival'},
   {n:'Ambrose Textiles',    t:'Textiles · exporting',      bias:0,  tell:'wants multi-year certainty'},
-  {n:'Fairhaven Housing',   t:'Property management',       bias:+2, tell:'has a procurement committee'}
+  {n:'Fairhaven Housing',   t:'Property management',       bias:+2, tell:'has a procurement committee'},
+  {n:'Bracken & Roe',       t:'Legal practice',             bias:+1, tell:'bills by the hour and knows it'},
+  {n:'Dunmore Castings',    t:'Metal foundry',              bias:-1, tell:'was burned by its last vendor'},
+  {n:'Wexley Dairy',        t:'Agriculture co-op',          bias:0,  tell:'answers to a member board'},
+  {n:'Orrin Scaffolding',   t:'Construction hire',          bias:+2, tell:'opens with a discount demand'},
+  {n:'Thackeray Print',     t:'Commercial printing',        bias:-2, tell:'has a deadline of its own'},
+  {n:'Loxley Interiors',    t:'Design and fit-out',         bias:0,  tell:'wants to start with one team'},
+  {n:'Grantham Plastics',   t:'Injection moulding',         bias:+1, tell:'is mid-way through a rival trial'},
+  {n:'Vale & Hutchins',     t:'Accountancy firm',           bias:-1, tell:'understands recurring cost'},
+  {n:'Ashcombe Nurseries',  t:'Horticulture · seasonal',    bias:0,  tell:'buys hard before its busy season'},
+  {n:'Merrick Cold Chain',  t:'Refrigerated logistics',     bias:+2, tell:'is running a formal tender'},
+  {n:'Selby Instruments',   t:'Precision engineering',      bias:-1, tell:'was referred by a customer'},
+  {n:'Padstow Hotels',      t:'Hospitality · 6 sites',      bias:+1, tell:'has a flat capex ceiling'},
+  {n:'Ironbridge Steel',    t:'Steel stockholding',         bias:0,  tell:'wants proof before it commits'},
+  {n:'Calder Renewables',   t:'Solar installation',         bias:-2, tell:'is scaling fast and knows it'},
+  {n:'Hexham Optical',      t:'Optical retail · 12 stores', bias:+1, tell:'is comparing on price alone'},
+  {n:'Roundhay Pharma',     t:'Pharma distribution',        bias:+2, tell:'has a compliance review to clear'},
+  {n:'Draycott Timber',     t:'Timber merchants',           bias:-1, tell:'has done the maths already'},
+  {n:'Feltham Security',    t:'Security services',          bias:0,  tell:'is consolidating three systems'},
+  {n:'Nairn Whisky',        t:'Distilling · export',        bias:+1, tell:'is protective of its margin'},
+  {n:'Wingate Academies',   t:'Education trust',            bias:+2, tell:'spends on a fixed budget cycle'},
+  {n:'Perrin Automotive',   t:'Vehicle parts · 4 depots',   bias:-1, tell:'needs it live before year end'}
 ];
 const SEATS = [3, 6, 9, 14, 22, 35, 60, 110];
 const TERMS = [1, 2, 3, 4, 5];
@@ -508,6 +552,8 @@ function buildDeck(b){
       pts:3, cost:(14.40*12)/b.term, viol:false, rule:null});
     d.push({kind:'host', rank:'wkr', label:'Hosting', lever:'Waive a worker for year one',
       pts:5, cost:(57.60*12)/b.term, viol:false, rule:null});
+    d.push({kind:'host', rank:'bkp', label:'Hosting', lever:'Waive first-year backups',
+      pts:2, cost:(9.60*12)/b.term, viol:false, rule:null});
   }
   if (on('lvScope')) {
     d.push({kind:'scope', rank:'4h', label:'Scope', lever:'Add 4 free hours',
@@ -516,6 +562,12 @@ function buildDeck(b){
       pts:6, cost:(8*145)/b.term, viol:false, rule:null});
     d.push({kind:'scope', rank:'trn', label:'Scope', lever:'Two training sessions',
       pts:2, cost:(3*145)/b.term, viol:false, rule:null});
+    d.push({kind:'scope', rank:'mig', label:'Scope', lever:'Data migration, one pass',
+      pts:5, cost:(7*145)/b.term, viol:false, rule:null});
+    d.push({kind:'scope', rank:'adm', label:'Scope', lever:'Extra admin training day',
+      pts:3, cost:(5*145)/b.term, viol:false, rule:null});
+    d.push({kind:'scope', rank:'rev', label:'Scope', lever:'A post-go-live review',
+      pts:2, cost:(2*145)/b.term, viol:false, rule:null});
   }
   if (!d.length) d.push({kind:'scope', rank:'—', label:'Goodwill', lever:'A firm handshake',
     pts:2, cost:0, viol:false, rule:null});
@@ -530,11 +582,38 @@ function drawCard(deck){
   return c;
 }
 
+// Three concessions, deliberately drawn from different levers where the deck
+// allows it. You choose one. That choice is the lesson: the same point of
+// confidence costs wildly different money depending on which lever you pull.
+function dealOffer(){
+  const seen = new Set(), kinds = new Set(), out = [];
+  for (let g = 0; g < 240 && out.length < 3; g++) {
+    const c = drawCard(S.deck);
+    if (seen.has(c.lever)) continue;
+    if (g < 120 && kinds.has(c.kind)) continue;   // first pass: spread the levers
+    seen.add(c.lever); kinds.add(c.kind); out.push(c);
+  }
+  for (let g = 0; g < 60 && out.length < 3; g++) out.push(drawCard(S.deck));
+  return out;
+}
+
+function takeOffer(i){
+  if (!S.live) return;
+  const c = S.offer[i];
+  if (!c) return;
+  S.player.push(c); unlock(c.rule);
+  if (total(S.player) > 21) return settle('bust');
+  S.offer = dealOffer();
+  render();
+  setMsg('Taken: ' + c.lever + ' — ' + (c.cost < 0 ? fmt(-c.cost) + ' gained' : fmt(c.cost) + ' given') +
+    ' for ' + c.pts + ' point' + (c.pts === 1 ? '' : 's') + '.', '');
+}
+
 // ═════════════════════════════════════════════════════════════════════════
 // GAME STATE
 // ═════════════════════════════════════════════════════════════════════════
 const S = {
-  bank:0, stake:250, brief:null, deck:null, player:[], dealer:[],
+  bank:0, stake:250, brief:null, deck:null, player:[], dealer:[], offer:[],
   live:false, shoe:[], seen:new Set(),
   hands:0, wins:0, busts:0, totalConc:0, left:0, best:null,
   unlocked:new Set(), log:[]
@@ -570,6 +649,15 @@ function dealerStandsOn(){
   return d === 'easy' ? 15 : d === 'hard' ? 18 : 17;
 }
 
+// How hard this particular customer is. The archetype's bias moves their
+// threshold: a buyer who came to you already sold folds earlier than one who
+// opens with a discount demand. Reading that before you concede is the skill.
+function customerStop(b){
+  const base = dealerStandsOn();
+  if (!b || !b.a) return base;
+  return Math.max(14, Math.min(20, base + (b.a.bias || 0)));
+}
+
 function multiplier(t){
   const bonus = +document.getElementById('setBonus').value / 100;
   return Math.max(1, 1 + (21 - t) * bonus);
@@ -592,9 +680,10 @@ function deal(){
   S.player = [drawCard(S.deck), drawCard(S.deck)]; let g = 0; while (total(S.player) > 21 && g++ < 25) S.player = [drawCard(S.deck), drawCard(S.deck)];
   S.dealer = [drawCard(S.deck), drawCard(S.deck)];
   S.live = true;
+  S.offer = dealOffer();
   S.player.concat([S.dealer[0]]).forEach(c => unlock(c.rule));
   render();
-  setMsg('Concede, or close and take the cheque.', '');
+  setMsg('Pick a concession, or close and take the cheque.', '');
 }
 
 function hit(){
@@ -607,7 +696,7 @@ function hit(){
 
 function stand(){
   if (!S.live) return;
-  const stop = dealerStandsOn();
+  const stop = customerStop(S.brief);
   while (total(S.dealer) < stop) S.dealer.push(drawCard(S.deck));
   const p = total(S.player), d = total(S.dealer);
   if (d > 21 || p > d) settle('win', d > 21);
@@ -616,7 +705,7 @@ function stand(){
 }
 
 function settle(kind, byBust){
-  S.live = false;
+  S.live = false; S.offer = [];
   const p = total(S.player);
   const conceded = S.player.reduce((n, c) => n + c.cost, 0);
   const v = baseValue(S.brief);
@@ -698,6 +787,24 @@ function cardEl(c, hidden){
   return d;
 }
 
+function offerEl(c, i){
+  const d = document.createElement('div');
+  d.className = 'oc' + (c.viol ? ' viol' : '');
+  const per = c.pts ? Math.abs(c.cost) / c.pts : 0;
+  d.innerHTML =
+    '<div class="okey">' + (i + 1) + '</div>' +
+    (c.viol ? '<div class="obadge">off-schedule</div>' : '') +
+    '<div class="ok">' + c.label + '</div>' +
+    '<div class="orank">' + c.rank + '</div>' +
+    '<div class="olev">' + c.lever + '</div>' +
+    '<div class="orow"><span class="opts">+' + c.pts + ' pts</span>' +
+      '<span class="ocost' + (c.cost < 0 ? ' gain' : '') + '">' +
+      (c.cost < 0 ? '+' + fmt(-c.cost) : '−' + fmt(c.cost)) + '</span></div>' +
+    '<div class="oeff">' + (c.cost <= 0 ? 'buys confidence and pays you' : fmt(per) + ' per point') + '</div>';
+  d.onclick = () => takeOffer(i);
+  return d;
+}
+
 function render(){
   const ph = document.getElementById('playerHand');
   const dh = document.getElementById('dealerHand');
@@ -723,11 +830,19 @@ function render(){
     '<div class="b"><span class="k">Term</span><span class="v">' + b.term + ' yr</span></div>' +
     '<div class="b"><span class="k">Plan</span><span class="v">' + (b.plan === 'custom' ? 'Custom' : 'Standard') + '</span></div>' +
     '<div class="b"><span class="k">Implementation</span><span class="v">' + (b.pack.hours ? b.pack.hours + ' hrs' : 'none') + '</span></div>' +
+    '<div class="b"><span class="k">Resistance</span><span class="v">stands on ' + customerStop(b) + '</span></div>' +
     '<div class="b"><span class="k">Deal value</span><span class="v">' + fmt(baseValue(b).total) + '</span></div>'
   ) : '<span class="mini">Press Deal for a brief.</span>';
 
+  const of = document.getElementById('offer');
+  if (of) {
+    if (S.live && S.deck && S.offer.length < 3) S.offer = dealOffer();
+    of.innerHTML = '';
+    if (S.live) S.offer.forEach((c, i) => of.appendChild(offerEl(c, i)));
+  }
+
   document.getElementById('btnDeal').disabled = S.live;
-  document.getElementById('btnHit').disabled = !S.live;
+  document.getElementById('btnHit').style.display = 'none';
   document.getElementById('btnStand').disabled = !S.live;
 }
 
@@ -919,7 +1034,9 @@ document.getElementById('setSim').oninput = e => {
 });
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'h' || e.key === 'H') hit();
+  if (e.key === '1') takeOffer(0);
+  if (e.key === '2') takeOffer(1);
+  if (e.key === '3') takeOffer(2);
   if (e.key === 's' || e.key === 'S') stand();
   if (e.key === 'd' || e.key === 'D' || e.key === 'Enter') { if (!S.live) deal(); }
 });
