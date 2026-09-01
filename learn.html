@@ -1,21 +1,19 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Discount Table — Odoo Quote Calculator</title>
+<title>The Discount Table</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 
 <style>
-/* ═══════════════════════════════════════════════════════════════════════════
-   THE DISCOUNT TABLE
-   Blackjack where every card is a real concession and the felt is Odoo's
-   pricing schedule. The lesson the game is built to teach is the one that is
-   hardest to teach on a slide: a discount buys you close probability, and it
-   pays for it out of your own commission. Hit too little and the customer
-   walks. Hit too much and you bust the margin. The money is in the smallest
-   concession that still wins.
-   ═══════════════════════════════════════════════════════════════════════════ */
+/*
+  THE DISCOUNT TABLE
+  Blackjack where every card is a concession an Odoo rep can actually make.
+  The customer asks for something. You either give in, or you counter with
+  something cheaper that buys you less goodwill. Go past 21 and you have
+  given away the margin. The money is in the smallest concession that wins.
+*/
 :root{
   --felt:#0d4531; --felt-2:#0a3527; --felt-edge:#07281d;
   --rail:#4a2f1c; --rail-2:#7a5133;
@@ -27,234 +25,163 @@
 }
 *{box-sizing:border-box;}
 html,body{height:100%;}
-body{
-  margin:0;font-family:Inter,system-ui,sans-serif;color:#e8eef3;
-  background:var(--felt-edge);overflow:hidden;
-}
-button{font-family:inherit;cursor:pointer;}
-
-/* ── Shell ─────────────────────────────────────────────────────────────── */
-.shell{display:flex;height:100vh;}
+body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b1319;color:#e8eef4;
+  display:flex;flex-direction:column;overflow:hidden;}
+.shell{flex:1;display:flex;min-height:0;}
 .table-wrap{flex:1;min-width:0;position:relative;display:flex;flex-direction:column;}
 
-.topbar{
-  display:flex;align-items:center;gap:14px;padding:10px 18px;flex:none;
-  background:linear-gradient(180deg,#0a1219,#0d1a22);border-bottom:1px solid var(--line);
-}
-.brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:inherit;}
-.brand-mark{width:22px;height:22px;border-radius:6px;background:var(--gold);
-  display:flex;align-items:center;justify-content:center;color:#1a1206;font-weight:900;font-size:.7rem;}
-.brand-name{font-weight:700;font-size:.86rem;letter-spacing:.01em;}
+.topbar{display:flex;align-items:center;gap:14px;padding:10px 18px;background:#0b1319;
+  border-bottom:1px solid var(--line);}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;}
+.brand-mark{width:30px;height:30px;border-radius:8px;background:var(--gold);color:#16202b;
+  display:flex;align-items:center;justify-content:center;font-weight:900;}
+.brand-name{font-weight:800;font-size:.95rem;}
 .brand-sub{font-size:.68rem;color:var(--faint);}
 .top-spacer{flex:1;}
-.bank{display:flex;align-items:baseline;gap:7px;}
-.bank-label{font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:var(--faint);}
-.bank-amt{font-size:1.15rem;font-weight:800;color:var(--gold-2);font-variant-numeric:tabular-nums;}
-.tbtn{
-  background:rgba(255,255,255,.06);border:1px solid var(--line);color:#cfd9e2;
-  padding:7px 13px;border-radius:var(--r);font-size:.76rem;font-weight:600;
-}
-.tbtn:hover{background:rgba(255,255,255,.12);}
-.tbtn.on{background:var(--gold);border-color:var(--gold);color:#1a1206;}
+.tbtn{background:#16232d;border:1px solid var(--line);color:#dbe4ec;border-radius:8px;
+  padding:7px 13px;font:inherit;font-size:.78rem;font-weight:600;cursor:pointer;}
+.tbtn:hover{border-color:var(--gold);}
+.bank{text-align:right;}
+.bank-label{display:block;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);}
+.bank-amt{font-weight:800;font-size:1.15rem;color:var(--gold);font-variant-numeric:tabular-nums;}
 
-/* ── Felt ──────────────────────────────────────────────────────────────── */
-.felt{
-  flex:1;min-height:0;position:relative;overflow-y:auto;overflow-x:hidden;
-  background:
-    radial-gradient(ellipse 120% 90% at 50% 30%, var(--felt) 0%, var(--felt-2) 55%, var(--felt-edge) 100%);
-  border-top:5px solid var(--rail);
-  box-shadow:inset 0 0 120px rgba(0,0,0,.55);
-  display:flex;flex-direction:column;align-items:center;
-  padding:8px 20px 0;
-}
-.felt::before{
-  content:"";position:absolute;inset:26px 34px;border:1px solid rgba(217,164,65,.16);
-  border-radius:50%/22%;pointer-events:none;
-}
-.arc{
-  font-family:Caveat,cursive;font-size:1.15rem;color:rgba(217,164,65,.42);
-  letter-spacing:.06em;flex:none;margin-bottom:0;
-}
-.arc small{display:block;font-family:Inter,sans-serif;font-size:.53rem;letter-spacing:.16em;
-  text-transform:uppercase;color:rgba(217,164,65,.3);text-align:center;margin-top:-2px;}
+.felt{flex:1;min-height:0;position:relative;overflow-y:auto;overflow-x:hidden;
+  background:radial-gradient(ellipse 120% 90% at 50% 28%, var(--felt) 0%, var(--felt-2) 55%, var(--felt-edge) 100%);
+  border-top:5px solid var(--rail);box-shadow:inset 0 0 120px rgba(0,0,0,.55);
+  display:flex;flex-direction:column;align-items:center;padding:10px 18px 0;}
 
-.seat{width:100%;max-width:760px;display:flex;flex-direction:column;align-items:center;gap:2px;}
-.seat-label{
-  font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.42);
-  display:flex;align-items:center;gap:8px;
-}
-.pill{background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:999px;
-  padding:2px 9px;font-size:.66rem;letter-spacing:0;text-transform:none;color:#dbe4ec;
-  font-variant-numeric:tabular-nums;}
+.ask{max-width:820px;width:100%;background:rgba(0,0,0,.30);border:1px solid var(--gold-soft);
+  border-radius:12px;padding:11px 16px;text-align:center;margin-bottom:8px;}
+.ask .who{font-family:Caveat,cursive;font-size:1.35rem;color:var(--gold-2);}
+.ask .desc{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-top:1px;}
+.ask .want{font-size:.95rem;font-weight:700;margin-top:7px;color:#fff;}
+.ask .want b{color:var(--gold-2);}
+
+.facts{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:8px;}
+.fact{text-align:center;}
+.fact .k{display:block;font-size:.53rem;letter-spacing:.11em;text-transform:uppercase;color:var(--faint);}
+.fact .v{font-size:.86rem;font-weight:700;font-variant-numeric:tabular-nums;}
+
+.seat{width:100%;max-width:820px;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.seat-label{font-size:.58rem;text-transform:uppercase;letter-spacing:.13em;color:rgba(255,255,255,.45);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;}
+.pill{background:rgba(0,0,0,.34);border:1px solid var(--line);border-radius:999px;padding:2px 10px;
+  font-size:.68rem;letter-spacing:0;text-transform:none;color:#dbe4ec;font-variant-numeric:tabular-nums;}
 .pill.hot{background:var(--gold);color:#1a1206;border-color:var(--gold);font-weight:700;}
 .pill.bust{background:var(--lose);color:#fff;border-color:var(--lose);font-weight:700;}
+.pill.money{background:rgba(46,204,113,.15);border-color:rgba(46,204,113,.4);color:#8fe3b4;font-weight:700;}
 
-.hand{display:flex;justify-content:center;gap:7px;min-height:86px;align-items:flex-start;
-  flex-wrap:wrap;padding:3px 0;}
+.hand{display:flex;justify-content:center;gap:8px;min-height:96px;align-items:flex-start;
+  flex-wrap:wrap;padding:4px 0;}
+.pc{width:92px;min-height:92px;background:var(--card);border-radius:9px;color:var(--ink);
+  box-shadow:0 8px 18px rgba(0,0,0,.42);padding:7px 8px;display:flex;flex-direction:column;
+  position:relative;animation:deal .3s cubic-bezier(.2,.9,.3,1.2) both;}
+@keyframes deal{from{opacity:0;transform:translateY(-40px) scale(.86);}to{opacity:1;transform:none;}}
+.pc .rank{font-size:1.02rem;font-weight:800;line-height:1.05;}
+.pc .lever{font-size:.6rem;color:#3c4a57;line-height:1.25;margin-top:5px;}
+.pc.back{background:repeating-linear-gradient(45deg,#8d2b25,#8d2b25 7px,#7a231e 7px,#7a231e 14px);
+  border:2px solid var(--card);}
+.pc.breaks{outline:2px solid var(--red);}
+.breaktag{position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;
+  font-size:.5rem;font-weight:800;letter-spacing:.05em;border-radius:8px;padding:2px 7px;white-space:nowrap;}
 
-/* ── Cards ─────────────────────────────────────────────────────────────── */
-.pc{
-  width:84px;min-height:90px;background:var(--card);border-radius:9px;color:var(--ink);
-  box-shadow:0 8px 18px rgba(0,0,0,.42), 0 1px 0 rgba(255,255,255,.6) inset;
-  padding:6px 7px;display:flex;flex-direction:column;position:relative;
-  animation:deal .32s cubic-bezier(.2,.9,.3,1.2) both;
-}
-@keyframes deal{
-  from{opacity:0;transform:translateY(-46px) rotate(-9deg) scale(.85);}
-  to{opacity:1;transform:none;}
-}
-.pc .rank{font-size:.92rem;font-weight:800;line-height:1;}
-.pc .suit{font-size:.82rem;line-height:1;}
-.pc.red .rank,.pc.red .suit{color:var(--red);}
-.pc .lever{
-  margin-top:auto;font-size:.585rem;line-height:1.28;color:var(--sub);font-weight:600;
-  border-top:1px dashed #d8d2c6;padding-top:5px;
-}
-.pc .cost{font-size:.56rem;color:var(--red);font-weight:700;margin-top:2px;}
-.pc.viol{box-shadow:0 0 0 2px var(--lose), 0 8px 18px rgba(0,0,0,.42);}
-.pc.viol::after{
-  content:"!";position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;
-  background:var(--lose);color:#fff;font-size:.66rem;font-weight:800;
-  display:flex;align-items:center;justify-content:center;
-}
-.pc.back{
-  background:repeating-linear-gradient(45deg,#7a1f2b,#7a1f2b 6px,#8e2733 6px,#8e2733 12px);
-  border:3px solid var(--card);
-}
-.pc.back .rank,.pc.back .suit,.pc.back .lever{visibility:hidden;}
+#youHand{min-height:0;gap:6px;padding:2px 0;}
+.given{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border:1px solid var(--line);
+  border-radius:999px;padding:4px 11px;font-size:.66rem;color:#dbe4ec;}
+.given.breaks{border-color:var(--red);}
+.given .gm{font-weight:700;color:#ff9b8a;}
+.given .gm.gain{color:#7fd3a3;}
+.given .gp{background:var(--gold);color:#16202b;border-radius:999px;padding:0 6px;font-weight:800;}
 
-/* ── Brief / centre ────────────────────────────────────────────────────── */
-.brief{
-  background:rgba(0,0,0,.34);border:1px solid var(--line);border-radius:12px;
-  padding:9px 14px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;
-  justify-content:center;max-width:760px;margin:2px 0;
-}
-.brief .b{display:flex;flex-direction:column;gap:1px;}
-.brief .k{font-size:.56rem;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);}
-.brief .v{font-size:.8rem;font-weight:700;color:#eaf1f7;}
-.brief .who{font-family:Caveat,cursive;font-size:1.32rem;color:var(--gold-2);}
+.msg{max-width:820px;text-align:center;font-size:.9rem;font-weight:600;margin:8px 0 2px;min-height:1.3em;}
+.msg.win{color:#7fe0a6;} .msg.lose{color:#ff9b8a;} .msg.push{color:#c9d3dc;}
+.why{max-width:760px;text-align:center;font-size:.73rem;color:#a9b7c4;line-height:1.45;margin-bottom:4px;}
 
-.msg{
-  min-height:22px;font-size:.84rem;font-weight:600;text-align:center;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.msg.win{color:var(--win);} .msg.lose{color:var(--lose);} .msg.push{color:var(--push);}
-
-/* ── Actions ───────────────────────────────────────────────────────────── */
-.actions{
-  flex:none;display:flex;gap:9px;justify-content:center;align-items:center;
-  padding:10px 16px 14px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.35));
-}
-.abtn{
-  background:linear-gradient(180deg,#2a3a46,#1d2a34);border:1px solid rgba(255,255,255,.14);
-  color:#eaf1f7;padding:11px 22px;border-radius:999px;font-size:.82rem;font-weight:700;
-  letter-spacing:.02em;min-width:104px;
-  box-shadow:0 3px 0 rgba(0,0,0,.4);
-}
-.abtn:hover:not(:disabled){filter:brightness(1.18);}
-.abtn:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.4);}
-.abtn:disabled{opacity:.34;cursor:default;}
-.abtn.gold{background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#1a1206;border-color:var(--gold-2);}
-.abtn.wide{min-width:150px;}
-
-.chiprow{display:flex;gap:6px;align-items:center;margin-right:6px;}
-.chip{
-  width:38px;height:38px;border-radius:50%;border:3px dashed rgba(255,255,255,.55);
-  font-size:.62rem;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;
-  background:#37506b;box-shadow:0 3px 8px rgba(0,0,0,.4);
-}
-.chip.c2{background:#8e2733;} .chip.c3{background:#2f6b46;} .chip.c4{background:#5b3a7a;}
-.chip.sel{outline:3px solid var(--gold);outline-offset:2px;}
-
-/* ── Side panel ────────────────────────────────────────────────────────── */
-.panel{
-  width:392px;flex:none;background:var(--panel);border-left:1px solid var(--line);
-  display:flex;flex-direction:column;overflow:hidden;
-}
-.tabs{display:flex;border-bottom:1px solid var(--line);flex:none;}
-.tab{
-  flex:1;background:transparent;border:none;color:var(--faint);padding:11px 6px;
-  font-size:.71rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
-  border-bottom:2px solid transparent;
-}
-.tab.on{color:var(--gold-2);border-bottom-color:var(--gold);background:rgba(217,164,65,.06);}
-.pane{flex:1;overflow-y:auto;padding:16px 18px 30px;display:none;}
-.pane.on{display:block;}
-.pane h3{font-size:.78rem;margin:0 0 4px;letter-spacing:.03em;}
-.pane h3 + p{margin:0 0 14px;font-size:.72rem;color:var(--faint);line-height:1.5;}
-.sec{margin-bottom:20px;}
-.sec-h{font-size:.6rem;text-transform:uppercase;letter-spacing:.13em;color:var(--gold);
-  margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--line);}
-
-.fld{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;}
-.fld label{font-size:.74rem;color:#c4d0da;}
-.fld .hint{font-size:.63rem;color:var(--faint);margin-top:1px;}
-.fld input[type=range]{width:150px;accent-color:var(--gold);}
-.fld select,.fld input[type=number]{
-  background:var(--panel-2);border:1px solid var(--line);color:#e8eef3;border-radius:7px;
-  padding:5px 8px;font-family:inherit;font-size:.74rem;min-width:104px;
-}
-.fld input[type=checkbox]{accent-color:var(--gold);width:15px;height:15px;}
-.val{font-size:.74rem;font-weight:700;color:var(--gold-2);min-width:46px;text-align:right;
-  font-variant-numeric:tabular-nums;}
-
-.stat{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dotted var(--line);
-  font-size:.75rem;}
-.stat span:last-child{font-weight:700;color:#eaf1f7;font-variant-numeric:tabular-nums;}
-
-.rule{
-  background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--gold);
-  border-radius:7px;padding:9px 11px;margin-bottom:9px;
-}
-.rule.locked{opacity:.34;border-left-color:var(--faint);}
-.rule b{display:block;font-size:.72rem;margin-bottom:3px;color:#eaf1f7;}
-.rule p{margin:0;font-size:.68rem;line-height:1.5;color:var(--faint);}
-
-.log{font-size:.7rem;line-height:1.5;color:var(--faint);border-bottom:1px dotted var(--line);
-  padding:8px 0;}
-.log b{color:#eaf1f7;}
-.log .why{color:var(--gold-2);display:block;margin-top:3px;}
-
-/* Strategy chart */
-.chart{width:100%;border-collapse:collapse;font-size:.62rem;font-variant-numeric:tabular-nums;}
-.chart th{color:var(--faint);font-weight:600;padding:3px 2px;font-size:.58rem;}
-.chart td{text-align:center;padding:3px 2px;border-radius:3px;font-weight:700;color:#0d1117;}
-.chart td.H{background:#e8a33d;} .chart td.S{background:#5bc98a;} .chart td.X{background:#3d4c5a;color:#8b98a6;}
-.legend{display:flex;gap:12px;margin-top:9px;font-size:.64rem;color:var(--faint);}
-.legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:-1px;}
-
-.mini{font-size:.66rem;color:var(--faint);line-height:1.55;}
-#btnPanel{display:none;} @media (max-width:1000px){ .panel{position:fixed;top:0;right:0;bottom:0;width:min(392px,92vw);z-index:60;transform:translateX(100%);transition:transform .22s ease;box-shadow:-14px 0 40px rgba(0,0,0,.55);} body.panel-open .panel{transform:none;} #btnPanel{display:inline-block;} }
-/* What you have already given away, as a tidy list rather than card art. */
-#playerHand{min-height:0;gap:6px;padding:2px 0;}
-.played{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);
-  border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:.66rem;color:#dbe4ec;}
-.played.viol{border-color:var(--red);}
-.played .pv{font-weight:700;color:#ff9b8a;}
-.played .pv.gain{color:#7fd3a3;}
-.played .pp{background:var(--gold);color:#16202b;border-radius:999px;padding:0 6px;font-weight:800;}
-
-/* The three concessions on the table. Picking one is the whole game. */
-.offer{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:4px;padding-bottom:10px;}
-.oc{width:138px;background:var(--card);color:var(--ink);border-radius:8px;padding:7px 9px 6px;
+.counter{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:6px;padding-bottom:12px;}
+.cc{width:170px;background:var(--card);color:var(--ink);border-radius:9px;padding:9px 10px 8px;
   text-align:left;border:2px solid transparent;cursor:pointer;position:relative;
-  box-shadow:0 6px 16px rgba(0,0,0,.35);transition:transform .12s ease,border-color .12s ease;}
-.oc:hover{transform:translateY(-4px);border-color:var(--gold);}
-.oc .ok{font-size:.58rem;letter-spacing:.09em;text-transform:uppercase;color:var(--sub);font-weight:700;}
-.oc .orank{font-size:1.1rem;font-weight:800;line-height:1.1;margin-top:1px;}
-.oc .olev{font-size:.64rem;color:#3c4a57;line-height:1.25;margin-top:3px;min-height:2.4em;}
-.oc .orow{display:flex;justify-content:space-between;align-items:baseline;margin-top:5px;
+  box-shadow:0 6px 16px rgba(0,0,0,.4);transition:transform .12s ease,border-color .12s ease;}
+.cc:hover{transform:translateY(-4px);border-color:var(--gold);}
+.cc.breaks{border-color:var(--red);}
+.cc .num{position:absolute;top:-8px;left:-8px;background:var(--gold);color:#16202b;font-size:.6rem;
+  font-weight:800;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;}
+.cc .kind{font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);font-weight:700;}
+.cc .head{font-size:1.02rem;font-weight:800;line-height:1.1;margin-top:1px;}
+.cc .body{font-size:.65rem;color:#3c4a57;line-height:1.3;margin-top:4px;min-height:2.4em;}
+.cc .split{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;
   border-top:1px dashed #c9d2da;padding-top:5px;}
-.oc .opts{font-size:.72rem;font-weight:800;color:#16202b;}
-.oc .ocost{font-size:.72rem;font-weight:700;color:var(--red);}
-.oc .ocost.gain{color:#2f6b46;}
-.oc .oeff{font-size:.57rem;color:var(--sub);margin-top:3px;}
-.oc.viol{border-color:var(--red);}
-.oc .obadge{position:absolute;top:-8px;right:-8px;background:var(--red);color:#fff;font-size:.55rem;
-  font-weight:800;border-radius:9px;padding:2px 6px;letter-spacing:.03em;}
-.oc .okey{position:absolute;top:-8px;left:-8px;background:var(--gold);color:#16202b;font-size:.6rem;
-  font-weight:800;border-radius:50%;width:17px;height:17px;display:flex;align-items:center;justify-content:center;}
-@media (max-width:640px){ .oc{width:calc(50% - 6px);} }
+.cc .pts{font-size:.72rem;font-weight:800;}
+.cc .mo{font-size:.72rem;font-weight:700;color:var(--red);}
+.cc .mo.gain{color:#2f6b46;}
+.cc .per{font-size:.57rem;color:var(--sub);margin-top:3px;}
+.cc .warn{margin-top:4px;font-size:.56rem;color:var(--red);font-weight:700;line-height:1.25;}
+
+.actions{display:flex;align-items:center;justify-content:center;gap:10px;padding:11px 18px;
+  background:#0b1319;border-top:1px solid var(--line);flex-wrap:wrap;}
+.chiprow{display:flex;gap:7px;margin-right:6px;}
+.chip{width:44px;height:44px;border-radius:50%;border:3px dashed rgba(255,255,255,.5);cursor:pointer;
+  font:inherit;font-size:.7rem;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;}
+.c1{background:#3f5b78;} .c2{background:#8e3b3b;} .c3{background:#2f6b46;} .c4{background:#5b3f78;}
+.chip.sel{border-style:solid;border-color:var(--gold);box-shadow:0 0 0 3px rgba(217,164,65,.28);}
+.abtn{background:#1c2b36;border:1px solid var(--line);color:#e8eef4;border-radius:10px;padding:11px 22px;
+  font:inherit;font-size:.9rem;font-weight:700;cursor:pointer;}
+.abtn:hover:not(:disabled){border-color:var(--gold);}
+.abtn:disabled{opacity:.35;cursor:default;}
+.abtn.gold{background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#16202b;border-color:var(--gold);}
+.abtn.wide{padding-left:30px;padding-right:30px;}
+
+.panel{width:392px;flex:none;background:var(--panel);border-left:1px solid var(--line);
+  display:flex;flex-direction:column;min-height:0;}
+.tabs{display:flex;border-bottom:1px solid var(--line);}
+.tab{flex:1;background:none;border:none;color:var(--faint);font:inherit;font-size:.7rem;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;padding:13px 4px;cursor:pointer;border-bottom:2px solid transparent;}
+.tab.on{color:var(--gold);border-bottom-color:var(--gold);}
+.pane{display:none;padding:18px;overflow-y:auto;}
+.pane.on{display:block;}
+.pane h3{margin:0 0 6px;font-size:1rem;}
+.pane p{margin:0 0 14px;font-size:.78rem;color:#a9b7c4;line-height:1.55;}
+.pane .mini{font-size:.73rem;color:#a9b7c4;line-height:1.55;}
+.sec{border-top:1px solid var(--line);padding-top:14px;margin-top:16px;}
+.sec:first-of-type{border-top:none;padding-top:0;margin-top:0;}
+.sec-h{font-size:.6rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:10px;}
+.fld{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
+.fld label{font-size:.8rem;font-weight:600;}
+.fld .hint{font-size:.68rem;color:var(--faint);font-weight:400;margin-top:2px;}
+select,input[type=number],input[type=text]{background:#0c1419;border:1px solid var(--line);color:#e8eef4;
+  border-radius:7px;padding:7px 9px;font:inherit;font-size:.78rem;}
+input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
+.stat{display:flex;justify-content:space-between;font-size:.78rem;padding:5px 0;border-bottom:1px dotted var(--line);}
+.stat span:last-child{font-weight:700;font-variant-numeric:tabular-nums;}
+
+.rule{border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-bottom:9px;background:#0e1820;}
+.rule.locked{opacity:.42;}
+.rule h4{margin:0 0 4px;font-size:.8rem;}
+.rule p{margin:0;font-size:.72rem;color:#a9b7c4;line-height:1.5;}
+
+.logrow{border-bottom:1px solid var(--line);padding:9px 0;font-size:.74rem;}
+.logrow .top{display:flex;justify-content:space-between;gap:8px;}
+.logrow .amt{font-weight:800;font-variant-numeric:tabular-nums;}
+.logrow .amt.up{color:#7fe0a6;} .logrow .amt.down{color:#ff9b8a;}
+.logrow .note{color:var(--faint);font-size:.68rem;margin-top:3px;line-height:1.45;}
+
+.lbtabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.lbtab{background:#16232d;border:1px solid var(--line);color:#a9b7c4;border-radius:999px;padding:5px 12px;
+  font:inherit;font-size:.7rem;font-weight:700;cursor:pointer;}
+.lbtab.on{background:var(--gold);color:#16202b;border-color:var(--gold);}
+.lbrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:.78rem;}
+.lbrow .rank{width:22px;color:var(--faint);font-weight:800;}
+.lbrow .who{flex:1;font-weight:600;}
+.lbrow .amt{font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;}
+.lbrow.you{background:rgba(217,164,65,.10);border-radius:6px;padding-left:6px;padding-right:6px;}
+
+#btnPanel{display:none;}
+@media (max-width:1000px){
+  .panel{position:fixed;top:0;right:0;bottom:0;width:min(392px,92vw);z-index:60;
+    transform:translateX(100%);transition:transform .22s ease;box-shadow:-14px 0 40px rgba(0,0,0,.55);}
+  body.panel-open .panel{transform:none;}
+  #btnPanel{display:inline-block;}
+}
+@media (max-width:640px){ .cc{width:calc(50% - 6px);} }
 </style>
 
 <div class="shell">
@@ -262,822 +189,810 @@ button{font-family:inherit;cursor:pointer;}
     <div class="topbar">
       <a class="brand" href="app.html">
         <span class="brand-mark">$</span>
-        <span>
-          <span class="brand-name">The Discount Table</span><br>
-          <span class="brand-sub">← Back to calculator</span>
-        </span>
+        <span><span class="brand-name">The Discount Table</span><br>
+        <span class="brand-sub">Back to calculator</span></span>
       </a>
       <div class="top-spacer"></div>
-      <button class="tbtn" id="btnPanel">Panel</button> <button class="tbtn" id="btnRules">Pricing rules</button>
+      <button class="tbtn" id="btnPanel">Menu</button>
+      <button class="tbtn" id="btnHow">How to play</button>
       <div class="bank">
-        <span class="bank-label">Banked MRR</span>
+        <span class="bank-label">Monthly revenue banked</span>
         <span class="bank-amt" id="bank">$0</span>
       </div>
     </div>
 
     <div class="felt">
-      <div class="arc">Concede the least that still wins
-        <small>Blackjack · Odoo pricing</small>
-      </div>
+      <div class="ask" id="ask"></div>
 
       <div class="seat">
-        <div class="seat-label">The customer
-          <span class="pill" id="dealerTotal">—</span>
+        <div class="seat-label">What they have signalled
+          <span class="pill" id="themTotal">nothing yet</span>
         </div>
-        <div class="hand" id="dealerHand"></div>
+        <div class="hand" id="themHand"></div>
       </div>
 
-      <div class="brief" id="brief"></div>
-      <div class="msg" id="msg">Set your stake and deal.</div>
+      <div class="msg" id="msg">Choose what to risk, then press Deal.</div>
+      <div class="why" id="why"></div>
 
       <div class="seat">
-        <div class="hand" id="playerHand"></div>
-        <div class="seat-label">Your concessions
-          <span class="pill" id="playerTotal">—</span>
-          <span class="pill" id="payout">—</span>
+        <div class="hand" id="youHand"></div>
+        <div class="seat-label">
+          <span class="pill" id="youTotal">Convinced 0 of 21</span>
+          <span class="pill money" id="closeNow">Close now: $0 a month</span>
         </div>
       </div>
 
-      <div class="offer" id="offer"></div>
+      <div class="counter" id="counter"></div>
     </div>
 
     <div class="actions">
       <div class="chiprow" id="chips"></div>
       <button class="abtn gold wide" id="btnDeal">Deal</button>
-      <button class="abtn" id="btnHit" disabled>Concede</button>
+      <button class="abtn" id="btnHit" disabled>Give in</button>
+      <button class="abtn" id="btnCounter" disabled>Counter</button>
       <button class="abtn" id="btnStand" disabled>Close</button>
     </div>
   </div>
 
   <aside class="panel">
     <div class="tabs">
-      <button class="tab on" data-pane="table">Settings</button>
-      <button class="tab" data-pane="strategy">What to do</button>
+      <button class="tab on" data-pane="board">Leaderboard</button>
       <button class="tab" data-pane="rules">Pricing rules</button>
-      <button class="tab" data-pane="log">History</button>
+      <button class="tab" data-pane="history">History</button>
+      <button class="tab" data-pane="settings">Settings</button>
     </div>
 
-    <div class="pane on" id="pane-table">
-      <h3>Settings</h3>
-      <p>These change how the game plays. The chart under What to do updates to match.</p>
-
-      <div class="sec">
-        <div class="sec-h">How to play</div>
-        <p class="mini">Pick a stake, then press Deal. You get a customer and three possible concessions.
-        Each one makes them more likely to sign, but costs you money. Take as few as you can get away with,
-        then press Close. Go past 21 and you have given away too much and lost the deal. Bigger stakes pay
-        more but bring tougher customers.</p>
+    <div class="pane on" id="pane-board">
+      <h3>Leaderboard</h3>
+      <p>Ranked by monthly recurring revenue banked. Your name is saved on this device only.</p>
+      <div class="fld">
+        <label>Your name<div class="hint">Shown on the board</div></label>
+        <input type="text" id="playerName" maxlength="18" placeholder="Add your name" style="min-width:132px">
       </div>
-
-      <div class="sec">
-        <div class="sec-h">Customers</div>
-        <div class="fld"><label>How tough they are<div class="hint">Applies to every customer</div></label>
-          <select id="setDiff">
-            <option value="easy">Easy-going</option>
-            <option value="normal" selected>Mixed</option>
-            <option value="hard">Tough</option>
-          </select></div>
-        <div class="fld"><label>Customers in a row<div class="hint">How many before one repeats</div></label>
-          <input type="range" id="setShoe" min="20" max="400" step="20" value="120">
-          <span class="val" id="valShoe">120</span></div>
-        <div class="fld"><label>Seed<div class="hint">Set a number to replay the same customers. 0 is random.</div></label>
-          <input type="number" id="setSeed" value="0" style="min-width:92px"></div>
+      <div class="lbtabs">
+        <button class="lbtab on" data-period="day">Today</button>
+        <button class="lbtab" data-period="week">This week</button>
+        <button class="lbtab" data-period="month">This month</button>
+        <button class="lbtab" data-period="all">All time</button>
       </div>
-
-      <div class="sec">
-        <div class="sec-h">Which concessions can come up</div>
-        <div class="fld"><label>Licence discount</label><input type="checkbox" id="lvLic" checked></div>
-        <div class="fld"><label>Implementation discount</label><input type="checkbox" id="lvImpl" checked></div>
-        <div class="fld"><label>Term commitment</label><input type="checkbox" id="lvTerm" checked></div>
-        <div class="fld"><label>Hosting extras</label><input type="checkbox" id="lvHost" checked></div>
-        <div class="fld"><label>Free hours and scope</label><input type="checkbox" id="lvScope" checked></div>
-      </div>
-
-      <div class="sec">
-        <div class="sec-h">Scoring</div>
-        <div class="fld"><label>Bonus for closing early<div class="hint">Paid only when you beat them, not when they walk away</div></label>
-          <input type="range" id="setBonus" min="0" max="100" step="5" value="25">
-          <span class="val" id="valBonus">0.25×</span></div>
-        <div class="fld"><label>Punish breaking pricing rules<div class="hint">Concessions that break a rule cost you double</div></label>
-          <input type="checkbox" id="setStrict" checked></div>
-      </div>
-
+      <div id="lbList"><p class="mini">Play a hand to get on the board.</p></div>
       <div class="sec">
         <div class="sec-h">Your session</div>
-        <div class="stat"><span>Hands played</span><span id="stHands">0</span></div>
-        <div class="stat"><span>Close rate</span><span id="stClose">—</span></div>
-        <div class="stat"><span>Busts</span><span id="stBust">0</span></div>
-        <div class="stat"><span>Average concession</span><span id="stAvg">—</span></div>
-        <div class="stat"><span>Money left on the table</span><span id="stLeft">$0</span></div>
-        <div class="stat"><span>Best hand</span><span id="stBest">—</span></div>
-        <div style="margin-top:12px;display:flex;gap:8px;">
-          <button class="tbtn" id="btnReshuffle">New customers</button>
-          <button class="tbtn" id="btnWipe">Reset scores</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="pane" id="pane-strategy">
-      <h3>What to do</h3>
-      <p>The best move in every situation, worked out exactly for your settings. Down the side is your total so far. Across the top is the customer's first card. This is the average customer though: the real one in front of you may be tougher or softer, and you are never told which.</p>
-      <div id="chartWrap"></div>
-      <div class="legend">
-        <span><i style="background:#5bc98a"></i>Close</span>
-        <span><i style="background:#e8a33d"></i>Concede</span>
-      </div>
-      <div class="sec" style="margin-top:18px;">
-        <div class="sec-h">Why it says that</div>
-        <p class="mini">It is chasing <em>money kept</em>, not deals won. Every concession you take is money off
-        the invoice, so the chart tells you to stop earlier than a normal blackjack chart would. Closing on 17
-        pays a bonus that closing on 20 does not — but only if you actually beat them. If the customer talks
-        themselves out of it you still keep the deal, just at flat rate, because you did not win that one.</p>
-      </div>
-      <div class="sec">
-        <div class="sec-h">Accuracy</div>
-        <div class="fld"><label>Sample size<div class="hint">Higher is slower but steadier</div></label>
-          <input type="range" id="setSim" min="200" max="4000" step="200" value="1200">
-          <span class="val" id="valSim">1200</span></div>
-        <button class="tbtn" id="btnSim">Update chart</button>
+        <div class="stat"><span>Deals played</span><span id="stHands">0</span></div>
+        <div class="stat"><span>Deals won</span><span id="stWon">0</span></div>
+        <div class="stat"><span>Gave away too much</span><span id="stBust">0</span></div>
+        <div class="stat"><span>Average given per deal</span><span id="stAvg">nothing yet</span></div>
+        <div class="stat"><span>Left on the table</span><span id="stLeft">$0</span></div>
       </div>
     </div>
 
     <div class="pane" id="pane-rules">
-      <h3>House rules</h3>
-      <p>Odoo's real pricing rules. Each one appears here the first time it costs you a hand.</p>
+      <h3>Odoo pricing rules</h3>
+      <p>The real rules this game is built on. Each one turns solid the first time it costs you a deal.</p>
       <div id="ruleList"></div>
     </div>
 
-    <div class="pane" id="pane-log">
-      <h3>Hand history</h3>
-      <p>Every hand, and the rule that settled it.</p>
-      <div id="logList"><div class="mini">No hands yet.</div></div>
+    <div class="pane" id="pane-history">
+      <h3>History</h3>
+      <p>Every deal, and what decided it.</p>
+      <div id="logList"><p class="mini">Nothing yet.</p></div>
+    </div>
+
+    <div class="pane" id="pane-settings">
+      <h3>Settings</h3>
+      <div class="sec">
+        <div class="fld"><label>How tough customers are<div class="hint">Applies to everyone</div></label>
+          <select id="setDiff">
+            <option value="easy">Easy going</option>
+            <option value="normal" selected>Mixed</option>
+            <option value="hard">Tough</option>
+          </select></div>
+        <div class="fld"><label>Punish breaking the rules<div class="hint">Off schedule concessions count double against you</div></label>
+          <input type="checkbox" id="setStrict" checked></div>
+      </div>
+      <div class="sec">
+        <div class="sec-h">Start over</div>
+        <p class="mini">Clears your banked revenue and history on this device. It does not remove you from the leaderboard.</p>
+        <button class="tbtn" id="btnWipe">Reset my session</button>
+      </div>
     </div>
   </aside>
 </div>
 
 <script>
-// ═════════════════════════════════════════════════════════════════════════
-// PRICING TRUTH — the same constants the calculator uses. The game is only
-// worth playing if the numbers are the real ones.
-// ═════════════════════════════════════════════════════════════════════════
-const LIC = { standard:{y1:24.90, y2:31.10}, custom:{y1:49.00, y2:61.00} };
-const DISCOUNT_SCHEDULE = {1:0, 2:0.05, 3:0.10, 4:0.125, 5:0.15};
-const PACKS = [
-  {hours:0,   rate:0,   label:'none'},
-  {hours:4,   rate:145, label:'Starter'},
-  {hours:25,  rate:144, label:'Basic'},
-  {hours:50,  rate:140, label:'Standard'},
-  {hours:100, rate:125, label:'Custom'},
-  {hours:200, rate:125, label:'Pro'}
+
+// ===================================================================
+// ODOO PRICING, UNITED STATES. These are list figures, per user
+// per month, and every number in the game is derived from them.
+// ===================================================================
+var LIC = {
+  standard: { y1:24.90, y2:31.10, monthly:38.90, name:'Standard' },
+  custom:   { y1:49.00, y2:61.00, monthly:76.20, name:'Custom'   }
+};
+// A multi year commitment earns a licence discount, and the ceiling
+// depends on the length of the term. It only ever reaches Year 2 on.
+var CEILING = { 1:0, 2:5, 3:10, 4:12.5, 5:15 };
+// Success Packs are bought in blocks of hours. Longer blocks are cheaper.
+var PACKS = [
+  { hours:0,   rate:0,   name:'None' },
+  { hours:25,  rate:144, name:'25 hour pack'  },
+  { hours:50,  rate:140, name:'50 hour pack'  },
+  { hours:100, rate:125, name:'100 hour pack' },
+  { hours:200, rate:125, name:'200 hour pack' }
 ];
-const IMPL_MAX = 30;        // % — the implementation maximum
-const IMPL_HOURS_CAP = 200; // the discount only reaches the first 200 hrs
+var IMPL_MAX_PCT   = 30;   // the most the desk will sign off
+var IMPL_CAP_HOURS = 200;  // and it only reaches the first 200 hours
+var SH_WORKER  = 57.60;    // Odoo.sh, one extra worker, per month
+var SH_STAGING = 14.40;    // Odoo.sh, one staging branch, per month
 
-const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
-
-// ═════════════════════════════════════════════════════════════════════════
-// PRNG — mulberry32. Seeded so a shoe is reproducible and shareable, random
-// by default so no two sessions repeat.
-// ═════════════════════════════════════════════════════════════════════════
 function mulberry32(a){
   return function(){
     a |= 0; a = a + 0x6D2B79F5 | 0;
-    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    var t = Math.imul(a ^ a >>> 15, 1 | a);
     t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
 }
-let rng = mulberry32(Date.now() & 0x7fffffff);
-const pick = arr => arr[Math.floor(rng() * arr.length)];
-const between = (lo, hi) => lo + Math.floor(rng() * (hi - lo + 1));
+var rng = mulberry32(Date.now() & 0x7fffffff);
+var pick = function(a){ return a[Math.floor(rng() * a.length)]; };
+var between = function(lo, hi){ return lo + Math.floor(rng() * (hi - lo + 1)); };
+var fmt = function(n){
+  n = Math.round(n || 0);
+  return (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('en-US');
+};
+var fmt2 = function(n){
+  return '$' + (Math.round((n || 0) * 100) / 100).toLocaleString('en-US',
+    { minimumFractionDigits:2, maximumFractionDigits:2 });
+};
 
-// ═════════════════════════════════════════════════════════════════════════
-// THE DEAL SPACE — twelve archetypes × seat bands × terms × packs × hosting
-// × objections runs to well over a million briefs before a card is dealt.
-// ═════════════════════════════════════════════════════════════════════════
-const ARCHETYPES = [
-  {n:'Halstead Freight',    t:'Logistics · 3 locations',   bias:+1, tell:'has a competing quote'},
-  {n:'Verity Labs',         t:'Biotech · regulated',       bias:+2, tell:'needs it signed this quarter'},
-  {n:'Marrow & Sons',       t:'Family manufacturer',       bias:-1, tell:'has never bought software'},
-  {n:'Ardleigh Minerals',   t:'Mining · seasonal',         bias:0,  tell:'is comparing against doing nothing'},
-  {n:'Copperline Retail',   t:'Retail · 40 stores',        bias:+2, tell:'wants a discount on principle'},
-  {n:'Northgate Clinics',   t:'Healthcare group',          bias:-1, tell:'has budget already approved'},
-  {n:'Pell & Vance',        t:'Professional services',     bias:0,  tell:'is fine with the price, slow to sign'},
-  {n:'Turnbull Foods',      t:'Food distribution',         bias:+1, tell:'is squeezed on margin'},
-  {n:'Solent Marine',       t:'Marine services',           bias:-2, tell:'came to you already sold'},
-  {n:'Kestrel Aviation',    t:'Aviation parts',            bias:+1, tell:'is renewing off a rival'},
-  {n:'Ambrose Textiles',    t:'Textiles · exporting',      bias:0,  tell:'wants multi-year certainty'},
-  {n:'Fairhaven Housing',   t:'Property management',       bias:+2, tell:'has a procurement committee'},
-  {n:'Bracken & Roe',       t:'Legal practice',             bias:+1, tell:'bills by the hour and knows it'},
-  {n:'Dunmore Castings',    t:'Metal foundry',              bias:-1, tell:'was burned by its last vendor'},
-  {n:'Wexley Dairy',        t:'Agriculture co-op',          bias:0,  tell:'answers to a member board'},
-  {n:'Orrin Scaffolding',   t:'Construction hire',          bias:+2, tell:'opens with a discount demand'},
-  {n:'Thackeray Print',     t:'Commercial printing',        bias:-2, tell:'has a deadline of its own'},
-  {n:'Loxley Interiors',    t:'Design and fit-out',         bias:0,  tell:'wants to start with one team'},
-  {n:'Grantham Plastics',   t:'Injection moulding',         bias:+1, tell:'is mid-way through a rival trial'},
-  {n:'Vale & Hutchins',     t:'Accountancy firm',           bias:-1, tell:'understands recurring cost'},
-  {n:'Ashcombe Nurseries',  t:'Horticulture · seasonal',    bias:0,  tell:'buys hard before its busy season'},
-  {n:'Merrick Cold Chain',  t:'Refrigerated logistics',     bias:+2, tell:'is running a formal tender'},
-  {n:'Selby Instruments',   t:'Precision engineering',      bias:-1, tell:'was referred by a customer'},
-  {n:'Padstow Hotels',      t:'Hospitality · 6 sites',      bias:+1, tell:'has a flat capex ceiling'},
-  {n:'Ironbridge Steel',    t:'Steel stockholding',         bias:0,  tell:'wants proof before it commits'},
-  {n:'Calder Renewables',   t:'Solar installation',         bias:-2, tell:'is scaling fast and knows it'},
-  {n:'Hexham Optical',      t:'Optical retail · 12 stores', bias:+1, tell:'is comparing on price alone'},
-  {n:'Roundhay Pharma',     t:'Pharma distribution',        bias:+2, tell:'has a compliance review to clear'},
-  {n:'Draycott Timber',     t:'Timber merchants',           bias:-1, tell:'has done the maths already'},
-  {n:'Feltham Security',    t:'Security services',          bias:0,  tell:'is consolidating three systems'},
-  {n:'Nairn Whisky',        t:'Distilling · export',        bias:+1, tell:'is protective of its margin'},
-  {n:'Wingate Academies',   t:'Education trust',            bias:+2, tell:'spends on a fixed budget cycle'},
-  {n:'Perrin Automotive',   t:'Vehicle parts · 4 depots',   bias:-1, tell:'needs it live before year end'}
+var ACCOUNTS = [
+  {n:'Halstead Freight',   t:'Logistics, three depots',   bias:1,  tell:'has a competing quote on the desk'},
+  {n:'Verity Labs',        t:'Biotech, regulated',        bias:2,  tell:'needs it signed this quarter'},
+  {n:'Marrow and Sons',    t:'Family manufacturer',       bias:-1, tell:'has never bought software before'},
+  {n:'Ardleigh Minerals',  t:'Mining, seasonal',          bias:0,  tell:'is comparing you against doing nothing'},
+  {n:'Copperline Retail',  t:'Retail, forty stores',      bias:2,  tell:'asks for a discount on principle'},
+  {n:'Northgate Clinics',  t:'Healthcare group',          bias:-1, tell:'already has the budget approved'},
+  {n:'Pell and Vance',     t:'Professional services',     bias:0,  tell:'is fine on price but slow to sign'},
+  {n:'Turnbull Foods',     t:'Food distribution',         bias:1,  tell:'is squeezed on margin'},
+  {n:'Solent Marine',      t:'Marine services',           bias:-2, tell:'came to you already sold'},
+  {n:'Kestrel Aviation',   t:'Aviation parts',            bias:1,  tell:'is renewing off a rival'},
+  {n:'Ambrose Textiles',   t:'Textiles, exporting',       bias:0,  tell:'wants multi year certainty'},
+  {n:'Fairhaven Housing',  t:'Property management',       bias:2,  tell:'has a procurement committee'},
+  {n:'Bracken and Roe',    t:'Legal practice',            bias:1,  tell:'bills by the hour and knows it'},
+  {n:'Dunmore Castings',   t:'Metal foundry',             bias:-1, tell:'was burned by its last vendor'},
+  {n:'Wexley Dairy',       t:'Agriculture co-op',         bias:0,  tell:'answers to a member board'},
+  {n:'Orrin Scaffolding',  t:'Construction hire',         bias:2,  tell:'opens every call with price'},
+  {n:'Thackeray Print',    t:'Commercial printing',       bias:-2, tell:'has a deadline of its own'},
+  {n:'Loxley Interiors',   t:'Design and fit out',        bias:0,  tell:'wants to start with one team'},
+  {n:'Grantham Plastics',  t:'Injection moulding',        bias:1,  tell:'is midway through a rival trial'},
+  {n:'Vale and Hutchins',  t:'Accountancy firm',          bias:-1, tell:'understands recurring cost'},
+  {n:'Ashcombe Nurseries', t:'Horticulture, seasonal',    bias:0,  tell:'buys hard before its busy season'},
+  {n:'Merrick Cold Chain', t:'Refrigerated logistics',    bias:2,  tell:'is running a formal tender'},
+  {n:'Selby Instruments',  t:'Precision engineering',     bias:-1, tell:'was referred by a customer'},
+  {n:'Padstow Hotels',     t:'Hospitality, six sites',    bias:1,  tell:'has a flat cap on capital spend'},
+  {n:'Ironbridge Steel',   t:'Steel stockholding',        bias:0,  tell:'wants proof before it commits'},
+  {n:'Calder Renewables',  t:'Solar installation',        bias:-2, tell:'is scaling fast and knows it'},
+  {n:'Hexham Optical',     t:'Optical retail',            bias:1,  tell:'is comparing on price alone'},
+  {n:'Roundhay Pharma',    t:'Pharma distribution',       bias:2,  tell:'has a compliance review to clear'},
+  {n:'Draycott Timber',    t:'Timber merchants',          bias:-1, tell:'has done the maths already'},
+  {n:'Feltham Security',   t:'Security services',         bias:0,  tell:'is consolidating three systems'},
+  {n:'Nairn Whisky',       t:'Distilling, export',        bias:1,  tell:'is protective of its margin'},
+  {n:'Wingate Academies',  t:'Education trust',           bias:2,  tell:'spends on a fixed budget cycle'},
+  {n:'Perrin Automotive',  t:'Vehicle parts',             bias:-1, tell:'needs it live before year end'},
+  {n:'Cawley Logistics',   t:'Freight forwarding',        bias:0,  tell:'has just lost its old system'}
 ];
-const SEATS = [3, 6, 9, 14, 22, 35, 60, 110];
-const TERMS = [1, 2, 3, 4, 5];
+var SEATS = [3, 6, 9, 14, 22, 35, 60, 110];
 
 function dealBrief(){
-  const a = pick(ARCHETYPES);
-  const users = pick(SEATS) + between(-2, 3);
-  const term = pick(TERMS);
-  const plan = rng() < 0.45 ? 'custom' : 'standard';
-  const pack = pick(PACKS);
-  const sh = rng() < 0.3;
-  return { a, users: Math.max(1, users), term, plan, pack, sh };
+  var a = pick(ACCOUNTS);
+  var users = Math.max(1, pick(SEATS) + between(-2, 3));
+  var term = pick([1, 2, 3, 3, 4, 5]);
+  var plan = rng() < 0.45 ? 'custom' : 'standard';
+  var pack = pick(PACKS);
+  var onSh = rng() < 0.45;
+  // A customer already committed annually is a different animal from one
+  // paying month to month, and moving them is worth real money.
+  var billing = rng() < 0.3 ? 'monthly' : 'annual';
+  return { a:a, users:users, term:term, plan:plan, pack:pack, sh:onSh, billing:billing };
 }
 
-// Annual MRR-bearing value of the brief before any concession.
-function baseValue(b){
-  const rate = LIC[b.plan];
-  const lic = rate.y1 * 12 * b.users;
-  const impl = b.pack.hours * b.pack.rate;
-  const host = b.sh ? 12 * (80 + b.users * 3.5) : 0;
-  return { lic, impl, host, total: lic + impl + host };
+// What the deal is worth before you concede anything.
+function value(b){
+  var r = LIC[b.plan];
+  var licMo  = (b.billing === 'monthly' ? r.monthly : r.y1) * b.users;
+  var shMo   = b.sh ? (SH_WORKER + SH_STAGING) : 0;
+  var implMo = b.pack.hours * b.pack.rate / (b.term * 12);
+  return {
+    licMo: licMo, shMo: shMo, implMo: implMo,
+    mrr: licMo + shMo,                       // what actually recurs
+    implTotal: b.pack.hours * b.pack.rate,   // one off
+    acv: (licMo + shMo) * 12 + b.pack.hours * b.pack.rate
+  };
 }
 
-// ═════════════════════════════════════════════════════════════════════════
-// THE DECK — every card is a concession a rep can actually make. Its point
-// value is how much confidence it buys; its cost is real money off the deal.
-// A card's weight depends on the brief, which is the whole point: 15% off
-// licence is routine on a five-year and a policy breach on a two-year.
-// ═════════════════════════════════════════════════════════════════════════
-const SUITS = [['♠',0],['♥',1],['♦',1],['♣',0]];
+// ===================================================================
+// THE CONCESSIONS. Only things an Odoo rep can really give away.
+// pts  = how much closer it moves the customer to signing
+// mo   = monthly recurring revenue it costs you, averaged over the term
+// A negative mo means the concession earns you money instead.
+// ===================================================================
+function concessions(b){
+  var v = value(b), r = LIC[b.plan], out = [];
+  var ceiling = CEILING[b.term];
 
-function buildDeck(b){
-  const v = baseValue(b);
-  const d = [];
-  const on = id => document.getElementById(id).checked;
+  // 1. Licence discount. It only ever touches Year 2 onward, so on a one
+  //    year deal there is nothing for it to reach.
+  [2.5, 5, 7.5, 10, 12.5, 15, 20].forEach(function(p){
+    var years = Math.max(0, b.term - 1);
+    var mo = r.y2 * b.users * (p / 100) * years / b.term;
+    var breaks = null;
+    if (b.term === 1) breaks = 'oneYear';
+    else if (p > ceiling) breaks = 'ceiling';
+    out.push({
+      kind:'lic', tag:'Licence', head:p + '% off',
+      body:'Take ' + p + '% off the licence from Year 2 on',
+      pts: Math.max(2, Math.round(p / 1.9)), mo: mo, breaks: breaks,
+      note: breaks === 'oneYear'
+        ? 'A one year deal has no Year 2, so this lands on the promotional rate'
+        : (breaks === 'ceiling' ? 'The ceiling on a ' + b.term + ' year term is ' + ceiling + '%' : '')
+    });
+  });
 
-  if (on('lvLic')) {
-    [2.5, 5, 10, 12.5, 15, 20].forEach(pct => {
-      const ceiling = DISCOUNT_SCHEDULE[b.term] * 100;
-      const over = pct > ceiling;
-      // The multi-year discount only reduces the Year-2-onward licence.
-      const yrs = Math.max(0, b.term - 1);
-      const cost = yrs === 0 ? 0 : (LIC[b.plan].y2 * 12 * b.users * yrs) * (pct/100) / b.term;
-      d.push({
-        kind:'lic', rank: pct + '%', label:'Licence',
-        lever:'Licence −' + pct + '% on Yr 2+',
-        pts: Math.max(2, Math.round(pct / 2.2)),
-        cost, viol: over || b.term === 1,
-        rule: b.term === 1 ? 'oneYear' : (over ? 'licCeiling' : null)
+  // 2. Success Pack discount. Capped at 30 percent, and it only reaches
+  //    the first 200 hours on the first invoice.
+  if (b.pack.hours > 0) {
+    [10, 15, 20, 25, 30, 40].forEach(function(p){
+      var reached = Math.min(b.pack.hours, IMPL_CAP_HOURS);
+      var oneOff = reached * b.pack.rate * (p / 100);
+      out.push({
+        kind:'impl', tag:'Success Pack', head:p + '% off',
+        body:'Take ' + p + '% off the ' + b.pack.hours + ' hour pack',
+        pts: Math.max(2, Math.round(p / 3.6)),
+        mo: oneOff / (b.term * 12),
+        breaks: p > IMPL_MAX_PCT ? 'implMax' : null,
+        note: p > IMPL_MAX_PCT ? 'Thirty percent is the most the desk signs off' : ''
       });
     });
   }
-  if (on('lvImpl') && b.pack.hours > 0) {
-    [10, 20, 30, 40].forEach(pct => {
-      const eligible = Math.min(b.pack.hours, IMPL_HOURS_CAP);
-      const cost = eligible * b.pack.rate * (pct/100) / b.term;
-      d.push({
-        kind:'impl', rank: pct + '%', label:'Implementation',
-        lever:'Impl −' + pct + '% (first ' + eligible + ' hrs)',
-        pts: Math.max(2, Math.round(pct / 3.4)),
-        cost, viol: pct > IMPL_MAX,
-        rule: pct > IMPL_MAX ? 'implMax' : (b.pack.hours > IMPL_HOURS_CAP ? 'implCap' : null)
+
+  // 3. Free hours. Real, and priced at whatever the pack rate is.
+  if (b.pack.hours > 0) {
+    [5, 10, 20].forEach(function(h){
+      out.push({
+        kind:'hours', tag:'Extra hours', head:h + ' free',
+        body:'Add ' + h + ' hours of implementation at no charge',
+        pts: Math.max(2, Math.round(h / 2.4)),
+        mo: (h * b.pack.rate) / (b.term * 12), breaks:null, note:''
       });
     });
   }
-  if (on('lvTerm')) {
-    [2, 3, 5].forEach(t => {
-      d.push({
-        kind:'term', rank: t + 'yr', label:'Commitment',
-        lever:'Ask for a ' + t + '-year term',
-        pts: 3 + t, cost: -(v.lic * 0.04 * t) / b.term, viol:false, rule:'termSchedule'
-      });
-    });
-  }
-  if (on('lvHost') && b.sh) {
-    d.push({kind:'host', rank:'stg', label:'Hosting', lever:'Throw in a staging branch',
-      pts:3, cost:(14.40*12)/b.term, viol:false, rule:null});
-    d.push({kind:'host', rank:'wkr', label:'Hosting', lever:'Waive a worker for year one',
-      pts:5, cost:(57.60*12)/b.term, viol:false, rule:null});
-    d.push({kind:'host', rank:'bkp', label:'Hosting', lever:'Waive first-year backups',
-      pts:2, cost:(9.60*12)/b.term, viol:false, rule:null});
-  }
-  if (on('lvScope')) {
-    d.push({kind:'scope', rank:'4h', label:'Scope', lever:'Add 4 free hours',
-      pts:4, cost:(4*145)/b.term, viol:false, rule:null});
-    d.push({kind:'scope', rank:'go', label:'Scope', lever:'Free go-live weekend',
-      pts:6, cost:(8*145)/b.term, viol:false, rule:null});
-    d.push({kind:'scope', rank:'trn', label:'Scope', lever:'Two training sessions',
-      pts:2, cost:(3*145)/b.term, viol:false, rule:null});
-    d.push({kind:'scope', rank:'mig', label:'Scope', lever:'Data migration, one pass',
-      pts:5, cost:(7*145)/b.term, viol:false, rule:null});
-    d.push({kind:'scope', rank:'adm', label:'Scope', lever:'Extra admin training day',
-      pts:3, cost:(5*145)/b.term, viol:false, rule:null});
-    d.push({kind:'scope', rank:'rev', label:'Scope', lever:'A post-go-live review',
-      pts:2, cost:(2*145)/b.term, viol:false, rule:null});
-  }
-  if (!d.length) d.push({kind:'scope', rank:'—', label:'Goodwill', lever:'A firm handshake',
-    pts:2, cost:0, viol:false, rule:null});
-  return d;
-}
 
-function drawCard(deck){
-  const c = Object.assign({}, pick(deck));
-  const s = pick(SUITS);
-  c.suit = s[0]; c.red = s[1];
-  if (c.viol && document.getElementById('setStrict').checked) c.pts = Math.min(11, c.pts * 2);
-  return c;
-}
-
-// Three concessions, deliberately drawn from different levers where the deck
-// allows it. You choose one. That choice is the lesson: the same point of
-// confidence costs wildly different money depending on which lever you pull.
-function dealOffer(){
-  const seen = new Set(), kinds = new Set(), out = [];
-  for (let g = 0; g < 240 && out.length < 3; g++) {
-    const c = drawCard(S.deck);
-    if (seen.has(c.lever)) continue;
-    if (g < 120 && kinds.has(c.kind)) continue;   // first pass: spread the levers
-    seen.add(c.lever); kinds.add(c.kind); out.push(c);
+  // 4. Odoo.sh line items. Both are genuinely billable, both are waivable.
+  if (b.sh) {
+    out.push({ kind:'host', tag:'Hosting', head:'A worker',
+      body:'Waive one Odoo.sh worker for the first year',
+      pts:4, mo: SH_WORKER / b.term, breaks:null, note:'' });
+    out.push({ kind:'host', tag:'Hosting', head:'A branch',
+      body:'Waive one Odoo.sh staging branch for the first year',
+      pts:2, mo: SH_STAGING / b.term, breaks:null, note:'' });
   }
-  for (let g = 0; g < 60 && out.length < 3; g++) out.push(drawCard(S.deck));
+
+  // 5. The one that pays you. Moving a month to month customer onto an
+  //    annual commitment is worth the whole no commitment premium.
+  if (b.billing === 'monthly') {
+    out.push({ kind:'term', tag:'Commitment', head:'Go annual',
+      body:'Ask them to commit for a year instead of paying monthly',
+      pts:3, mo: -((r.monthly - r.y1) * b.users), breaks:null,
+      note:'Month to month costs them ' + fmt2(r.monthly) + ' a seat against ' + fmt2(r.y1) + ' committed' });
+  }
+
+  if (!out.length) out.push({ kind:'good', tag:'Goodwill', head:'A promise',
+    body:'Promise to answer the phone yourself', pts:2, mo:0, breaks:null, note:'' });
   return out;
 }
 
-function takeOffer(i){
-  if (!S.live) return;
-  const c = S.offer[i];
-  if (!c) return;
-  S.player.push(c); unlock(c.rule);
-  if (total(S.player) > 21) return settle('bust');
-  S.offer = dealOffer();
-  render();
-  setMsg('Taken: ' + c.lever + ' — ' + (c.cost < 0 ? fmt(-c.cost) + ' gained' : fmt(c.cost) + ' given') +
-    ' for ' + c.pts + ' point' + (c.pts === 1 ? '' : 's') + '.', '');
-}
-
-// ═════════════════════════════════════════════════════════════════════════
-// GAME STATE
-// ═════════════════════════════════════════════════════════════════════════
-const S = {
-  bank:0, stake:250, brief:null, deck:null, player:[], dealer:[], offer:[], stop:17,
-  live:false, shoe:[], seen:new Set(),
-  hands:0, wins:0, busts:0, totalConc:0, left:0, best:null,
-  unlocked:new Set(), log:[]
+var RULES = {
+  ceiling: { t:'The licence ceiling depends on the term',
+    d:'Two years allows 5%, three allows 10%, four allows 12.5%, five allows 15%. Go past the ceiling for the term in front of you and you are off schedule.' },
+  oneYear: { t:'A one year deal has no Year 2 to discount',
+    d:'The multi year discount reduces the Year 2 onward licence. On a one year term there is nothing for it to reach, so the ask lands on the Year 1 promotional rate, which is already discounted.' },
+  implMax: { t:'Thirty percent is the Success Pack maximum',
+    d:'Above 30% you are outside what the desk will approve. The card still plays. It just counts double against you.' },
+  implCap: { t:'The Success Pack discount stops at 200 hours',
+    d:'It reaches the first 200 hours on the first invoice only. On a 400 hour engagement a headline 30% is really 15% of the whole thing.' },
+  recurring: { t:'Licence money comes back every month, hours do not',
+    d:'A point off the licence costs you every month for the length of the term. A point off the Success Pack costs you once. That is why the two look so different on these cards.' },
+  commitment: { t:'A commitment is a concession you receive',
+    d:'Month to month pricing carries a real premium over an annual commitment. Asking for the commitment costs you nothing and earns you the difference, which is why it is the only card here with money on the right side.' }
 };
 
-const RULES = {
-  licCeiling:{t:'The licence ceiling is per term',
-    d:'2 yr 5%, 3 yr 10%, 4 yr 12.5%, 5 yr 15%. Anything above the ceiling for the term on the table is off-schedule, and the table charges you double for it.'},
-  oneYear:{t:'A one-year deal has no Year 2 to discount',
-    d:'The multi-year discount reduces the Year-2-onward licence only. On a one-year term there is nothing for it to reach, so the ask lands on the Year-1 promotional rate instead — outside the schedule.'},
-  implMax:{t:'30% is the implementation maximum',
-    d:'Above 30% you are outside what the desk will sign off. The card still plays; it just counts double against you.'},
-  implCap:{t:'The implementation discount stops at 200 hours',
-    d:'It only reaches the first 200 hours, on the initial invoice. On a 400-hour engagement a headline 30% is really 15% of the whole thing. Hours bought later are full price.'},
-  termSchedule:{t:'Length is a concession you receive, not one you give',
-    d:'Asking for a longer term costs you nothing and buys real confidence — it is the only card on this table with a negative cost. It also raises the licence ceiling.'},
-  y1promo:{t:'Year 1 is already discounted',
-    d:'Year 1 sits at the promotional rate before you concede anything. Discounting "the contract" double-counts a discount the customer already has.'}
+var S = {
+  bank:0, stake:250, brief:null, pool:null, you:[], them:[], offer:[],
+  live:false, stop:17, hands:0, won:0, bust:0, given:0, left:0,
+  unlocked:{}, log:[], name:''
 };
 
 function unlock(id){
-  if (!id || S.unlocked.has(id)) return;
-  S.unlocked.add(id); renderRules();
+  if (!id || S.unlocked[id]) return;
+  S.unlocked[id] = true; renderRules();
 }
 
-// ═════════════════════════════════════════════════════════════════════════
-// BLACKJACK
-// ═════════════════════════════════════════════════════════════════════════
-const total = h => h.reduce((n, c) => n + c.pts, 0);
+var total = function(h){ var n=0; for (var i=0;i<h.length;i++) n += h[i].pts; return n; };
+var moGiven = function(h){ var n=0; for (var i=0;i<h.length;i++) n += h[i].mo; return n; };
 
-function dealerStandsOn(){
-  const d = document.getElementById('setDiff').value;
+function baseStop(){
+  var d = document.getElementById('setDiff').value;
   return d === 'easy' ? 15 : d === 'hard' ? 18 : 17;
 }
 
-// How hard this particular customer is. The archetype's bias moves their
-// threshold: a buyer who came to you already sold folds earlier than one who
-// opens with a discount demand. Reading that before you concede is the skill.
-// How hard this particular customer turns out to be. The archetype leans it,
-// the size of your cheque leans it harder, and a roll does the rest. You are
-// never shown the number. The tell is all you get, which is all you get in
-// the room too — the whole skill is deciding without knowing.
-function rollCustomerStop(b){
-  const base = dealerStandsOn();
-  const bias = (b && b.a) ? (b.a.bias || 0) : 0;
-  const weight = S.stake >= 2500 ? 2 : S.stake >= 500 ? 1 : 0;
-  return Math.max(14, Math.min(19, base + bias + weight + between(-1, 2)));
+// How hard this particular customer turns out to be. Their disposition
+// leans it, a bigger contract draws more scrutiny, a bigger wager draws a
+// tougher room, and luck does the rest. The number is never shown.
+function rollStop(b){
+  var v = value(b);
+  var acv = v.acv;
+  var sizeWeight = acv > 120000 ? 2 : acv > 45000 ? 1 : 0;
+  var stakeWeight = S.stake >= 2500 ? 2 : S.stake >= 500 ? 1 : 0;
+  return Math.max(14, Math.min(19,
+    baseStop() + (b.a.bias || 0) + sizeWeight + stakeWeight + between(-1, 1)));
 }
 
-function multiplier(t){
-  const bonus = +document.getElementById('setBonus').value / 100;
-  return Math.max(1, 1 + (21 - t) * bonus);
+// What the customer opens by asking for. It is always a real lever, and
+// it is always one of the more expensive ways to buy their goodwill.
+function makeAsk(b, pool){
+  var wanted = pool.filter(function(c){ return c.mo > 0 && !c.breaks; });
+  if (!wanted.length) wanted = pool.filter(function(c){ return c.mo > 0; });
+  if (!wanted.length) wanted = pool;
+  wanted.sort(function(x, y){ return (y.mo / Math.max(1, y.pts)) - (x.mo / Math.max(1, x.pts)); });
+  var top = wanted.slice(0, Math.max(3, Math.ceil(wanted.length / 3)));
+  return pick(top);
 }
 
-function newShoe(){
-  const n = +document.getElementById('setShoe').value;
-  const seed = +document.getElementById('setSeed').value;
-  rng = mulberry32(seed ? seed : (Date.now() & 0x7fffffff));
-  S.shoe = []; S.seen.clear();
-  for (let i = 0; i < n; i++) S.shoe.push(dealBrief());
-  toast('Fresh shoe — ' + n + ' deals, none repeating.');
+function harden(c){
+  var copy = {};
+  for (var k in c) copy[k] = c[k];
+  if (copy.breaks && document.getElementById('setStrict').checked) {
+    copy.pts = Math.min(11, copy.pts * 2);
+    copy.doubled = true;
+  }
+  return copy;
+}
+
+// The customer signals their position one card at a time, the same way a
+// dealer shows an up card. These are their expectations, not your costs.
+function signal(b){
+  var n = between(2, 9);
+  return { pts:n, tag:'Expectation', head:n + '', body:'Ground they will not give up' };
 }
 
 function deal(){
   if (S.live) return;
-  if (!S.shoe.length) newShoe();
-  S.brief = S.shoe.pop();
-  S.deck = buildDeck(S.brief);
-  S.player = [drawCard(S.deck), drawCard(S.deck)]; let g = 0; while (total(S.player) > 21 && g++ < 25) S.player = [drawCard(S.deck), drawCard(S.deck)];
-  S.dealer = [drawCard(S.deck), drawCard(S.deck)];
-  S.stop = rollCustomerStop(S.brief);
-  S.live = true;
-  S.offer = dealOffer();
-  S.player.concat([S.dealer[0]]).forEach(c => unlock(c.rule));
+  S.brief = dealBrief();
+  S.pool  = concessions(S.brief);
+  S.stop  = rollStop(S.brief);
+  S.ask   = makeAsk(S.brief, S.pool);
+  S.you   = [];
+  S.them  = [signal(S.brief), signal(S.brief)];
+  S.offer = [];
+  S.live  = true;
+  unlock(S.ask.breaks);
   render();
-  setMsg('Pick a concession, or close and take the cheque.', '');
+  setMsg('They want ' + S.ask.body.toLowerCase() + '. Give in, counter, or close.', '');
+  setWhy('Giving them what they asked for moves them a long way. Countering costs you far less but moves them less.');
 }
 
-function hit(){
+// Give in. You concede what they asked for, or very close to it.
+function giveIn(){
   if (!S.live) return;
-  const c = drawCard(S.deck);
-  S.player.push(c); unlock(c.rule);
-  if (total(S.player) > 21) return settle('bust');
+  var near = S.pool.filter(function(c){ return c.kind === S.ask.kind; });
+  var c = harden(near.length ? pick(near.slice(0, Math.max(1, near.length))) : S.ask);
+  S.you.push(c); unlock(c.breaks);
+  if (total(S.you) > 21) return settle('bust');
+  S.offer = [];
   render();
+  setMsg('You gave them ' + c.body.toLowerCase() + '.', '');
+  setWhy(costLine(c));
 }
 
-function stand(){
+// Counter. Three alternatives from other levers, cheaper per point.
+function counter(){
   if (!S.live) return;
-  const stop = S.stop || dealerStandsOn();
-  while (total(S.dealer) < stop) S.dealer.push(drawCard(S.deck));
-  const p = total(S.player), d = total(S.dealer);
-  if (d > 21 || p > d) settle('win', d > 21);
-  else if (p === d) settle('push');
-  else settle('lose');
+  var others = S.pool.filter(function(c){ return c.kind !== S.ask.kind; });
+  if (others.length < 3) others = S.pool.slice();
+  others.sort(function(x, y){
+    return (Math.abs(x.mo) / Math.max(1, x.pts)) - (Math.abs(y.mo) / Math.max(1, y.pts));
+  });
+  var band = others.slice(0, Math.min(others.length, 7));
+  var seen = {}, out = [];
+  for (var g = 0; g < 200 && out.length < 3; g++) {
+    var c = pick(band);
+    if (seen[c.body]) continue;
+    seen[c.body] = 1; out.push(harden(c));
+  }
+  S.offer = out;
+  render();
+  setMsg('Counter with one of these instead.', '');
+  setWhy('Each one buys less goodwill than their ask, and each one costs you less. The number underneath is what a single point of goodwill costs you.');
 }
 
-function settle(kind, byBust){
+function takeOffer(i){
+  if (!S.live || !S.offer.length) return;
+  var c = S.offer[i];
+  if (!c) return;
+  S.you.push(c); unlock(c.breaks);
+  if (total(S.you) > 21) return settle('bust');
+  S.offer = [];
+  render();
+  setMsg('You countered with ' + c.body.toLowerCase() + '.', '');
+  setWhy(costLine(c));
+}
+
+function costLine(c){
+  if (c.mo < 0) return 'That one earns you ' + fmt(-c.mo) + ' a month rather than costing you anything.';
+  if (c.mo === 0) return 'That costs you nothing, which usually means it is worth nothing to them either.';
+  return 'That is ' + fmt(c.mo) + ' a month for ' + c.pts + ' points of goodwill, or ' +
+    fmt(c.mo / c.pts) + ' a month per point.' + (c.doubled ? ' It broke a rule, so it counted double against you.' : '');
+}
+
+function close(){
+  if (!S.live) return;
+  while (total(S.them) < S.stop) S.them.push(signal(S.brief));
+  var you = total(S.you), them = total(S.them);
+  if (them > 21) return settle('theyBroke');
+  if (you > them) return settle('won');
+  if (you === them) return settle('push');
+  return settle('lost');
+}
+
+// The bonus for closing early. It rewards signing them without emptying
+// the margin, and it is only paid when you actually beat them.
+function earlyBonus(t){ return Math.max(1, 1 + (21 - t) * 0.05); }
+
+// What you would bank if you closed right now and won on merit.
+function closeValue(){
+  if (!S.brief) return 0;
+  var kept = Math.max(0, value(S.brief).mrr - moGiven(S.you));
+  return kept * earlyBonus(total(S.you)) * (S.stake / 250);
+}
+
+function settle(kind){
   S.live = false; S.offer = [];
-  const p = total(S.player);
-  const conceded = S.player.reduce((n, c) => n + c.cost, 0);
-  const v = baseValue(S.brief);
-  const gross = Math.max(0, (v.total - conceded)) / 12;   // monthly recurring
-  const mult = multiplier(p);
-  let delta = 0, cls = '', text = '';
+  var v = value(S.brief);
+  var given = moGiven(S.you);
+  var kept = Math.max(0, v.mrr - given);
+  var you = total(S.you), them = total(S.them);
+  var delta = 0, cls = '', msg = '', why = '';
 
-  if (kind === 'win') {
-    // The premium is for out-negotiating them. A customer who talks himself out
-    // of the deal pays flat: you did not close that one, you only survived it.
-    const eff = byBust ? 1 : mult;
-    delta = Math.round(gross * eff * (S.stake / 250));
-    cls = 'win';
-    text = byBust
-      ? 'Signed — but they broke themselves, so it pays flat at 1.00×. ' + fmt(delta) + ' banked.'
-      : 'Signed. ' + fmt(delta) + ' at ' + eff.toFixed(2) + '× for closing on ' + p + ' — ' + fmt(gross) + ' MRR on a ' + fmt(S.stake) + ' stake.';
-    S.wins++;
-    if (!S.best || delta > S.best.amt) S.best = {amt:delta, total:p};
+  if (kind === 'won') {
+    var bonus = earlyBonus(you);
+    delta = kept * bonus * (S.stake / 250);
+    cls = 'win'; S.won++;
+    msg = 'Signed. You banked ' + fmt(delta) + ' a month.';
+    why = 'They were worth ' + fmt(v.mrr) + ' a month. You gave away ' + fmt(given) +
+      ', keeping ' + fmt(kept) + ', and closing on ' + you + ' paid a ' +
+      bonus.toFixed(2) + ' times bonus on that.';
+  } else if (kind === 'theyBroke') {
+    delta = kept * (S.stake / 250);
+    cls = 'win'; S.won++;
+    msg = 'Signed, but they talked themselves into it. ' + fmt(delta) + ' a month.';
+    why = 'You did not close this one, so there is no early bonus. You kept ' + fmt(kept) +
+      ' a month of the ' + fmt(v.mrr) + ' on the table.';
   } else if (kind === 'push') {
-    cls = 'push'; text = 'Stalled at ' + p + '. Nothing banked, nothing lost.';
+    cls = 'push';
+    msg = 'Stalled at ' + you + '. Nothing signed, nothing lost.';
+    why = 'You met their expectation exactly, which is not enough to close.';
   } else if (kind === 'bust') {
-    delta = -Math.round(S.stake); cls = 'lose'; S.busts++;
-    const bad = S.player.filter(c => c.viol);
-    text = 'Busted at ' + p + '. ' + (bad.length
-      ? 'You went off-schedule with ' + bad[0].lever + '.'
-      : 'You gave away more than the deal could carry.');
-    unlock(bad.length ? bad[0].rule : 'y1promo');
+    delta = -S.stake; cls = 'lose'; S.bust++;
+    var broke = S.you.filter(function(c){ return c.breaks; });
+    msg = 'You gave away too much. The deal is gone.';
+    why = broke.length
+      ? 'The ' + broke[0].body.toLowerCase() + ' broke a rule and counted double, which is what tipped you over.'
+      : 'You conceded ' + fmt(given) + ' a month against a deal worth ' + fmt(v.mrr) +
+        '. There was nothing left to sign.';
+    unlock(broke.length ? broke[0].breaks : 'recurring');
   } else {
-    delta = -Math.round(S.stake); cls = 'lose';
-    text = 'They went elsewhere — ' + total(S.dealer) + ' against your ' + p + '. Not enough on the table.';
+    delta = -S.stake; cls = 'lose';
+    msg = 'They walked. You were short.';
+    why = 'They needed more than ' + you + ' and you stopped there. The next concession would have cost you ' +
+      fmt(given ? given / Math.max(1, S.you.length) : v.mrr * 0.05) + ' a month.';
+    S.left += Math.round(kept);
   }
 
-  S.bank += delta;
-  S.hands++;
-  S.totalConc += conceded;
-  if (kind !== 'win') S.left += Math.round(gross);
-  const why = explain(kind, p, conceded);
-  S.log.unshift({b:S.brief, kind, p, d:total(S.dealer), delta, why});
-  setMsg(text, cls);
-  render(); renderStats(); renderLog(); save();
+  S.bank += delta; S.hands++; S.given += given;
+  if (kind !== 'won' && kind !== 'theyBroke') S.left += 0;
+  S.log.unshift({ who:S.brief.a.n, kind:kind, you:you, them:them, delta:delta, why:why });
+  setMsg(msg, cls); setWhy(why);
+  render(); renderStats(); renderLog(); save(); postScore();
 }
 
-// The teaching line. It names the rule that actually decided the hand.
-function explain(kind, p, conceded){
-  const b = S.brief;
-  const v = baseValue(b);
-  const pctGiven = v.total ? (conceded / v.total * 100) : 0;
-  if (kind === 'bust') {
-    const bad = S.player.find(c => c.viol);
-    if (bad && bad.rule === 'licCeiling')
-      return 'A ' + b.term + '-year term caps licence at ' + (DISCOUNT_SCHEDULE[b.term]*100) + '%. You played above it.';
-    if (bad && bad.rule === 'oneYear')
-      return 'One-year terms have no Year 2 for a multi-year discount to reduce.';
-    if (bad && bad.rule === 'implMax')
-      return '30% is the implementation maximum.';
-    return 'You conceded ' + pctGiven.toFixed(1) + '% of the deal. The margin could not carry it.';
-  }
-  if (kind === 'win' && p <= 17)
-    return 'Closed on ' + p + ' having given ' + pctGiven.toFixed(1) + '%. That restraint is where the money is.';
-  if (kind === 'win')
-    return 'Closed, but at ' + p + ' you paid ' + fmt(conceded) + ' for confidence you may not have needed.';
-  if (kind === 'lose')
-    return 'They wanted more than ' + p + '. Another concession would have cost ' + fmt(conceded * 0.3) + ' and probably closed it.';
-  return 'A push banks nothing. Standing this low only pays when it wins.';
-}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function setMsg(t, c){ var m = document.getElementById('msg'); m.textContent = t; m.className = 'msg ' + (c || ''); }
+function setWhy(t){ document.getElementById('why').textContent = t || ''; }
 
-// ═════════════════════════════════════════════════════════════════════════
-// RENDER
-// ═════════════════════════════════════════════════════════════════════════
-function cardEl(c, hidden){
-  const d = document.createElement('div');
-  d.className = 'pc' + (c.red ? ' red' : '') + (hidden ? ' back' : '') + (c.viol && !hidden ? ' viol' : '');
-  d.innerHTML =
-    '<div class="rank">' + c.rank + '</div>' +
-    '<div class="suit">' + c.suit + '</div>' +
-    '<div class="lever">' + c.lever + '</div>' +
-    (c.cost > 0 ? '<div class="cost">−' + fmt(c.cost) + '</div>'
-                : c.cost < 0 ? '<div class="cost" style="color:#2f6b46">+' + fmt(-c.cost) + '</div>' : '');
+function themCard(c, hidden){
+  var d = document.createElement('div');
+  d.className = 'pc' + (hidden ? ' back' : '');
+  if (!hidden) d.innerHTML = '<div class="rank">' + c.pts + '</div>' +
+    '<div class="lever">' + esc(c.body) + '</div>';
   return d;
 }
 
-function playedEl(c){
-  const d = document.createElement('div');
-  d.className = 'played' + (c.viol ? ' viol' : '');
-  d.innerHTML =
-    '<span>' + c.lever + '</span>' +
-    '<span class="pv' + (c.cost < 0 ? ' gain' : '') + '">' +
-      (c.cost < 0 ? '+' + fmt(-c.cost) : '−' + fmt(c.cost)) + '</span>' +
-    '<span class="pp">+' + c.pts + '</span>';
+function givenChip(c){
+  var d = document.createElement('div');
+  d.className = 'given' + (c.breaks ? ' breaks' : '');
+  d.innerHTML = '<span>' + esc(c.body) + '</span>' +
+    '<span class="gm' + (c.mo < 0 ? ' gain' : '') + '">' +
+      (c.mo < 0 ? '+' + fmt(-c.mo) : fmt(c.mo)) + '/mo</span>' +
+    '<span class="gp">+' + c.pts + '</span>';
   return d;
 }
 
-function offerEl(c, i){
-  const d = document.createElement('div');
-  d.className = 'oc' + (c.viol ? ' viol' : '');
-  const per = c.pts ? Math.abs(c.cost) / c.pts : 0;
+function offerCard(c, i){
+  var d = document.createElement('div');
+  d.className = 'cc' + (c.breaks ? ' breaks' : '');
+  var per = c.pts ? Math.abs(c.mo) / c.pts : 0;
   d.innerHTML =
-    '<div class="okey">' + (i + 1) + '</div>' +
-    (c.viol ? '<div class="obadge">off-schedule</div>' : '') +
-    '<div class="ok">' + c.label + '</div>' +
-    '<div class="orank">' + c.rank + '</div>' +
-    '<div class="olev">' + c.lever + '</div>' +
-    '<div class="orow"><span class="opts">+' + c.pts + ' pts</span>' +
-      '<span class="ocost' + (c.cost < 0 ? ' gain' : '') + '">' +
-      (c.cost < 0 ? '+' + fmt(-c.cost) : '−' + fmt(c.cost)) + '</span></div>' +
-    '<div class="oeff">' + (c.cost < 0 ? 'they pay you for this one'
-      : c.cost === 0 ? 'costs nothing, and buys nothing real'
-      : fmt(per) + ' per point') + '</div>';
-  d.onclick = () => takeOffer(i);
+    '<div class="num">' + (i + 1) + '</div>' +
+    '<div class="kind">' + esc(c.tag) + '</div>' +
+    '<div class="head">' + esc(c.head) + '</div>' +
+    '<div class="body">' + esc(c.body) + '</div>' +
+    '<div class="split"><span class="pts">+' + c.pts + ' goodwill</span>' +
+      '<span class="mo' + (c.mo < 0 ? ' gain' : '') + '">' +
+      (c.mo < 0 ? '+' + fmt(-c.mo) : fmt(c.mo)) + '/mo</span></div>' +
+    '<div class="per">' + (c.mo < 0 ? 'earns you money'
+      : c.mo === 0 ? 'costs nothing and buys nothing real'
+      : fmt(per) + ' a month per point') + '</div>' +
+    (c.breaks ? '<div class="warn">Breaks a rule. ' + esc(c.note) +
+      (c.doubled ? '. Counts double against you' : '') + '</div>' : '');
+  d.onclick = function(){ takeOffer(i); };
   return d;
 }
 
 function render(){
-  const ph = document.getElementById('playerHand');
-  const dh = document.getElementById('dealerHand');
-  ph.innerHTML = ''; dh.innerHTML = '';
-  S.player.forEach(c => ph.appendChild(playedEl(c)));
-  S.dealer.forEach((c, i) => dh.appendChild(cardEl(c, S.live && i > 0)));
+  var b = S.brief, v = b ? value(b) : null;
+  var askEl = document.getElementById('ask');
+  askEl.innerHTML = b ? (
+    '<div class="who">' + esc(b.a.n) + '</div>' +
+    '<div class="desc">' + esc(b.a.t) + ', ' + esc(b.a.tell) + '</div>' +
+    '<div class="want">They want <b>' + esc(S.ask ? S.ask.body.toLowerCase() : '') + '</b></div>' +
+    '<div class="facts">' +
+      '<div class="fact"><span class="k">Seats</span><span class="v">' + b.users + '</span></div>' +
+      '<div class="fact"><span class="k">Plan</span><span class="v">' + LIC[b.plan].name + '</span></div>' +
+      '<div class="fact"><span class="k">Term</span><span class="v">' + b.term + ' yr</span></div>' +
+      '<div class="fact"><span class="k">Billing</span><span class="v">' +
+        (b.billing === 'monthly' ? 'Monthly' : 'Annual') + '</span></div>' +
+      '<div class="fact"><span class="k">Success Pack</span><span class="v">' + b.pack.name + '</span></div>' +
+      '<div class="fact"><span class="k">Odoo.sh</span><span class="v">' + (b.sh ? 'Yes' : 'No') + '</span></div>' +
+      '<div class="fact"><span class="k">Worth</span><span class="v">' + fmt(v.mrr) + '/mo</span></div>' +
+    '</div>'
+  ) : '<div class="want">Press Deal for your first customer.</div>';
 
-  const p = total(S.player);
-  const pt = document.getElementById('playerTotal');
-  pt.textContent = S.player.length ? p : '—';
-  pt.className = 'pill' + (p > 21 ? ' bust' : p >= 17 && p <= 21 ? ' hot' : '');
-  document.getElementById('dealerTotal').textContent =
-    S.dealer.length ? (S.live ? S.dealer[0].pts + ' + ?' : total(S.dealer)) : '—';
-  document.getElementById('payout').textContent =
-    S.player.length ? multiplier(p).toFixed(2) + '× if you beat them' : '—';
+  var th = document.getElementById('themHand'); th.innerHTML = '';
+  S.them.forEach(function(c, i){ th.appendChild(themCard(c, S.live && i > 0)); });
+  document.getElementById('themTotal').textContent =
+    S.them.length ? (S.live ? 'showing ' + S.them[0].pts : 'settled at ' + total(S.them)) : 'nothing yet';
+
+  var yh = document.getElementById('youHand'); yh.innerHTML = '';
+  S.you.forEach(function(c){ yh.appendChild(givenChip(c)); });
+
+  var t = total(S.you);
+  var yt = document.getElementById('youTotal');
+  yt.textContent = 'Goodwill ' + t + ' of 21';
+  yt.className = 'pill' + (t > 21 ? ' bust' : t >= 17 ? ' hot' : '');
+  var cn = document.getElementById('closeNow');
+  cn.textContent = S.live ? 'Close now and bank ' + fmt(closeValue()) + ' a month' : 'Not in a deal';
+  cn.className = 'pill' + (S.live ? ' money' : '');
+
+  var co = document.getElementById('counter'); co.innerHTML = '';
+  if (S.live && S.offer.length) S.offer.forEach(function(c, i){ co.appendChild(offerCard(c, i)); });
+
   document.getElementById('bank').textContent = fmt(S.bank);
-
-  const b = S.brief;
-  document.getElementById('brief').innerHTML = b ? (
-    '<div class="b"><span class="who">' + b.a.n + '</span>' +
-    '<span class="k">' + b.a.t + ' · ' + b.a.tell + '</span></div>' +
-    '<div class="b"><span class="k">Seats</span><span class="v">' + b.users + '</span></div>' +
-    '<div class="b"><span class="k">Term</span><span class="v">' + b.term + ' yr</span></div>' +
-    '<div class="b"><span class="k">Plan</span><span class="v">' + (b.plan === 'custom' ? 'Custom' : 'Standard') + '</span></div>' +
-    '<div class="b"><span class="k">Implementation</span><span class="v">' + (b.pack.hours ? b.pack.hours + ' hrs' : 'none') + '</span></div>' +
-    '<div class="b"><span class="k">Deal value</span><span class="v">' + fmt(baseValue(b).total) + '</span></div>'
-  ) : '<span class="mini">Press Deal for a brief.</span>';
-
-  const of = document.getElementById('offer');
-  if (of) {
-    if (S.live && S.deck && S.offer.length < 3) S.offer = dealOffer();
-    of.innerHTML = '';
-    if (S.live) S.offer.forEach((c, i) => of.appendChild(offerEl(c, i)));
-  }
-
   document.getElementById('btnDeal').disabled = S.live;
-  document.getElementById('btnHit').style.display = 'none';
+  document.getElementById('btnHit').disabled = !S.live;
+  document.getElementById('btnCounter').disabled = !S.live;
   document.getElementById('btnStand').disabled = !S.live;
 }
 
-function setMsg(t, cls){
-  const m = document.getElementById('msg');
-  m.textContent = t; m.className = 'msg ' + (cls || '');
+// ===================================================================
+// LEADERBOARD. Talks to a small Cloudflare Worker if one is configured,
+// and falls back to this browser alone if it is not reachable.
+// ===================================================================
+var LB_URL = '';                 // set to the Worker URL to go shared
+var LB_KEY = 'odooTableBoard';
+var lbPeriod = 'day';
+
+function periodKey(p, d){
+  d = d || new Date();
+  var y = d.getUTCFullYear(), m = d.getUTCMonth() + 1, day = d.getUTCDate();
+  var pad = function(n){ return (n < 10 ? '0' : '') + n; };
+  if (p === 'all') return 'all';
+  if (p === 'month') return y + '-' + pad(m);
+  if (p === 'day') return y + '-' + pad(m) + '-' + pad(day);
+  var t = new Date(Date.UTC(y, d.getUTCMonth(), day));
+  var dow = (t.getUTCDay() + 6) % 7;
+  t.setUTCDate(t.getUTCDate() - dow);
+  return 'w' + t.getUTCFullYear() + '-' + pad(t.getUTCMonth() + 1) + '-' + pad(t.getUTCDate());
 }
-function toast(t){ setMsg(t, ''); }
+
+function localBoard(){
+  try { return JSON.parse(localStorage.getItem(LB_KEY) || '{}'); } catch (e) { return {}; }
+}
+function saveLocalBoard(b){
+  try { localStorage.setItem(LB_KEY, JSON.stringify(b)); } catch (e) {}
+}
+function recordLocal(name, amount){
+  var b = localBoard();
+  ['day','week','month','all'].forEach(function(p){
+    var k = p + ':' + periodKey(p);
+    b[k] = b[k] || {};
+    b[k][name] = Math.max(b[k][name] || 0, Math.round(amount));
+  });
+  saveLocalBoard(b);
+}
+function readLocal(p){
+  var b = localBoard(), k = p + ':' + periodKey(p), rows = [];
+  var m = b[k] || {};
+  for (var n in m) rows.push({ name:n, amount:m[n] });
+  rows.sort(function(x, y){ return y.amount - x.amount; });
+  return rows.slice(0, 12);
+}
+
+function postScore(){
+  var name = (S.name || '').trim();
+  if (!name || S.bank <= 0) { renderBoard(); return; }
+  recordLocal(name, S.bank);
+  if (LB_URL) {
+    try {
+      fetch(LB_URL + '/score', {
+        method:'POST', headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ name:name, amount:Math.round(S.bank) })
+      }).then(function(){ renderBoard(); }).catch(function(){ renderBoard(); });
+      return;
+    } catch (e) {}
+  }
+  renderBoard();
+}
+
+function renderBoard(){
+  var host = document.getElementById('lbList');
+  var draw = function(rows, shared){
+    if (!rows.length) { host.innerHTML = '<p class="mini">Nobody on this board yet. Play a hand.</p>'; return; }
+    host.innerHTML = rows.map(function(r, i){
+      var mine = r.name === (S.name || '').trim();
+      return '<div class="lbrow' + (mine ? ' you' : '') + '">' +
+        '<span class="rank">' + (i + 1) + '</span>' +
+        '<span class="who">' + esc(r.name) + '</span>' +
+        '<span class="amt">' + fmt(r.amount) + '/mo</span></div>';
+    }).join('') + (shared ? '' : '<p class="mini" style="margin-top:10px">This device only. Connect the Worker to share it.</p>');
+  };
+  if (LB_URL) {
+    fetch(LB_URL + '/top?period=' + lbPeriod + '&key=' + encodeURIComponent(periodKey(lbPeriod)))
+      .then(function(r){ return r.json(); })
+      .then(function(j){ draw(j.rows || [], true); })
+      .catch(function(){ draw(readLocal(lbPeriod), false); });
+  } else {
+    draw(readLocal(lbPeriod), false);
+  }
+}
 
 function renderStats(){
   document.getElementById('stHands').textContent = S.hands;
-  document.getElementById('stClose').textContent = S.hands ? Math.round(S.wins / S.hands * 100) + '%' : '—';
-  document.getElementById('stBust').textContent = S.busts;
-  document.getElementById('stAvg').textContent = S.hands ? fmt(S.totalConc / S.hands) : '—';
-  document.getElementById('stLeft').textContent = fmt(S.left);
-  document.getElementById('stBest').textContent = S.best ? fmt(S.best.amt) + ' on ' + S.best.total : '—';
+  document.getElementById('stWon').textContent = S.won;
+  document.getElementById('stBust').textContent = S.bust;
+  document.getElementById('stAvg').textContent =
+    S.hands ? fmt(S.given / S.hands) + '/mo' : 'nothing yet';
+  document.getElementById('stLeft').textContent = fmt(S.left) + '/mo';
 }
 
 function renderRules(){
-  document.getElementById('ruleList').innerHTML = Object.keys(RULES).map(k => {
-    const r = RULES[k], got = S.unlocked.has(k);
-    return '<div class="rule' + (got ? '' : ' locked') + '"><b>' + (got ? r.t : 'Not met yet') + '</b>' +
-           '<p>' + (got ? r.d : 'Keep playing — this one unlocks when it decides a hand.') + '</p></div>';
-  }).join('');
+  var host = document.getElementById('ruleList'), html = '';
+  for (var k in RULES) {
+    var r = RULES[k], on = !!S.unlocked[k];
+    html += '<div class="rule' + (on ? '' : ' locked') + '">' +
+      '<h4>' + esc(on ? r.t : 'Not yet met') + '</h4>' +
+      '<p>' + esc(on ? r.d : 'This one turns solid the first time it decides a deal.') + '</p></div>';
+  }
+  host.innerHTML = html;
 }
 
 function renderLog(){
-  const el = document.getElementById('logList');
-  if (!S.log.length) { el.innerHTML = '<div class="mini">No hands yet.</div>'; return; }
-  el.innerHTML = S.log.slice(0, 40).map(h =>
-    '<div class="log"><b>' + h.b.a.n + '</b> · ' + h.b.term + ' yr · ' + h.b.users + ' seats — ' +
-    (h.kind === 'win' ? 'closed' : h.kind === 'bust' ? 'busted' : h.kind === 'push' ? 'stalled' : 'lost') +
-    ' on ' + h.p + (h.delta ? ' · ' + (h.delta > 0 ? '+' : '') + fmt(h.delta) : '') +
-    '<span class="why">' + h.why + '</span></div>').join('');
+  var host = document.getElementById('logList');
+  if (!S.log.length) { host.innerHTML = '<p class="mini">Nothing yet.</p>'; return; }
+  host.innerHTML = S.log.slice(0, 40).map(function(l){
+    var up = l.delta > 0;
+    return '<div class="logrow"><div class="top"><span>' + esc(l.who) + '</span>' +
+      '<span class="amt ' + (up ? 'up' : l.delta < 0 ? 'down' : '') + '">' +
+      (up ? '+' : '') + fmt(l.delta) + '/mo</span></div>' +
+      '<div class="note">' + esc(l.why) + '</div></div>';
+  }).join('');
 }
 
-// ═════════════════════════════════════════════════════════════════════════
-// STRATEGY — simulated, not memorised. For each (your total, their tell) it
-// plays out both actions many times and keeps whichever banks more MRR.
-// ═════════════════════════════════════════════════════════════════════════
-// The point pool this table is actually dealing. These are not playing cards:
-// the values run 2-11 (to 12 with rule breaks unpenalised) and there is never
-// a ten or an ace, so a textbook deck would model the wrong game. Measure the
-// real pool under whatever levers are set, then solve against that.
-function pointDistribution(decks){
-  const h = {}; let n = 0;
-  for (let i = 0; i < decks; i++) {
-    const d = buildDeck(dealBrief());
-    for (let k = 0; k < d.length; k++) {
-      const c = drawCard(d);
-      if (!c) break;
-      h[c.pts] = (h[c.pts] || 0) + 1; n++;
-    }
-  }
-  return Object.keys(h).map(Number).sort((a, b) => a - b).map(v => [v, h[v] / n]);
-}
-
-// Exactly where the customer lands from a given tell — every branch, weighted.
-function customerOutcomes(up, stop, dist){
-  const memo = new Map();
-  function rec(t){
-    if (t > 21) return {bust: 1};
-    if (t >= stop) return {[t]: 1};
-    if (memo.has(t)) return memo.get(t);
-    const out = {};
-    for (const [v, p] of dist) {
-      const sub = rec(t + v);
-      for (const k in sub) out[k] = (out[k] || 0) + p * sub[k];
-    }
-    memo.set(t, out);
-    return out;
-  }
-  return rec(up);
-}
-
-function simulate(){
-  const stop  = dealerStandsOn();
-  const bonus = +document.getElementById('setBonus').value / 100;
-  const mult  = t => Math.max(1, 1 + (21 - t) * bonus);
-  const dist  = pointDistribution(+document.getElementById('setSim').value);
-  const cols  = dist.map(d => d[0]);
-
-  // Backward induction from 21 down. Nothing is sampled here, so nothing is
-  // noisy: every cell is the exact expectation under the pool above.
-  const act = {};
-  for (const up of cols) {
-    const od = customerOutcomes(up, stop, dist);
-    const ev = {}; act[up] = {};
-    for (let t = 21; t >= 4; t--) {
-      let s = 0;
-      for (const k in od) {
-        const p = od[k];
-        if (k === 'bust') s += p;               // they broke: pays flat
-        else if (t > +k)  s += p * mult(t);     // you beat them: pays the premium
-        else if (t < +k)  s -= p;
-      }
-      let h = -Infinity;
-      if (t < 21) {
-        h = 0;
-        for (const [v, pv] of dist) { const nt = t + v; h += pv * (nt > 21 ? -1 : ev[nt]); }
-      }
-      // Ties go to conceding: standing low never beats a card that can still help.
-      act[up][t] = (t >= 21 || s > h + 1e-12) ? 'S' : 'H';
-      ev[t] = h === -Infinity ? s : Math.max(s, h);
-    }
-  }
-
-  let html = '<table class="chart"><tr><th></th>';
-  for (const up of cols) html += '<th>' + up + '</th>';
-  html += '</tr>';
-  for (let t = 4; t <= 20; t++) {
-    html += '<tr><th>' + t + '</th>';
-    for (const up of cols) { const a = act[up][t]; html += '<td class="' + a + '">' + a + '</td>'; }
-    html += '</tr>';
-  }
-  html += '</table>';
-  document.getElementById('chartWrap').innerHTML = html;
-}
-
-// ═════════════════════════════════════════════════════════════════════════
-// PERSISTENCE + WIRING
-// ═════════════════════════════════════════════════════════════════════════
-const KEY = 'odooLearnTable';
+var KEY = 'odooTableSave';
 function save(){
   try {
     localStorage.setItem(KEY, JSON.stringify({
-      bank:S.bank, hands:S.hands, wins:S.wins, busts:S.busts,
-      totalConc:S.totalConc, left:S.left, best:S.best,
-      unlocked:[...S.unlocked]
+      bank:S.bank, hands:S.hands, won:S.won, bust:S.bust,
+      given:S.given, left:S.left, unlocked:S.unlocked, name:S.name
     }));
   } catch (e) {}
 }
 function load(){
   try {
-    const v = JSON.parse(localStorage.getItem(KEY) || 'null');
+    var v = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (!v) return;
-    Object.assign(S, {bank:v.bank||0, hands:v.hands||0, wins:v.wins||0, busts:v.busts||0,
-      totalConc:v.totalConc||0, left:v.left||0, best:v.best||null});
-    (v.unlocked||[]).forEach(k => S.unlocked.add(k));
+    S.bank = v.bank || 0; S.hands = v.hands || 0; S.won = v.won || 0;
+    S.bust = v.bust || 0; S.given = v.given || 0; S.left = v.left || 0;
+    S.unlocked = v.unlocked || {}; S.name = v.name || '';
   } catch (e) {}
 }
 
-[[250,'c1'],[500,'c2'],[1000,'c3'],[2500,'c4']].forEach(([amt, cls], i) => {
-  const b = document.createElement('button');
-  b.className = 'chip ' + cls + (i === 0 ? ' sel' : '');
-  b.textContent = amt >= 1000 ? (amt/1000) + 'k' : amt;
-  b.onclick = () => {
+// ---- wiring ----
+[[250,'c1'],[500,'c2'],[1000,'c3'],[2500,'c4']].forEach(function(pair, i){
+  var amt = pair[0];
+  var b = document.createElement('button');
+  b.className = 'chip ' + pair[1] + (i === 0 ? ' sel' : '');
+  b.textContent = amt >= 1000 ? (amt / 1000) + 'k' : amt;
+  b.onclick = function(){
     if (S.live) return;
     S.stake = amt;
-    [...document.querySelectorAll('.chip')].forEach(c => c.classList.remove('sel'));
+    var all = document.querySelectorAll('.chip');
+    for (var j = 0; j < all.length; j++) all[j].classList.remove('sel');
     b.classList.add('sel');
-    setMsg(amt >= 500 ? 'Bigger cheque, harder room. Deal when ready.' : 'Stake set. Deal when ready.', '');
+    setMsg(amt >= 500 ? 'Bigger wager, tougher room. Deal when ready.' : 'Wager set. Deal when ready.', '');
   };
   document.getElementById('chips').appendChild(b);
 });
 
 document.getElementById('btnDeal').onclick = deal;
-document.getElementById('btnHit').onclick = hit;
-document.getElementById('btnStand').onclick = stand;
-document.getElementById('btnReshuffle').onclick = () => { newShoe(); render(); };
-document.getElementById('btnWipe').onclick = () => {
-  if (!confirm('Reset the session? Bankroll, stats and unlocked rules all go back to zero.')) return;
+document.getElementById('btnHit').onclick = giveIn;
+document.getElementById('btnCounter').onclick = counter;
+document.getElementById('btnStand').onclick = close;
+document.getElementById('btnPanel').onclick = function(){ document.body.classList.toggle('panel-open'); };
+document.getElementById('btnHow').onclick = function(){
+  setMsg('How it works', '');
+  setWhy('Every customer is worth a monthly amount. They open by asking for something. Give in and they move a long way toward signing but it costs you. Counter and they move less but it costs you far less. Close before you pass 21 and you keep what you did not give away. Pass 21 and the deal is gone. The bonus for closing early is only paid when you actually beat them.');
+};
+document.getElementById('btnWipe').onclick = function(){
+  if (!confirm('Clear your banked revenue and history on this device?')) return;
   try { localStorage.removeItem(KEY); } catch (e) {}
   location.reload();
 };
-document.getElementById('btnRules').onclick = () => { selectPane('rules'); document.body.classList.add('panel-open'); }; document.getElementById('btnPanel').onclick = () => document.body.classList.toggle('panel-open');
-document.getElementById('btnSim').onclick = simulate;
-
-[...document.querySelectorAll('.tab')].forEach(t => {
-  t.onclick = () => selectPane(t.dataset.pane);
-});
-function selectPane(name){
-  [...document.querySelectorAll('.tab')].forEach(t => t.classList.toggle('on', t.dataset.pane === name));
-  [...document.querySelectorAll('.pane')].forEach(p => p.classList.toggle('on', p.id === 'pane-' + name));
-}
-
-document.getElementById('setShoe').oninput = e => {
-  document.getElementById('valShoe').textContent = e.target.value;
+document.getElementById('setDiff').onchange = function(){};
+document.getElementById('playerName').oninput = function(e){
+  S.name = e.target.value; save(); renderBoard();
 };
-document.getElementById('setBonus').oninput = e => {
-  document.getElementById('valBonus').textContent = (e.target.value/100).toFixed(2) + '×';
-  render();
-};
-document.getElementById('setSim').oninput = e => {
-  document.getElementById('valSim').textContent = e.target.value;
-};
-['setDiff','setStrict','lvLic','lvImpl','lvTerm','lvHost','lvScope'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.addEventListener('change', simulate);
-});
 
-document.addEventListener('keydown', e => {
+var tabs = document.querySelectorAll('.tab');
+for (var i = 0; i < tabs.length; i++) (function(t){
+  t.onclick = function(){
+    var all = document.querySelectorAll('.tab');
+    for (var j = 0; j < all.length; j++) all[j].classList.toggle('on', all[j] === t);
+    var panes = document.querySelectorAll('.pane');
+    for (var k = 0; k < panes.length; k++)
+      panes[k].classList.toggle('on', panes[k].id === 'pane-' + t.dataset.pane);
+  };
+})(tabs[i]);
+
+var lbt = document.querySelectorAll('.lbtab');
+for (var i2 = 0; i2 < lbt.length; i2++) (function(t){
+  t.onclick = function(){
+    var all = document.querySelectorAll('.lbtab');
+    for (var j = 0; j < all.length; j++) all[j].classList.toggle('on', all[j] === t);
+    lbPeriod = t.dataset.period; renderBoard();
+  };
+})(lbt[i2]);
+
+document.addEventListener('keydown', function(e){
   if (e.key === '1') takeOffer(0);
   if (e.key === '2') takeOffer(1);
   if (e.key === '3') takeOffer(2);
-  if (e.key === 's' || e.key === 'S') stand();
-  if (e.key === 'd' || e.key === 'D' || e.key === 'Enter') { if (!S.live) deal(); }
+  if (e.key === 'g' || e.key === 'G') giveIn();
+  if (e.key === 'c' || e.key === 'C') counter();
+  if (e.key === 'x' || e.key === 'X') close();
+  if (e.key === 'Enter') { if (!S.live) deal(); }
 });
 
 load();
-newShoe();
-render(); renderStats(); renderRules(); renderLog(); simulate();
-setMsg('Set your stake and deal.', '');
+document.getElementById('playerName').value = S.name || '';
+render(); renderStats(); renderRules(); renderLog(); renderBoard();
 </script>
