@@ -316,8 +316,8 @@ button{font-family:inherit;cursor:pointer;}
       <div class="sec">
         <div class="sec-h">Payout</div>
         <div class="fld"><label>Restraint bonus<div class="hint">Extra multiplier per point under 21</div></label>
-          <input type="range" id="setBonus" min="0" max="100" step="5" value="50">
-          <span class="val" id="valBonus">0.50×</span></div>
+          <input type="range" id="setBonus" min="0" max="100" step="5" value="5">
+          <span class="val" id="valBonus">0.05×</span></div>
         <div class="fld"><label>Penalise rule breaks<div class="hint">Off-schedule cards count double</div></label>
           <input type="checkbox" id="setStrict" checked></div>
       </div>
@@ -762,44 +762,73 @@ function renderLog(){
 // STRATEGY — simulated, not memorised. For each (your total, their tell) it
 // plays out both actions many times and keeps whichever banks more MRR.
 // ═════════════════════════════════════════════════════════════════════════
+// A rank off a real deck: 2-9 at 1/13 apiece, the ten-values at 4/13, ace at 1/13.
+function simDraw(){
+  const r = Math.floor(rng() * 13);
+  return r < 8 ? r + 2 : (r < 12 ? 10 : 11);
+}
+
+// The customer plays their hand out from the tell, soft aces and all.
+function simCustomer(up, stop){
+  let d = up, soft = up === 11 ? 1 : 0;
+  while (d < stop) {
+    const c = simDraw();
+    d += c; if (c === 11) soft++;
+    while (d > 21 && soft > 0) { d -= 10; soft--; }
+  }
+  return d;
+}
+
 function simulate(){
   const n = +document.getElementById('setSim').value;
   const stop = dealerStandsOn();
   const bonus = +document.getElementById('setBonus').value / 100;
   const mult = t => Math.max(1, 1 + (21 - t) * bonus);
-  const rows = [];
   const keep = rng; rng = mulberry32(12345);
 
-  for (let mine = 8; mine <= 20; mine++) {
-    const row = [];
-    for (let up = 2; up <= 11; up++) {
-      let standEv = 0, hitEv = 0;
+  // Work down from 21 so that conceding can look up what every total it might
+  // land on is actually worth. That is the difference between this and a chart
+  // that only ever weighs one more card: from 8 you would of course concede
+  // again, and again, and a single-card comparison never lets you.
+  const ev = {}, act = {};
+  for (let mine = 21; mine >= 8; mine--) {
+    ev[mine] = []; act[mine] = [];
+    for (let ui = 0; ui < 10; ui++) {
+      const up = ui + 2;
+
+      let sEv = 0;
       for (let i = 0; i < n; i++) {
-        // Stand: play the customer out from their tell.
-        let d = up + 2 + Math.floor(rng() * 9);
-        while (d < stop) d += 2 + Math.floor(rng() * 9);
-        standEv += (d > 21 || mine > d) ? mult(mine) : (mine === d ? 0 : -1);
-        // Concede once, then close.
-        const t = mine + 2 + Math.floor(rng() * 9);
-        if (t > 21) { hitEv += -1; continue; }
-        let d2 = up + 2 + Math.floor(rng() * 9);
-        while (d2 < stop) d2 += 2 + Math.floor(rng() * 9);
-        hitEv += (d2 > 21 || t > d2) ? mult(t) : (t === d2 ? 0 : -1);
+        const d = simCustomer(up, stop);
+        sEv += (d > 21 || mine > d) ? mult(mine) : (mine === d ? 0 : -1);
       }
-      row.push(standEv >= hitEv ? 'S' : 'H');
+      sEv /= n;
+
+      let hEv = -Infinity;
+      if (mine < 21) {
+        let acc = 0;
+        for (let i = 0; i < n; i++) {
+          let c = simDraw();
+          if (c === 11 && mine + 11 > 21) c = 1;   // the ace comes in low
+          const t = mine + c;
+          acc += t > 21 ? -1 : ev[t][ui];
+        }
+        hEv = acc / n;
+      }
+
+      act[mine][ui] = sEv >= hEv ? 'S' : 'H';
+      ev[mine][ui]  = Math.max(sEv, hEv);
     }
-    rows.push({mine, row});
   }
   rng = keep;
 
   let html = '<table class="chart"><tr><th></th>';
   for (let up = 2; up <= 11; up++) html += '<th>' + (up === 11 ? 'A' : up) + '</th>';
   html += '</tr>';
-  rows.forEach(r => {
-    html += '<tr><th>' + r.mine + '</th>';
-    r.row.forEach(a => { html += '<td class="' + a + '">' + a + '</td>'; });
+  for (let mine = 8; mine <= 20; mine++) {
+    html += '<tr><th>' + mine + '</th>';
+    act[mine].forEach(a => { html += '<td class="' + a + '">' + a + '</td>'; });
     html += '</tr>';
-  });
+  }
   html += '</table>';
   document.getElementById('chartWrap').innerHTML = html;
 }
