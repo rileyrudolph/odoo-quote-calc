@@ -315,9 +315,9 @@ button{font-family:inherit;cursor:pointer;}
 
       <div class="sec">
         <div class="sec-h">Payout</div>
-        <div class="fld"><label>Restraint bonus<div class="hint">Extra multiplier per point under 21</div></label>
-          <input type="range" id="setBonus" min="0" max="100" step="5" value="5">
-          <span class="val" id="valBonus">0.05×</span></div>
+        <div class="fld"><label>Restraint bonus<div class="hint">Per point under 21, on hands you win outright</div></label>
+          <input type="range" id="setBonus" min="0" max="100" step="5" value="25">
+          <span class="val" id="valBonus">0.25×</span></div>
         <div class="fld"><label>Penalise rule breaks<div class="hint">Off-schedule cards count double</div></label>
           <input type="checkbox" id="setStrict" checked></div>
       </div>
@@ -349,13 +349,13 @@ button{font-family:inherit;cursor:pointer;}
         <div class="sec-h">Reading it</div>
         <p class="mini">The chart maximises <em>banked MRR</em>, not close rate. That is why it tells you to close
         earlier than a blackjack chart would: every card you take is money off the invoice, and closing on 17
-        pays a premium that closing on 20 does not. A slightly worse chance at a materially larger cheque is
-        often the better play. This is the whole argument for
+        pays a premium that closing on 20 does not. That premium is only paid when you beat them outright — a
+        customer who breaks himself pays flat, because you did not close that one. This is the whole argument for
         holding your discount, in one grid.</p>
       </div>
       <div class="sec">
         <div class="sec-h">Simulation</div>
-        <div class="fld"><label>Hands per cell</label>
+        <div class="fld"><label>Deck sample size</label>
           <input type="range" id="setSim" min="200" max="4000" step="200" value="1200">
           <span class="val" id="valSim">1200</span></div>
         <button class="tbtn" id="btnSim">Recompute</button>
@@ -610,12 +610,12 @@ function stand(){
   const stop = dealerStandsOn();
   while (total(S.dealer) < stop) S.dealer.push(drawCard(S.deck));
   const p = total(S.player), d = total(S.dealer);
-  if (d > 21 || p > d) settle('win');
+  if (d > 21 || p > d) settle('win', d > 21);
   else if (p === d) settle('push');
   else settle('lose');
 }
 
-function settle(kind){
+function settle(kind, byBust){
   S.live = false;
   const p = total(S.player);
   const conceded = S.player.reduce((n, c) => n + c.cost, 0);
@@ -625,9 +625,14 @@ function settle(kind){
   let delta = 0, cls = '', text = '';
 
   if (kind === 'win') {
-    delta = Math.round(gross * mult * (S.stake / 250));
+    // The premium is for out-negotiating them. A customer who talks himself out
+    // of the deal pays flat: you did not close that one, you only survived it.
+    const eff = byBust ? 1 : mult;
+    delta = Math.round(gross * eff * (S.stake / 250));
     cls = 'win';
-    text = 'Signed. ' + fmt(delta) + ' at ' + mult.toFixed(2) + '× for closing on ' + p + ' — ' + fmt(gross) + ' MRR on a ' + fmt(S.stake) + ' stake.';
+    text = byBust
+      ? 'Signed — but they broke themselves, so it pays flat at 1.00×. ' + fmt(delta) + ' banked.'
+      : 'Signed. ' + fmt(delta) + ' at ' + eff.toFixed(2) + '× for closing on ' + p + ' — ' + fmt(gross) + ' MRR on a ' + fmt(S.stake) + ' stake.';
     S.wins++;
     if (!S.best || delta > S.best.amt) S.best = {amt:delta, total:p};
   } else if (kind === 'push') {
@@ -707,7 +712,7 @@ function render(){
   document.getElementById('dealerTotal').textContent =
     S.dealer.length ? (S.live ? S.dealer[0].pts + ' + ?' : total(S.dealer)) : '—';
   document.getElementById('payout').textContent =
-    S.player.length ? multiplier(p).toFixed(2) + '× if you close' : '—';
+    S.player.length ? multiplier(p).toFixed(2) + '× if you beat them' : '—';
   document.getElementById('bank').textContent = fmt(S.bank);
 
   const b = S.brief;
@@ -763,71 +768,79 @@ function renderLog(){
 // STRATEGY — simulated, not memorised. For each (your total, their tell) it
 // plays out both actions many times and keeps whichever banks more MRR.
 // ═════════════════════════════════════════════════════════════════════════
-// A rank off a real deck: 2-9 at 1/13 apiece, the ten-values at 4/13, ace at 1/13.
-function simDraw(){
-  const r = Math.floor(rng() * 13);
-  return r < 8 ? r + 2 : (r < 12 ? 10 : 11);
+// The point pool this table is actually dealing. These are not playing cards:
+// the values run 2-11 (to 12 with rule breaks unpenalised) and there is never
+// a ten or an ace, so a textbook deck would model the wrong game. Measure the
+// real pool under whatever levers are set, then solve against that.
+function pointDistribution(decks){
+  const h = {}; let n = 0;
+  for (let i = 0; i < decks; i++) {
+    const d = buildDeck(dealBrief());
+    for (let k = 0; k < d.length; k++) {
+      const c = drawCard(d);
+      if (!c) break;
+      h[c.pts] = (h[c.pts] || 0) + 1; n++;
+    }
+  }
+  return Object.keys(h).map(Number).sort((a, b) => a - b).map(v => [v, h[v] / n]);
 }
 
-// The customer plays their hand out from the tell, soft aces and all.
-function simCustomer(up, stop){
-  let d = up, soft = up === 11 ? 1 : 0;
-  while (d < stop) {
-    const c = simDraw();
-    d += c; if (c === 11) soft++;
-    while (d > 21 && soft > 0) { d -= 10; soft--; }
+// Exactly where the customer lands from a given tell — every branch, weighted.
+function customerOutcomes(up, stop, dist){
+  const memo = new Map();
+  function rec(t){
+    if (t > 21) return {bust: 1};
+    if (t >= stop) return {[t]: 1};
+    if (memo.has(t)) return memo.get(t);
+    const out = {};
+    for (const [v, p] of dist) {
+      const sub = rec(t + v);
+      for (const k in sub) out[k] = (out[k] || 0) + p * sub[k];
+    }
+    memo.set(t, out);
+    return out;
   }
-  return d;
+  return rec(up);
 }
 
 function simulate(){
-  const n = +document.getElementById('setSim').value;
-  const stop = dealerStandsOn();
+  const stop  = dealerStandsOn();
   const bonus = +document.getElementById('setBonus').value / 100;
-  const mult = t => Math.max(1, 1 + (21 - t) * bonus);
-  const keep = rng; rng = mulberry32(12345);
+  const mult  = t => Math.max(1, 1 + (21 - t) * bonus);
+  const dist  = pointDistribution(+document.getElementById('setSim').value);
+  const cols  = dist.map(d => d[0]);
 
-  // Work down from 21 so that conceding can look up what every total it might
-  // land on is actually worth. That is the difference between this and a chart
-  // that only ever weighs one more card: from 8 you would of course concede
-  // again, and again, and a single-card comparison never lets you.
-  const ev = {}, act = {};
-  for (let mine = 21; mine >= 8; mine--) {
-    ev[mine] = []; act[mine] = [];
-    for (let ui = 0; ui < 10; ui++) {
-      const up = ui + 2;
-
-      let sEv = 0;
-      for (let i = 0; i < n; i++) {
-        const d = simCustomer(up, stop);
-        sEv += (d > 21 || mine > d) ? mult(mine) : (mine === d ? 0 : -1);
+  // Backward induction from 21 down. Nothing is sampled here, so nothing is
+  // noisy: every cell is the exact expectation under the pool above.
+  const act = {};
+  for (const up of cols) {
+    const od = customerOutcomes(up, stop, dist);
+    const ev = {}; act[up] = {};
+    for (let t = 21; t >= 4; t--) {
+      let s = 0;
+      for (const k in od) {
+        const p = od[k];
+        if (k === 'bust') s += p;               // they broke: pays flat
+        else if (t > +k)  s += p * mult(t);     // you beat them: pays the premium
+        else if (t < +k)  s -= p;
       }
-      sEv /= n;
-
-      let hEv = -Infinity;
-      if (mine < 21) {
-        let acc = 0;
-        for (let i = 0; i < n; i++) {
-          let c = simDraw();
-          if (c === 11 && mine + 11 > 21) c = 1;   // the ace comes in low
-          const t = mine + c;
-          acc += t > 21 ? -1 : ev[t][ui];
-        }
-        hEv = acc / n;
+      let h = -Infinity;
+      if (t < 21) {
+        h = 0;
+        for (const [v, pv] of dist) { const nt = t + v; h += pv * (nt > 21 ? -1 : ev[nt]); }
       }
-
-      act[mine][ui] = sEv >= hEv ? 'S' : 'H';
-      ev[mine][ui]  = Math.max(sEv, hEv);
+      // Ties go to conceding: standing low never beats a card that can still help.
+      act[up][t] = (t >= 21 || s > h + 1e-12) ? 'S' : 'H';
+      ev[t] = h === -Infinity ? s : Math.max(s, h);
     }
   }
-  rng = keep;
 
   let html = '<table class="chart"><tr><th></th>';
-  for (let up = 2; up <= 11; up++) html += '<th>' + (up === 11 ? 'A' : up) + '</th>';
+  for (const up of cols) html += '<th>' + up + '</th>';
   html += '</tr>';
-  for (let mine = 8; mine <= 20; mine++) {
-    html += '<tr><th>' + mine + '</th>';
-    act[mine].forEach(a => { html += '<td class="' + a + '">' + a + '</td>'; });
+  for (let t = 4; t <= 20; t++) {
+    html += '<tr><th>' + t + '</th>';
+    for (const up of cols) { const a = act[up][t]; html += '<td class="' + a + '">' + a + '</td>'; }
     html += '</tr>';
   }
   html += '</table>';
@@ -900,7 +913,10 @@ document.getElementById('setBonus').oninput = e => {
 document.getElementById('setSim').oninput = e => {
   document.getElementById('valSim').textContent = e.target.value;
 };
-document.getElementById('setDiff').onchange = simulate;
+['setDiff','setStrict','lvLic','lvImpl','lvTerm','lvHost','lvScope'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', simulate);
+});
 
 document.addEventListener('keydown', e => {
   if (e.key === 'h' || e.key === 'H') hit();
