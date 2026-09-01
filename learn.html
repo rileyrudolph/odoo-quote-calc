@@ -73,12 +73,12 @@ body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b1319;color:#e
 
 .hand{display:flex;justify-content:center;gap:8px;min-height:96px;align-items:flex-start;
   flex-wrap:wrap;padding:4px 0;}
-.pc{width:92px;min-height:92px;background:var(--card);border-radius:9px;color:var(--ink);
+.pc{width:116px;min-height:96px;background:var(--card);border-radius:9px;color:var(--ink);
   box-shadow:0 8px 18px rgba(0,0,0,.42);padding:7px 8px;display:flex;flex-direction:column;
   position:relative;animation:deal .3s cubic-bezier(.2,.9,.3,1.2) both;}
 @keyframes deal{from{opacity:0;transform:translateY(-40px) scale(.86);}to{opacity:1;transform:none;}}
 .pc .rank{font-size:1.02rem;font-weight:800;line-height:1.05;}
-.pc .lever{font-size:.6rem;color:#3c4a57;line-height:1.25;margin-top:5px;}
+.pc .lever{font-size:.58rem;color:#3c4a57;line-height:1.25;margin-top:5px;}
 .pc.back{background:repeating-linear-gradient(45deg,#8d2b25,#8d2b25 7px,#7a231e 7px,#7a231e 14px);
   border:2px solid var(--card);}
 .pc.breaks{outline:2px solid var(--red);}
@@ -113,6 +113,7 @@ body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b1319;color:#e
 .cc .pts{font-size:.72rem;font-weight:800;}
 .cc .mo{font-size:.72rem;font-weight:700;color:var(--red);}
 .cc .mo.gain{color:#2f6b46;}
+.cc .tenor{font-size:.55rem;letter-spacing:.05em;text-transform:uppercase;color:#8b98a6;margin-top:5px;font-weight:700;}
 .cc .per{font-size:.57rem;color:var(--sub);margin-top:3px;}
 .cc .warn{margin-top:4px;font-size:.56rem;color:var(--red);font-weight:700;line-height:1.25;}
 
@@ -205,7 +206,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
       <div class="ask" id="ask"></div>
 
       <div class="seat">
-        <div class="seat-label">What they have signalled
+        <div class="seat-label">What is holding them back
           <span class="pill" id="themTotal">nothing yet</span>
         </div>
         <div class="hand" id="themHand"></div>
@@ -318,8 +319,8 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
 // per month, and every number in the game is derived from them.
 // ===================================================================
 var LIC = {
-  standard: { y1:24.90, y2:31.10, monthly:38.90, name:'Standard' },
-  custom:   { y1:49.00, y2:61.00, monthly:76.20, name:'Custom'   }
+  standard: { y1:24.90, y2:31.10, moY1:31.10, mo:38.90, name:'Standard' },
+  custom:   { y1:49.00, y2:61.00, moY1:61.10, mo:76.20, name:'Custom'   }
 };
 // A multi year commitment earns a licence discount, and the ceiling
 // depends on the length of the term. It only ever reaches Year 2 on.
@@ -419,7 +420,7 @@ function dealBrief(){
 // What the deal is worth before you concede anything.
 function value(b){
   var r = LIC[b.plan];
-  var licMo  = (b.billing === 'monthly' ? r.monthly : r.y1) * b.users;
+  var licMo  = (b.billing === 'monthly' ? r.moY1 : r.y1) * b.users;
   var shMo   = b.sh ? (SH_WORKER + SH_STAGING) : 0;
   var implMo = b.pack.hours * b.pack.rate / (b.term * 12);
   return {
@@ -453,7 +454,7 @@ function concessions(b){
     var years = Math.max(0, b.term - 1);
     var mo = years > 0
       ? r.y2 * b.users * (p / 100) * years / b.term
-      : (b.billing === 'monthly' ? r.monthly : r.y1) * b.users * (p / 100);
+      : (b.billing === 'monthly' ? r.moY1 : r.y1) * b.users * (p / 100);
     var breaks = null;
     if (b.term === 1) breaks = 'oneYear';
     else if (p > ceiling) breaks = 'ceiling';
@@ -515,8 +516,8 @@ function concessions(b){
   if (b.billing === 'monthly') {
     out.push({ kind:'term', tag:'Commitment', head:'Go annual',
       body:'Ask them to commit for a year instead of paying monthly',
-      pts:3, mo: -((r.monthly - r.y1) * b.users), breaks:null,
-      note:'Month to month costs them ' + fmt2(r.monthly) + ' a seat against ' + fmt2(r.y1) + ' committed' });
+      pts:3, mo: -((r.moY1 - r.y1) * b.users), breaks:null,
+      note:'Month to month is ' + fmt2(r.moY1) + ' a seat against ' + fmt2(r.y1) + ' on a commitment' });
   }
 
   if (!out.length) out.push({ kind:'good', tag:'Goodwill', head:'A promise',
@@ -603,9 +604,25 @@ function harden(c){
 
 // The customer signals their position one card at a time, the same way a
 // dealer shows an up card. These are their expectations, not your costs.
+var OBJECTIONS = [
+  { pts:2, body:'Wants the quote in writing' },
+  { pts:2, body:'Asks who else in their industry uses it' },
+  { pts:3, body:'Wants to see it working first' },
+  { pts:3, body:'Has questions about data migration' },
+  { pts:4, body:'Worried about the go live date' },
+  { pts:4, body:'Someone above them has to sign' },
+  { pts:5, body:'Has a competing quote on the desk' },
+  { pts:5, body:'Budget was set last quarter' },
+  { pts:6, body:'Burned by their last rollout' },
+  { pts:6, body:'Finance wants the number lower' },
+  { pts:7, body:'Still under contract elsewhere' },
+  { pts:7, body:'Procurement runs a formal process' },
+  { pts:8, body:'Not convinced it beats what they have' },
+  { pts:9, body:'Thinks the whole thing is too expensive' }
+];
 function signal(b){
-  var n = between(2, 9);
-  return { pts:n, tag:'Expectation', head:n + '', body:'Ground they will not give up' };
+  var o = pick(OBJECTIONS);
+  return { pts:o.pts, tag:'Objection', head:o.pts + '', body:o.body };
 }
 
 function deal(){
@@ -812,6 +829,9 @@ function offerCard(c, i){
     '<div class="kind">' + esc(c.tag) + '</div>' +
     '<div class="head">' + esc(c.head) + '</div>' +
     '<div class="body">' + esc(c.body) + '</div>' +
+    '<div class="tenor">' + (c.mo < 0 ? 'they pay this every month'
+      : c.kind === 'lic' || c.kind === 'host' ? 'costs you every month'
+      : 'one off, spread across the term') + '</div>' +
     '<div class="split"><span class="pts">+' + c.pts + ' goodwill</span>' +
       '<span class="mo' + (c.mo < 0 ? ' gain' : '') + '">' +
       (c.mo < 0 ? '+' + fmt(-c.mo) : fmt(c.mo)) + '/mo</span></div>' +
@@ -847,7 +867,7 @@ function render(){
   var th = document.getElementById('themHand'); th.innerHTML = '';
   S.them.forEach(function(c, i){ th.appendChild(themCard(c, S.live && i > 0)); });
   document.getElementById('themTotal').textContent =
-    S.them.length ? (S.live ? 'showing ' + S.them[0].pts : 'settled at ' + total(S.them)) : 'nothing yet';
+    S.them.length ? (S.live ? 'you can see one of them' : 'they held out for ' + total(S.them)) : 'nothing yet';
 
   var yh = document.getElementById('youHand'); yh.innerHTML = '';
   S.you.forEach(function(c){ yh.appendChild(givenChip(c)); });
