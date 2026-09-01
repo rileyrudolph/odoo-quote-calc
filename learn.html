@@ -224,7 +224,7 @@ button{font-family:inherit;cursor:pointer;}
 .legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:-1px;}
 
 .mini{font-size:.66rem;color:var(--faint);line-height:1.55;}
-@media (max-width:1000px){ .panel{display:none;} }
+#btnPanel{display:none;} @media (max-width:1000px){ .panel{position:fixed;top:0;right:0;bottom:0;width:min(392px,92vw);z-index:60;transform:translateX(100%);transition:transform .22s ease;box-shadow:-14px 0 40px rgba(0,0,0,.55);} body.panel-open .panel{transform:none;} #btnPanel{display:inline-block;} }
 </style>
 
 <div class="shell">
@@ -238,7 +238,7 @@ button{font-family:inherit;cursor:pointer;}
         </span>
       </a>
       <div class="top-spacer"></div>
-      <button class="tbtn" id="btnRules">House rules</button>
+      <button class="tbtn" id="btnPanel">Panel</button> <button class="tbtn" id="btnRules">House rules</button>
       <div class="bank">
         <span class="bank-label">Banked MRR</span>
         <span class="bank-amt" id="bank">$0</span>
@@ -525,7 +525,7 @@ function drawCard(deck){
   const c = Object.assign({}, pick(deck));
   const s = pick(SUITS);
   c.suit = s[0]; c.red = s[1];
-  if (c.viol && document.getElementById('setStrict').checked) c.pts *= 2;
+  if (c.viol && document.getElementById('setStrict').checked) c.pts = Math.min(11, c.pts * 2);
   return c;
 }
 
@@ -849,7 +849,7 @@ document.getElementById('btnWipe').onclick = () => {
   try { localStorage.removeItem(KEY); } catch (e) {}
   location.reload();
 };
-document.getElementById('btnRules').onclick = () => selectPane('rules');
+document.getElementById('btnRules').onclick = () => { selectPane('rules'); document.body.classList.add('panel-open'); }; document.getElementById('btnPanel').onclick = () => document.body.classList.toggle('panel-open');
 document.getElementById('btnSim').onclick = simulate;
 
 [...document.querySelectorAll('.tab')].forEach(t => {
