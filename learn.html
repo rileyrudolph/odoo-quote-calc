@@ -388,7 +388,14 @@ function dealBrief(){
   var a = pick(ACCOUNTS);
   var users = Math.max(1, pick(SEATS) + between(-2, 3));
   var plan = rng() < 0.45 ? 'custom' : 'standard';
-  var pack = pick(PACKS);
+  // Scope follows the size of the business. A three seat company does not
+  // buy a four hundred hour engagement, and a hundred seat rollout is not
+  // finished in twenty five hours.
+  var pack = pick(
+    users < 10  ? [PACKS[0], PACKS[1], PACKS[1], PACKS[2]] :
+    users < 30  ? [PACKS[0], PACKS[1], PACKS[2], PACKS[2], PACKS[3]] :
+    users < 60  ? [PACKS[1], PACKS[2], PACKS[3], PACKS[3], PACKS[4]] :
+                  [PACKS[2], PACKS[3], PACKS[4], PACKS[4], PACKS[5]]);
   var onSh = rng() < 0.45;
   // Paying month to month is the no commitment option, so such a customer
   // has no term at all. That is exactly why moving them is worth money.
