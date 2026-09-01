@@ -588,7 +588,7 @@ function deal(){
   if (!S.shoe.length) newShoe();
   S.brief = S.shoe.pop();
   S.deck = buildDeck(S.brief);
-  S.player = [drawCard(S.deck), drawCard(S.deck)];
+  S.player = [drawCard(S.deck), drawCard(S.deck)]; let g = 0; while (total(S.player) > 21 && g++ < 25) S.player = [drawCard(S.deck), drawCard(S.deck)];
   S.dealer = [drawCard(S.deck), drawCard(S.deck)];
   S.live = true;
   S.player.concat([S.dealer[0]]).forEach(c => unlock(c.rule));
