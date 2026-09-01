@@ -565,6 +565,7 @@ function makeAsk(b, pool){
 function harden(c){
   var copy = {};
   for (var k in c) copy[k] = c[k];
+  copy.realPts = copy.pts;   // the goodwill it genuinely buys
   if (copy.breaks && document.getElementById('setStrict').checked) {
     copy.pts = Math.min(11, copy.pts * 2);
     copy.doubled = true;
@@ -658,8 +659,9 @@ function takeOffer(i){
 function costLine(c){
   if (c.mo < 0) return 'That one earns you ' + fmt(-c.mo) + ' a month rather than costing you anything.';
   if (c.mo === 0) return 'That costs you nothing, which usually means it is worth nothing to them either.';
-  return 'That is ' + fmt(c.mo) + ' a month for ' + c.pts + ' points of goodwill, or ' +
-    fmt(c.mo / c.pts) + ' a month per point.' + (c.doubled ? ' It broke a rule, so it counted double against you.' : '');
+  var w = c.realPts || c.pts;
+  return 'That is ' + fmt(c.mo) + ' a month for ' + w + ' points of goodwill, or ' +
+    fmt(c.mo / w) + ' a month per point.' + (c.doubled ? ' It broke a rule, so it counted double against you.' : '');
 }
 
 function close(){
@@ -764,7 +766,10 @@ function givenChip(c){
 function offerCard(c, i){
   var d = document.createElement('div');
   d.className = 'cc' + (c.breaks ? ' breaks' : '');
-  var per = c.pts ? Math.abs(c.mo) / c.pts : 0;
+  // Price it against the goodwill it really buys. The doubling on a rule
+  // break is a penalty, so it must not make the card look efficient.
+  var worth = c.realPts || c.pts;
+  var per = worth ? Math.abs(c.mo) / worth : 0;
   d.innerHTML =
     '<div class="num">' + (i + 1) + '</div>' +
     '<div class="kind">' + esc(c.tag) + '</div>' +
