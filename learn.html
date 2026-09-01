@@ -541,7 +541,7 @@ var RULES = {
 
 var S = {
   bank:0, stake:250, brief:null, pool:null, you:[], them:[], offer:[],
-  live:false, stop:17, hands:0, won:0, bust:0, given:0, left:0,
+  live:false, stop:17, used:{}, hands:0, won:0, bust:0, given:0, left:0,
   unlocked:{}, log:[], name:''
 };
 
@@ -615,6 +615,7 @@ function deal(){
   S.stop  = rollStop(S.brief);
   S.ask   = makeAsk(S.brief, S.pool);
   S.you   = [];
+  S.used  = {};
   S.them  = [signal(S.brief), signal(S.brief)];
   S.offer = [];
   S.live  = true;
@@ -629,7 +630,8 @@ function giveIn(){
   if (!S.live) return;
   // Give them their ask. Sometimes you land a step either side of it while
   // haggling, but never something wildly different from what they wanted.
-  var sameKind = S.pool.filter(function(c){ return c.kind === S.ask.kind; });
+  var sameKind = S.pool.filter(function(c){ return c.kind === S.ask.kind && !S.used[c.body]; });
+  if (!sameKind.length) sameKind = S.pool.filter(function(c){ return !S.used[c.body]; });
   var at = 0;
   for (var i = 0; i < sameKind.length; i++) if (sameKind[i].body === S.ask.body) at = i;
   var drift = rng() < 0.62 ? 0 : (rng() < 0.5 ? -1 : 1);
@@ -639,6 +641,7 @@ function giveIn(){
   // equivalent alternative, so it buys more goodwill for the same money.
   c.pts = Math.max(c.pts + 1, Math.round(c.pts * 1.35));
   c.grantedAsk = true;
+  S.used[c.body] = 1;
   S.you.push(c); unlock(c.breaks); unlockFor(c);
   if (total(S.you) > 21) return settle('bust');
   S.offer = [];
@@ -651,9 +654,10 @@ function giveIn(){
 function counter(){
   if (!S.live) return;
   var askKind = S.ask.kind;
-  var legal = S.pool.filter(function(c){ return !c.breaks && c.kind !== askKind; });
-  if (legal.length < 3) legal = S.pool.filter(function(c){ return !c.breaks; });
-  if (legal.length < 3) legal = S.pool.slice();
+  var legal = S.pool.filter(function(c){ return !c.breaks && c.kind !== askKind && !S.used[c.body]; });
+  if (legal.length < 3) legal = S.pool.filter(function(c){ return !c.breaks && !S.used[c.body]; });
+  if (legal.length < 3) legal = S.pool.filter(function(c){ return !S.used[c.body]; });
+  if (!legal.length) legal = S.pool.slice();
   // Cheapest first by what a point of goodwill actually costs. A card that
   // earns you money sorts to the very front, which is the whole lesson.
   legal.sort(function(x, y){ return (x.mo / Math.max(1, x.pts)) - (y.mo / Math.max(1, y.pts)); });
@@ -668,7 +672,7 @@ function counter(){
     }
   }
   // Now and then the desk lets a tempting off schedule card onto the table.
-  var traps = S.pool.filter(function(c){ return c.breaks; });
+  var traps = S.pool.filter(function(c){ return c.breaks && !S.used[c.body]; });
   if (traps.length && out.length === 3 && rng() < 0.22) out[between(0, 2)] = harden(pick(traps));
   S.offer = out;
   render();
@@ -680,6 +684,7 @@ function takeOffer(i){
   if (!S.live || !S.offer.length) return;
   var c = S.offer[i];
   if (!c) return;
+  S.used[c.body] = 1;
   S.you.push(c); unlock(c.breaks); unlockFor(c);
   if (total(S.you) > 21) return settle('bust');
   S.offer = [];
