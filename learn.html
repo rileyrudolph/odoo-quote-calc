@@ -59,7 +59,7 @@ button{font-family:inherit;cursor:pointer;}
 
 /* ── Felt ──────────────────────────────────────────────────────────────── */
 .felt{
-  flex:1;min-height:0;position:relative;overflow:hidden;
+  flex:1;min-height:0;position:relative;overflow-y:auto;overflow-x:hidden;
   background:
     radial-gradient(ellipse 120% 90% at 50% 30%, var(--felt) 0%, var(--felt-2) 55%, var(--felt-edge) 100%);
   border-top:5px solid var(--rail);
@@ -89,12 +89,12 @@ button{font-family:inherit;cursor:pointer;}
 .pill.hot{background:var(--gold);color:#1a1206;border-color:var(--gold);font-weight:700;}
 .pill.bust{background:var(--lose);color:#fff;border-color:var(--lose);font-weight:700;}
 
-.hand{display:flex;justify-content:center;gap:9px;min-height:132px;align-items:flex-start;
+.hand{display:flex;justify-content:center;gap:9px;min-height:112px;align-items:flex-start;
   flex-wrap:wrap;padding:6px 0;}
 
 /* ── Cards ─────────────────────────────────────────────────────────────── */
 .pc{
-  width:96px;min-height:126px;background:var(--card);border-radius:9px;color:var(--ink);
+  width:96px;min-height:112px;background:var(--card);border-radius:9px;color:var(--ink);
   box-shadow:0 8px 18px rgba(0,0,0,.42), 0 1px 0 rgba(255,255,255,.6) inset;
   padding:7px 8px;display:flex;flex-direction:column;position:relative;
   animation:deal .32s cubic-bezier(.2,.9,.3,1.2) both;
@@ -226,14 +226,14 @@ button{font-family:inherit;cursor:pointer;}
 .mini{font-size:.66rem;color:var(--faint);line-height:1.55;}
 #btnPanel{display:none;} @media (max-width:1000px){ .panel{position:fixed;top:0;right:0;bottom:0;width:min(392px,92vw);z-index:60;transform:translateX(100%);transition:transform .22s ease;box-shadow:-14px 0 40px rgba(0,0,0,.55);} body.panel-open .panel{transform:none;} #btnPanel{display:inline-block;} }
 /* The three concessions on the table. Picking one is the whole game. */
-.offer{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px;}
-.oc{width:152px;background:var(--card);color:var(--ink);border-radius:8px;padding:10px 11px 9px;
+.offer{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;padding-bottom:16px;}
+.oc{width:142px;background:var(--card);color:var(--ink);border-radius:8px;padding:8px 10px 8px;
   text-align:left;border:2px solid transparent;cursor:pointer;position:relative;
   box-shadow:0 6px 16px rgba(0,0,0,.35);transition:transform .12s ease,border-color .12s ease;}
 .oc:hover{transform:translateY(-4px);border-color:var(--gold);}
 .oc .ok{font-size:.58rem;letter-spacing:.09em;text-transform:uppercase;color:var(--sub);font-weight:700;}
 .oc .orank{font-size:1.1rem;font-weight:800;line-height:1.1;margin-top:1px;}
-.oc .olev{font-size:.67rem;color:#3c4a57;line-height:1.3;margin-top:5px;min-height:2.6em;}
+.oc .olev{font-size:.66rem;color:#3c4a57;line-height:1.3;margin-top:4px;min-height:2.2em;}
 .oc .orow{display:flex;justify-content:space-between;align-items:baseline;margin-top:7px;
   border-top:1px dashed #c9d2da;padding-top:6px;}
 .oc .opts{font-size:.72rem;font-weight:800;color:#16202b;}
@@ -362,7 +362,7 @@ button{font-family:inherit;cursor:pointer;}
 
     <div class="pane" id="pane-strategy">
       <h3>Basic strategy</h3>
-      <p>Solved exactly against the table you have set — every branch weighted, nothing sampled. This is the baseline customer; each archetype shifts their threshold by up to two, shown on the felt. Rows are your concession total, columns the customer's tell.</p>
+      <p>Solved exactly against the table you have set — every branch weighted, nothing sampled. That is the baseline room. The customer in front of you is never exactly it: the archetype, the size of your cheque and plain luck all move where they stop, and nobody tells you where. Rows are your concession total, columns the customer's tell.</p>
       <div id="chartWrap"></div>
       <div class="legend">
         <span><i style="background:#5bc98a"></i>Close</span>
@@ -613,7 +613,7 @@ function takeOffer(i){
 // GAME STATE
 // ═════════════════════════════════════════════════════════════════════════
 const S = {
-  bank:0, stake:250, brief:null, deck:null, player:[], dealer:[], offer:[],
+  bank:0, stake:250, brief:null, deck:null, player:[], dealer:[], offer:[], stop:17,
   live:false, shoe:[], seen:new Set(),
   hands:0, wins:0, busts:0, totalConc:0, left:0, best:null,
   unlocked:new Set(), log:[]
@@ -652,10 +652,15 @@ function dealerStandsOn(){
 // How hard this particular customer is. The archetype's bias moves their
 // threshold: a buyer who came to you already sold folds earlier than one who
 // opens with a discount demand. Reading that before you concede is the skill.
-function customerStop(b){
+// How hard this particular customer turns out to be. The archetype leans it,
+// the size of your cheque leans it harder, and a roll does the rest. You are
+// never shown the number. The tell is all you get, which is all you get in
+// the room too — the whole skill is deciding without knowing.
+function rollCustomerStop(b){
   const base = dealerStandsOn();
-  if (!b || !b.a) return base;
-  return Math.max(14, Math.min(20, base + (b.a.bias || 0)));
+  const bias = (b && b.a) ? (b.a.bias || 0) : 0;
+  const weight = S.stake >= 2500 ? 2 : S.stake >= 500 ? 1 : 0;
+  return Math.max(14, Math.min(19, base + bias + weight + between(-1, 2)));
 }
 
 function multiplier(t){
@@ -679,6 +684,7 @@ function deal(){
   S.deck = buildDeck(S.brief);
   S.player = [drawCard(S.deck), drawCard(S.deck)]; let g = 0; while (total(S.player) > 21 && g++ < 25) S.player = [drawCard(S.deck), drawCard(S.deck)];
   S.dealer = [drawCard(S.deck), drawCard(S.deck)];
+  S.stop = rollCustomerStop(S.brief);
   S.live = true;
   S.offer = dealOffer();
   S.player.concat([S.dealer[0]]).forEach(c => unlock(c.rule));
@@ -696,7 +702,7 @@ function hit(){
 
 function stand(){
   if (!S.live) return;
-  const stop = customerStop(S.brief);
+  const stop = S.stop || dealerStandsOn();
   while (total(S.dealer) < stop) S.dealer.push(drawCard(S.deck));
   const p = total(S.player), d = total(S.dealer);
   if (d > 21 || p > d) settle('win', d > 21);
@@ -830,7 +836,6 @@ function render(){
     '<div class="b"><span class="k">Term</span><span class="v">' + b.term + ' yr</span></div>' +
     '<div class="b"><span class="k">Plan</span><span class="v">' + (b.plan === 'custom' ? 'Custom' : 'Standard') + '</span></div>' +
     '<div class="b"><span class="k">Implementation</span><span class="v">' + (b.pack.hours ? b.pack.hours + ' hrs' : 'none') + '</span></div>' +
-    '<div class="b"><span class="k">Resistance</span><span class="v">stands on ' + customerStop(b) + '</span></div>' +
     '<div class="b"><span class="k">Deal value</span><span class="v">' + fmt(baseValue(b).total) + '</span></div>'
   ) : '<span class="mini">Press Deal for a brief.</span>';
 
@@ -994,6 +999,7 @@ function load(){
     S.stake = amt;
     [...document.querySelectorAll('.chip')].forEach(c => c.classList.remove('sel'));
     b.classList.add('sel');
+    setMsg(amt >= 500 ? 'Bigger cheque, harder room. Deal when ready.' : 'Stake set. Deal when ready.', '');
   };
   document.getElementById('chips').appendChild(b);
 });
