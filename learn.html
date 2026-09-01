@@ -597,22 +597,30 @@ function giveIn(){
 // Counter. Three alternatives from other levers, cheaper per point.
 function counter(){
   if (!S.live) return;
-  var others = S.pool.filter(function(c){ return c.kind !== S.ask.kind; });
-  if (others.length < 3) others = S.pool.slice();
-  others.sort(function(x, y){
-    return (Math.abs(x.mo) / Math.max(1, x.pts)) - (Math.abs(y.mo) / Math.max(1, y.pts));
-  });
-  var band = others.slice(0, Math.min(others.length, 7));
-  var seen = {}, out = [];
-  for (var g = 0; g < 200 && out.length < 3; g++) {
-    var c = pick(band);
-    if (seen[c.body]) continue;
-    seen[c.body] = 1; out.push(harden(c));
+  var askKind = S.ask.kind;
+  var legal = S.pool.filter(function(c){ return !c.breaks && c.kind !== askKind; });
+  if (legal.length < 3) legal = S.pool.filter(function(c){ return !c.breaks; });
+  if (legal.length < 3) legal = S.pool.slice();
+  // Cheapest first by what a point of goodwill actually costs. A card that
+  // earns you money sorts to the very front, which is the whole lesson.
+  legal.sort(function(x, y){ return (x.mo / Math.max(1, x.pts)) - (y.mo / Math.max(1, y.pts)); });
+  var band = legal.slice(0, Math.min(legal.length, 8));
+  var out = [], seenBody = {}, seenKind = {};
+  for (var pass = 0; pass < 2 && out.length < 3; pass++) {
+    for (var i = 0; i < band.length && out.length < 3; i++) {
+      var c = band[i];
+      if (seenBody[c.body]) continue;
+      if (pass === 0 && seenKind[c.kind]) continue;   // spread the levers first
+      seenBody[c.body] = 1; seenKind[c.kind] = 1; out.push(harden(c));
+    }
   }
+  // Now and then the desk lets a tempting off schedule card onto the table.
+  var traps = S.pool.filter(function(c){ return c.breaks; });
+  if (traps.length && out.length === 3 && rng() < 0.22) out[between(0, 2)] = harden(pick(traps));
   S.offer = out;
   render();
   setMsg('Counter with one of these instead.', '');
-  setWhy('Each one buys less goodwill than their ask, and each one costs you less. The number underneath is what a single point of goodwill costs you.');
+  setWhy('Each buys less goodwill than their ask, and each costs you less. The line underneath is what one point of goodwill costs you a month.');
 }
 
 function takeOffer(i){
@@ -646,7 +654,8 @@ function close(){
 
 // The bonus for closing early. It rewards signing them without emptying
 // the margin, and it is only paid when you actually beat them.
-function earlyBonus(t){ return Math.max(1, 1 + (21 - t) * 0.05); }
+// Only hands that can actually win earn it, so it is measured from 17.
+function earlyBonus(t){ return Math.max(1, 1 + (21 - Math.max(t, 17)) * 0.05); }
 
 // What you would bank if you closed right now and won on merit.
 function closeValue(){
@@ -780,7 +789,7 @@ function render(){
   yt.textContent = 'Goodwill ' + t + ' of 21';
   yt.className = 'pill' + (t > 21 ? ' bust' : t >= 17 ? ' hot' : '');
   var cn = document.getElementById('closeNow');
-  cn.textContent = S.live ? 'Close now and bank ' + fmt(closeValue()) + ' a month' : 'Not in a deal';
+  cn.textContent = S.live ? 'Beat them now and you bank ' + fmt(closeValue()) + ' a month' : 'Not in a deal';
   cn.className = 'pill' + (S.live ? ' money' : '');
 
   var co = document.getElementById('counter'); co.innerHTML = '';
