@@ -259,7 +259,7 @@ button{font-family:inherit;cursor:pointer;}
         </span>
       </a>
       <div class="top-spacer"></div>
-      <button class="tbtn" id="btnPanel">Panel</button> <button class="tbtn" id="btnRules">House rules</button>
+      <button class="tbtn" id="btnPanel">Panel</button> <button class="tbtn" id="btnRules">Pricing rules</button>
       <div class="bank">
         <span class="bank-label">Banked MRR</span>
         <span class="bank-amt" id="bank">$0</span>
@@ -302,92 +302,99 @@ button{font-family:inherit;cursor:pointer;}
 
   <aside class="panel">
     <div class="tabs">
-      <button class="tab on" data-pane="table">Table</button>
-      <button class="tab" data-pane="strategy">Strategy</button>
-      <button class="tab" data-pane="rules">Rules</button>
-      <button class="tab" data-pane="log">Log</button>
+      <button class="tab on" data-pane="table">Settings</button>
+      <button class="tab" data-pane="strategy">What to do</button>
+      <button class="tab" data-pane="rules">Pricing rules</button>
+      <button class="tab" data-pane="log">History</button>
     </div>
 
     <div class="pane on" id="pane-table">
-      <h3>Table rules</h3>
-      <p>Everything here changes the odds. The strategy chart recomputes from whatever you set.</p>
+      <h3>Settings</h3>
+      <p>These change how the game plays. The chart under What to do updates to match.</p>
 
       <div class="sec">
-        <div class="sec-h">The room</div>
-        <div class="fld"><label>Customer resistance<div class="hint">How hard the room is</div></label>
+        <div class="sec-h">How to play</div>
+        <p class="mini">Pick a stake, then press Deal. You get a customer and three possible concessions.
+        Each one makes them more likely to sign, but costs you money. Take as few as you can get away with,
+        then press Close. Go past 21 and you have given away too much and lost the deal. Bigger stakes pay
+        more but bring tougher customers.</p>
+      </div>
+
+      <div class="sec">
+        <div class="sec-h">Customers</div>
+        <div class="fld"><label>How tough they are<div class="hint">Applies to every customer</div></label>
           <select id="setDiff">
-            <option value="easy">Warm — stands on 15</option>
-            <option value="normal" selected>Normal — stands on 17</option>
-            <option value="hard">Cold — stands on 18, hits soft 17</option>
+            <option value="easy">Easy-going</option>
+            <option value="normal" selected>Mixed</option>
+            <option value="hard">Tough</option>
           </select></div>
-        <div class="fld"><label>Deals in the shoe<div class="hint">No repeats until it reshuffles</div></label>
+        <div class="fld"><label>Customers in a row<div class="hint">How many before one repeats</div></label>
           <input type="range" id="setShoe" min="20" max="400" step="20" value="120">
           <span class="val" id="valShoe">120</span></div>
-        <div class="fld"><label>Seed<div class="hint">Same seed, same shoe</div></label>
+        <div class="fld"><label>Seed<div class="hint">Set a number to replay the same customers. 0 is random.</div></label>
           <input type="number" id="setSeed" value="0" style="min-width:92px"></div>
       </div>
 
       <div class="sec">
-        <div class="sec-h">Levers in play</div>
+        <div class="sec-h">Which concessions can come up</div>
         <div class="fld"><label>Licence discount</label><input type="checkbox" id="lvLic" checked></div>
         <div class="fld"><label>Implementation discount</label><input type="checkbox" id="lvImpl" checked></div>
         <div class="fld"><label>Term commitment</label><input type="checkbox" id="lvTerm" checked></div>
-        <div class="fld"><label>Hosting sweeteners</label><input type="checkbox" id="lvHost" checked></div>
-        <div class="fld"><label>Free hours / scope</label><input type="checkbox" id="lvScope" checked></div>
+        <div class="fld"><label>Hosting extras</label><input type="checkbox" id="lvHost" checked></div>
+        <div class="fld"><label>Free hours and scope</label><input type="checkbox" id="lvScope" checked></div>
       </div>
 
       <div class="sec">
-        <div class="sec-h">Payout</div>
-        <div class="fld"><label>Restraint bonus<div class="hint">Per point under 21, on hands you win outright</div></label>
+        <div class="sec-h">Scoring</div>
+        <div class="fld"><label>Bonus for closing early<div class="hint">Paid only when you beat them, not when they walk away</div></label>
           <input type="range" id="setBonus" min="0" max="100" step="5" value="25">
           <span class="val" id="valBonus">0.25×</span></div>
-        <div class="fld"><label>Penalise rule breaks<div class="hint">Off-schedule cards count double</div></label>
+        <div class="fld"><label>Punish breaking pricing rules<div class="hint">Concessions that break a rule cost you double</div></label>
           <input type="checkbox" id="setStrict" checked></div>
       </div>
 
       <div class="sec">
-        <div class="sec-h">Session</div>
+        <div class="sec-h">Your session</div>
         <div class="stat"><span>Hands played</span><span id="stHands">0</span></div>
         <div class="stat"><span>Close rate</span><span id="stClose">—</span></div>
         <div class="stat"><span>Busts</span><span id="stBust">0</span></div>
         <div class="stat"><span>Average concession</span><span id="stAvg">—</span></div>
-        <div class="stat"><span>Left on the table</span><span id="stLeft">$0</span></div>
+        <div class="stat"><span>Money left on the table</span><span id="stLeft">$0</span></div>
         <div class="stat"><span>Best hand</span><span id="stBest">—</span></div>
         <div style="margin-top:12px;display:flex;gap:8px;">
-          <button class="tbtn" id="btnReshuffle">Reshuffle shoe</button>
-          <button class="tbtn" id="btnWipe">Reset session</button>
+          <button class="tbtn" id="btnReshuffle">New customers</button>
+          <button class="tbtn" id="btnWipe">Reset scores</button>
         </div>
       </div>
     </div>
 
     <div class="pane" id="pane-strategy">
-      <h3>Basic strategy</h3>
-      <p>Solved exactly against the table you have set — every branch weighted, nothing sampled. That is the baseline room. The customer in front of you is never exactly it: the archetype, the size of your cheque and plain luck all move where they stop, and nobody tells you where. Rows are your concession total, columns the customer's tell.</p>
+      <h3>What to do</h3>
+      <p>The best move in every situation, worked out exactly for your settings. Down the side is your total so far. Across the top is the customer's first card. This is the average customer though: the real one in front of you may be tougher or softer, and you are never told which.</p>
       <div id="chartWrap"></div>
       <div class="legend">
         <span><i style="background:#5bc98a"></i>Close</span>
         <span><i style="background:#e8a33d"></i>Concede</span>
       </div>
       <div class="sec" style="margin-top:18px;">
-        <div class="sec-h">Reading it</div>
-        <p class="mini">The chart maximises <em>banked MRR</em>, not close rate. That is why it tells you to close
-        earlier than a blackjack chart would: every card you take is money off the invoice, and closing on 17
-        pays a premium that closing on 20 does not. That premium is only paid when you beat them outright — a
-        customer who breaks himself pays flat, because you did not close that one. This is the whole argument for
-        holding your discount, in one grid.</p>
+        <div class="sec-h">Why it says that</div>
+        <p class="mini">It is chasing <em>money kept</em>, not deals won. Every concession you take is money off
+        the invoice, so the chart tells you to stop earlier than a normal blackjack chart would. Closing on 17
+        pays a bonus that closing on 20 does not — but only if you actually beat them. If the customer talks
+        themselves out of it you still keep the deal, just at flat rate, because you did not win that one.</p>
       </div>
       <div class="sec">
-        <div class="sec-h">Simulation</div>
-        <div class="fld"><label>Deck sample size</label>
+        <div class="sec-h">Accuracy</div>
+        <div class="fld"><label>Sample size<div class="hint">Higher is slower but steadier</div></label>
           <input type="range" id="setSim" min="200" max="4000" step="200" value="1200">
           <span class="val" id="valSim">1200</span></div>
-        <button class="tbtn" id="btnSim">Recompute</button>
+        <button class="tbtn" id="btnSim">Update chart</button>
       </div>
     </div>
 
     <div class="pane" id="pane-rules">
       <h3>House rules</h3>
-      <p>Odoo's actual schedule. Each one unlocks the first time it decides a hand.</p>
+      <p>Odoo's real pricing rules. Each one appears here the first time it costs you a hand.</p>
       <div id="ruleList"></div>
     </div>
 
