@@ -833,7 +833,9 @@ function offerEl(c, i){
     '<div class="orow"><span class="opts">+' + c.pts + ' pts</span>' +
       '<span class="ocost' + (c.cost < 0 ? ' gain' : '') + '">' +
       (c.cost < 0 ? '+' + fmt(-c.cost) : '−' + fmt(c.cost)) + '</span></div>' +
-    '<div class="oeff">' + (c.cost <= 0 ? 'buys confidence and pays you' : fmt(per) + ' per point') + '</div>';
+    '<div class="oeff">' + (c.cost < 0 ? 'they pay you for this one'
+      : c.cost === 0 ? 'costs nothing, and buys nothing real'
+      : fmt(per) + ' per point') + '</div>';
   d.onclick = () => takeOffer(i);
   return d;
 }
