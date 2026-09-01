@@ -279,7 +279,19 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
     </div>
 
     <div class="pane" id="pane-settings">
-      <h3>Settings</h3>
+      <h3>How to play</h3>
+      <div class="sec">
+        <p class="mini">Choose what to risk, then press Deal.</p>
+        <p class="mini">Every customer is worth a monthly amount, shown as Worth. They open by asking for something.</p>
+        <p class="mini"><b>Give in</b> hands them their ask. It moves them a long way, and it costs you the most.</p>
+        <p class="mini"><b>Counter</b> offers three cheaper things instead. Each one moves them less.</p>
+        <p class="mini"><b>Close</b> signs the deal. You keep whatever you did not give away.</p>
+        <p class="mini">Go past 21 and the deal dies, and everything you conceded dies with it.</p>
+        <p class="mini">Nickel and diming will not get you there on its own. Sooner or later you have to give them something real.</p>
+        <p class="mini">Closing early pays a bonus, but only when you beat them outright. If they talk themselves out of it, you keep the deal at flat rate.</p>
+        <p class="mini">Bigger wagers pay more, and bring tougher customers.</p>
+      </div>
+      <h3 style="margin-top:22px">Settings</h3>
       <div class="sec">
         <div class="fld"><label>How tough customers are<div class="hint">Applies to everyone</div></label>
           <select id="setDiff">
@@ -424,6 +436,13 @@ function value(b){
 // mo   = monthly recurring revenue it costs you, averaged over the term
 // A negative mo means the concession earns you money instead.
 // ===================================================================
+function goodwill(mo, mrr){
+  // How far a concession moves them, as a share of the deal you hand over.
+  // Buying goodwill therefore has a budget, and the budget is the deal.
+  if (mo <= 0) return 3;              // something they give you moves them a little
+  return Math.max(1, Math.round(0.45 * (mo / (mrr || 1)) * 100));
+}
+
 function concessions(b){
   var v = value(b), r = LIC[b.plan], out = [];
   var ceiling = CEILING[b.term];
@@ -441,7 +460,7 @@ function concessions(b){
     out.push({
       kind:'lic', tag:'Licence', head:p + '% off',
       body:'Take ' + p + '% off the licence from Year 2 on',
-      pts: Math.max(2, Math.round(p / 1.9)), mo: mo, breaks: breaks,
+      pts: goodwill(mo, v.mrr), mo: mo, breaks: breaks,
       note: breaks === 'oneYear'
         ? 'A one year deal has no Year 2, so this lands on the promotional rate'
         : (breaks === 'ceiling' ? 'The ceiling on a ' + b.term + ' year term is ' + ceiling + '%' : '')
@@ -457,7 +476,7 @@ function concessions(b){
       out.push({
         kind:'impl', tag:'Success Pack', head:p + '% off',
         body:'Take ' + p + '% off the ' + b.pack.hours + ' hour pack',
-        pts: Math.max(2, Math.round(p / 3.6)),
+        pts: goodwill(oneOff / (b.term * 12), v.mrr),
         mo: oneOff / (b.term * 12),
         breaks: p > IMPL_MAX_PCT ? 'implMax' : null,
         capped: b.pack.hours > IMPL_CAP_HOURS,
@@ -475,7 +494,7 @@ function concessions(b){
       out.push({
         kind:'hours', tag:'Extra hours', head:h + ' free',
         body:'Add ' + h + ' hours of implementation at no charge',
-        pts: Math.max(2, Math.round(h / 2.4)),
+        pts: goodwill((h * b.pack.rate) / (b.term * 12), v.mrr),
         mo: (h * b.pack.rate) / (b.term * 12), breaks:null, note:''
       });
     });
@@ -485,10 +504,10 @@ function concessions(b){
   if (b.sh) {
     out.push({ kind:'host', tag:'Hosting', head:'A worker',
       body:'Waive one Odoo.sh worker for the first year',
-      pts:4, mo: SH_WORKER / b.term, breaks:null, note:'' });
+      pts: goodwill(SH_WORKER / b.term, v.mrr), mo: SH_WORKER / b.term, breaks:null, note:'' });
     out.push({ kind:'host', tag:'Hosting', head:'A branch',
       body:'Waive one Odoo.sh staging branch for the first year',
-      pts:2, mo: SH_STAGING / b.term, breaks:null, note:'' });
+      pts: goodwill(SH_STAGING / b.term, v.mrr), mo: SH_STAGING / b.term, breaks:null, note:'' });
   }
 
   // 5. The one that pays you. Moving a month to month customer onto an
@@ -616,6 +635,10 @@ function giveIn(){
   var drift = rng() < 0.62 ? 0 : (rng() < 0.5 ? -1 : 1);
   var idx = Math.max(0, Math.min(sameKind.length - 1, at + drift));
   var c = harden(sameKind.length ? sameKind[idx] : S.ask);
+  // Granting the thing they actually asked for lands harder than an
+  // equivalent alternative, so it buys more goodwill for the same money.
+  c.pts = Math.max(c.pts + 1, Math.round(c.pts * 1.35));
+  c.grantedAsk = true;
   S.you.push(c); unlock(c.breaks); unlockFor(c);
   if (total(S.you) > 21) return settle('bust');
   S.offer = [];
@@ -999,8 +1022,15 @@ document.getElementById('btnStand').onclick = close;
 document.getElementById('btnPanel').onclick = function(){ document.body.classList.toggle('panel-open'); };
 document.getElementById('btnHow').onclick = function(){
   setMsg('How it works', '');
-  setWhy('Every customer is worth a monthly amount. They open by asking for something. Give in and they move a long way toward signing but it costs you. Counter and they move less but it costs you far less. Close before you pass 21 and you keep what you did not give away. Pass 21 and the deal is gone. The bonus for closing early is only paid when you actually beat them.');
+  setWhy('You are selling Odoo. Every customer is worth a monthly amount, shown as Worth. ' +
+    'They open by asking for something. Give in and they get it, which moves them a long way and costs you the most. ' +
+    'Counter and you offer three cheaper things instead, each of which moves them less. ' +
+    'Close when you think you are ahead, and you keep whatever you did not give away. ' +
+    'Go past 21 and you have given away too much: the deal dies and everything you conceded dies with it. ' +
+    'Small concessions alone will not get you there, so sooner or later you have to give them something real. ' +
+    'Closing early pays a bonus, but only when you beat them outright.');
 };
+
 document.getElementById('btnWipe').onclick = function(){
   if (!confirm('Clear your banked revenue and history on this device?')) return;
   try { localStorage.removeItem(KEY); } catch (e) {}
