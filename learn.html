@@ -225,6 +225,15 @@ button{font-family:inherit;cursor:pointer;}
 
 .mini{font-size:.66rem;color:var(--faint);line-height:1.55;}
 #btnPanel{display:none;} @media (max-width:1000px){ .panel{position:fixed;top:0;right:0;bottom:0;width:min(392px,92vw);z-index:60;transform:translateX(100%);transition:transform .22s ease;box-shadow:-14px 0 40px rgba(0,0,0,.55);} body.panel-open .panel{transform:none;} #btnPanel{display:inline-block;} }
+/* What you have already given away, as a tidy list rather than card art. */
+#playerHand{min-height:0;gap:6px;padding:2px 0;}
+.played{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);
+  border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:.66rem;color:#dbe4ec;}
+.played.viol{border-color:var(--red);}
+.played .pv{font-weight:700;color:#ff9b8a;}
+.played .pv.gain{color:#7fd3a3;}
+.played .pp{background:var(--gold);color:#16202b;border-radius:999px;padding:0 6px;font-weight:800;}
+
 /* The three concessions on the table. Picking one is the whole game. */
 .offer{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:4px;padding-bottom:10px;}
 .oc{width:138px;background:var(--card);color:var(--ink);border-radius:8px;padding:7px 9px 6px;
@@ -800,6 +809,17 @@ function cardEl(c, hidden){
   return d;
 }
 
+function playedEl(c){
+  const d = document.createElement('div');
+  d.className = 'played' + (c.viol ? ' viol' : '');
+  d.innerHTML =
+    '<span>' + c.lever + '</span>' +
+    '<span class="pv' + (c.cost < 0 ? ' gain' : '') + '">' +
+      (c.cost < 0 ? '+' + fmt(-c.cost) : '−' + fmt(c.cost)) + '</span>' +
+    '<span class="pp">+' + c.pts + '</span>';
+  return d;
+}
+
 function offerEl(c, i){
   const d = document.createElement('div');
   d.className = 'oc' + (c.viol ? ' viol' : '');
@@ -822,7 +842,7 @@ function render(){
   const ph = document.getElementById('playerHand');
   const dh = document.getElementById('dealerHand');
   ph.innerHTML = ''; dh.innerHTML = '';
-  S.player.forEach(c => ph.appendChild(cardEl(c, false)));
+  S.player.forEach(c => ph.appendChild(playedEl(c)));
   S.dealer.forEach((c, i) => dh.appendChild(cardEl(c, S.live && i > 0)));
 
   const p = total(S.player);
