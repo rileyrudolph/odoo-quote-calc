@@ -536,7 +536,7 @@ var moGiven = function(h){ var n=0; for (var i=0;i<h.length;i++) n += h[i].mo; r
 
 function baseStop(){
   var d = document.getElementById('setDiff').value;
-  return d === 'easy' ? 15 : d === 'hard' ? 18 : 17;
+  return d === 'easy' ? 14 : d === 'hard' ? 17 : 16;
 }
 
 // How hard this particular customer turns out to be. Their disposition
@@ -547,7 +547,7 @@ function rollStop(b){
   var acv = v.acv;
   var sizeWeight = acv > 120000 ? 2 : acv > 45000 ? 1 : 0;
   var stakeWeight = S.stake >= 2500 ? 2 : S.stake >= 500 ? 1 : 0;
-  return Math.max(14, Math.min(19,
+  return Math.max(13, Math.min(18,
     baseStop() + (b.a.bias || 0) + sizeWeight + stakeWeight + between(-1, 1)));
 }
 
@@ -575,7 +575,7 @@ function harden(c){
 // The customer signals their position one card at a time, the same way a
 // dealer shows an up card. These are their expectations, not your costs.
 function signal(b){
-  var n = between(2, 7);
+  var n = between(2, 9);
   return { pts:n, tag:'Expectation', head:n + '', body:'Ground they will not give up' };
 }
 
