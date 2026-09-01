@@ -11,7 +11,7 @@
   THE DISCOUNT TABLE
   Blackjack where every card is a concession an Odoo rep can actually make.
   The customer asks for something. You either give in, or you counter with
-  something cheaper that buys you less goodwill. Go past 21 and you have
+  something cheaper that buys you less ground. Go past 21 and you have
   given away the margin. The money is in the smallest concession that wins.
 */
 :root{
@@ -130,6 +130,17 @@ body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b1319;color:#e
 .abtn:disabled{opacity:.35;cursor:default;}
 .abtn.gold{background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#16202b;border-color:var(--gold);}
 .abtn.wide{padding-left:30px;padding-right:30px;}
+.abtn small{display:block;font-size:.55rem;font-weight:600;letter-spacing:.02em;
+  opacity:.75;margin-top:2px;text-transform:none;}
+/* Give in costs the most, so it reads as the expensive door. */
+.abtn.give{background:#5a2724;border-color:#8e3b36;color:#ffd9d4;}
+.abtn.give:hover:not(:disabled){border-color:#e0715f;}
+/* Countering is the working move. */
+.abtn.counter{background:#22384a;border-color:#37576f;color:#d6e8f5;}
+.abtn.counter:hover:not(:disabled){border-color:#5fa8d8;}
+/* Signing is where the money actually lands. */
+.abtn.sign{background:#1d4a34;border-color:#2f6b46;color:#c9f2dc;font-weight:800;}
+.abtn.sign:hover:not(:disabled){border-color:#4ecb8b;}
 
 .panel{width:392px;flex:none;background:var(--panel);border-left:1px solid var(--line);
   display:flex;flex-direction:column;min-height:0;}
@@ -206,7 +217,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
       <div class="ask" id="ask"></div>
 
       <div class="seat">
-        <div class="seat-label">What is holding them back
+        <div class="seat-label">What they are holding out for
           <span class="pill" id="themTotal">nothing yet</span>
         </div>
         <div class="hand" id="themHand"></div>
@@ -218,7 +229,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
       <div class="seat">
         <div class="hand" id="youHand"></div>
         <div class="seat-label">
-          <span class="pill" id="youTotal">Convinced 0 of 21</span>
+          <span class="pill" id="youTotal">Your offer: 0 of 21</span>
           <span class="pill money" id="closeNow">Close now: $0 a month</span>
         </div>
       </div>
@@ -229,9 +240,9 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
     <div class="actions">
       <div class="chiprow" id="chips"></div>
       <button class="abtn gold wide" id="btnDeal">Deal</button>
-      <button class="abtn" id="btnHit" disabled>Give in</button>
-      <button class="abtn" id="btnCounter" disabled>Counter</button>
-      <button class="abtn" id="btnStand" disabled>Close</button>
+      <button class="abtn give" id="btnHit" disabled>Give in<small>their ask, costs most</small></button>
+      <button class="abtn counter" id="btnCounter" disabled>Counter<small>cheaper, moves less</small></button>
+      <button class="abtn sign" id="btnStand" disabled>Sign the deal<small>stop here and bank it</small></button>
     </div>
   </div>
 
@@ -282,14 +293,26 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
     <div class="pane" id="pane-settings">
       <h3>How to play</h3>
       <div class="sec">
-        <p class="mini">Choose what to risk, then press Deal.</p>
-        <p class="mini">Every customer is worth a monthly amount, shown as Worth. They open by asking for something.</p>
-        <p class="mini"><b>Give in</b> hands them their ask. It moves them a long way, and it costs you the most.</p>
-        <p class="mini"><b>Counter</b> offers three cheaper things instead. Each one moves them less.</p>
-        <p class="mini"><b>Close</b> signs the deal. You keep whatever you did not give away.</p>
-        <p class="mini">Go past 21 and the deal dies, and everything you conceded dies with it.</p>
-        <p class="mini">Nickel and diming will not get you there on its own. Sooner or later you have to give them something real.</p>
-        <p class="mini">Closing early pays a bonus, but only when you beat them outright. If they talk themselves out of it, you keep the deal at flat rate.</p>
+        <p class="mini">It is blackjack, with you on one side of the table and the customer on the other.</p>
+        <p class="mini"><b>Their hand</b> is what they are holding out for. Every card is a reason they have
+        not signed yet, like a competing quote or a finance team that wants the number lower. One is face up.
+        The rest you find out when you sign.</p>
+        <p class="mini"><b>Your hand</b> is what you have put on the table. Every card is a discount you have
+        offered. The more you put down, the more likely they are to sign.</p>
+        <p class="mini">Put more on the table than they were holding out for and the deal is yours. Go past 21
+        and you have given away more than the deal can carry, and you lose it along with everything you offered.</p>
+        <p class="mini">You keep whatever you did not give away, so the aim is not to win every deal. It is to
+        win while offering as little as possible.</p>
+      </div>
+      <div class="sec">
+        <div class="sec-h">Your three moves</div>
+        <p class="mini"><b>Give in.</b> Hand them the exact thing they asked for. Puts a lot on the table,
+        and costs you the most.</p>
+        <p class="mini"><b>Counter.</b> Offer one of three cheaper things instead. Puts less on the table,
+        and keeps far more of the deal.</p>
+        <p class="mini"><b>Sign the deal.</b> Stop and see if your offer beat what they were holding out for.</p>
+        <p class="mini">Signing while your offer is still low pays a bonus, but only if you actually beat them.
+        If they talk themselves out of it you still get the deal, just without the bonus.</p>
         <p class="mini">Bigger wagers pay more, and bring tougher customers.</p>
       </div>
       <h3 style="margin-top:22px">Settings</h3>
@@ -439,10 +462,10 @@ function value(b){
 // mo   = monthly recurring revenue it costs you, averaged over the term
 // A negative mo means the concession earns you money instead.
 // ===================================================================
-function goodwill(mo, mrr){
-  // How far a concession moves them, as a share of the deal you hand over.
-  // Buying goodwill therefore has a budget, and the budget is the deal.
-  if (mo <= 0) return 3;              // something they give you moves them a little
+function ground(mo, mrr){
+  // How much a concession puts on the table, as a share of the deal you hand over.
+  // What you can put on the table therefore has a budget, and the budget is the deal.
+  if (mo <= 0) return 3;              // something they give you still counts for a little
   return Math.max(1, Math.round(0.45 * (mo / (mrr || 1)) * 100));
 }
 
@@ -463,7 +486,7 @@ function concessions(b){
     out.push({
       kind:'lic', tag:'Licence', head:p + '% off',
       body:'Take ' + p + '% off the licence from Year 2 on',
-      pts: goodwill(mo, v.mrr), mo: mo, breaks: breaks,
+      pts: ground(mo, v.mrr), mo: mo, breaks: breaks,
       note: breaks === 'oneYear'
         ? 'A one year deal has no Year 2, so this lands on the promotional rate'
         : (breaks === 'ceiling' ? 'The ceiling on a ' + b.term + ' year term is ' + ceiling + '%' : '')
@@ -479,7 +502,7 @@ function concessions(b){
       out.push({
         kind:'impl', tag:'Success Pack', head:p + '% off',
         body:'Take ' + p + '% off the ' + b.pack.hours + ' hour pack',
-        pts: goodwill(oneOff / (b.term * 12), v.mrr),
+        pts: ground(oneOff / (b.term * 12), v.mrr),
         mo: oneOff / (b.term * 12),
         breaks: p > IMPL_MAX_PCT ? 'implMax' : null,
         capped: b.pack.hours > IMPL_CAP_HOURS,
@@ -491,14 +514,17 @@ function concessions(b){
     });
   }
 
-  // 4. Odoo.sh line items. Both are genuinely billable, both are waivable.
+  // 4. Hosting. A rep discounts the Odoo.sh line, the same way the quote
+  //    calculator does. Nothing here is waived, because nobody can waive it.
   if (b.sh) {
-    out.push({ kind:'host', tag:'Hosting', head:'A worker',
-      body:'Cover one Odoo.sh worker for the first year',
-      pts: goodwill(SH_WORKER / b.term, v.mrr), mo: SH_WORKER / b.term, breaks:null, note:'' });
-    out.push({ kind:'host', tag:'Hosting', head:'A branch',
-      body:'Cover one Odoo.sh staging branch for the first year',
-      pts: goodwill(SH_STAGING / b.term, v.mrr), mo: SH_STAGING / b.term, breaks:null, note:'' });
+    [10, 20, 30].forEach(function(p){
+      out.push({
+        kind:'host', tag:'Hosting', head:p + '% off',
+        body:'Take ' + p + '% off the Odoo.sh subscription',
+        pts: ground(v.shMo * (p / 100), v.mrr),
+        mo: v.shMo * (p / 100), breaks:null, note:''
+      });
+    });
   }
 
   // 5. The one that pays you. Moving a month to month customer onto an
@@ -571,7 +597,7 @@ function rollStop(b){
 }
 
 // What the customer opens by asking for. It is always a real lever, and
-// it is always one of the more expensive ways to buy their goodwill.
+// it is always one of the more expensive ways to buy their ground.
 function makeAsk(b, pool){
   var wanted = pool.filter(function(c){ return c.mo > 0 && !c.breaks; });
   if (!wanted.length) wanted = pool.filter(function(c){ return c.mo > 0; });
@@ -584,7 +610,7 @@ function makeAsk(b, pool){
 function harden(c){
   var copy = {};
   for (var k in c) copy[k] = c[k];
-  copy.realPts = copy.pts;   // the goodwill it genuinely buys
+  copy.realPts = copy.pts;   // the ground it genuinely buys
   if (copy.breaks && document.getElementById('setStrict').checked) {
     copy.pts = Math.min(11, copy.pts * 2);
     copy.doubled = true;
@@ -628,7 +654,7 @@ function deal(){
   S.live  = true;
   unlock(S.ask.breaks);
   render();
-  setMsg('They want ' + S.ask.body.toLowerCase() + '. Give in, counter, or close.', '');
+  setMsg('They want ' + S.ask.body.toLowerCase() + '. Give in, counter, or sign it.', '');
   setWhy('Giving them what they asked for moves them a long way. Countering costs you far less but moves them less.');
 }
 
@@ -645,7 +671,7 @@ function giveIn(){
   var idx = Math.max(0, Math.min(sameKind.length - 1, at + drift));
   var c = harden(sameKind.length ? sameKind[idx] : S.ask);
   // Granting the thing they actually asked for lands harder than an
-  // equivalent alternative, so it buys more goodwill for the same money.
+  // equivalent alternative, so it puts more on the table for the same money.
   c.pts = Math.max(c.pts + 1, Math.round(c.pts * 1.35));
   c.grantedAsk = true;
   S.used[c.body] = 1;
@@ -665,7 +691,7 @@ function counter(){
   if (legal.length < 3) legal = S.pool.filter(function(c){ return !c.breaks && !S.used[c.body]; });
   if (legal.length < 3) legal = S.pool.filter(function(c){ return !S.used[c.body]; });
   if (!legal.length) legal = S.pool.slice();
-  // Cheapest first by what a point of goodwill actually costs. A card that
+  // Cheapest first by what a point of ground actually costs. A card that
   // earns you money sorts to the very front, which is the whole lesson.
   legal.sort(function(x, y){ return (x.mo / Math.max(1, x.pts)) - (y.mo / Math.max(1, y.pts)); });
   var band = legal.slice(0, Math.min(legal.length, 8));
@@ -684,7 +710,7 @@ function counter(){
   S.offer = out;
   render();
   setMsg('Counter with one of these instead.', '');
-  setWhy('Each buys less goodwill than their ask, and each costs you less. The line underneath is what one point of goodwill costs you a month.');
+  setWhy('Each puts less on the table than their ask, and each costs you less. The line underneath is what each point on the table costs you a month.');
 }
 
 function takeOffer(i){
@@ -704,7 +730,7 @@ function costLine(c){
   if (c.mo < 0) return 'That one earns you ' + fmt(-c.mo) + ' a month rather than costing you anything.';
   if (c.mo === 0) return 'That costs you nothing, which usually means it is worth nothing to them either.';
   var w = c.realPts || c.pts;
-  var line = 'That is ' + fmt(c.mo) + ' a month for ' + w + ' points of goodwill, or ' +
+  var line = 'That is ' + fmt(c.mo) + ' a month for ' + w + ' points onto the table, or ' +
     fmt(c.mo / w) + ' a month per point.';
   // If it was off schedule, say so now, plainly, and say why.
   if (c.breaks) {
@@ -726,7 +752,7 @@ function close(){
   return settle('lost');
 }
 
-// The bonus for closing early. It rewards signing them without emptying
+// The bonus for signing early. It rewards signing them without emptying
 // the margin, and it is only paid when you actually beat them.
 // Only hands that can actually win earn it, so it is measured from 17.
 function earlyBonus(t){ return Math.max(1, 1 + (21 - Math.max(t, 17)) * 0.05); }
@@ -823,7 +849,7 @@ function warnOn(){
 function offerCard(c, i){
   var d = document.createElement('div');
   d.className = 'cc' + (c.breaks && warnOn() ? ' breaks' : '');
-  // Price it against the goodwill it really buys. The doubling on a rule
+  // Price it against the ground it really buys. The doubling on a rule
   // break is a penalty, so it must not make the card look efficient.
   var worth = c.realPts || c.pts;
   var per = worth ? Math.abs(c.mo) / worth : 0;
@@ -835,12 +861,12 @@ function offerCard(c, i){
     '<div class="tenor">' + (c.mo < 0 ? 'they pay this every month'
       : c.kind === 'lic' || c.kind === 'host' ? 'costs you every month'
       : 'one off, spread across the term') + '</div>' +
-    '<div class="split"><span class="pts">+' + c.pts + ' goodwill</span>' +
+    '<div class="split"><span class="pts">+' + c.pts + ' on the table</span>' +
       '<span class="mo' + (c.mo < 0 ? ' gain' : '') + '">' +
       (c.mo < 0 ? '+' + fmt(-c.mo) : fmt(c.mo)) + '/mo</span></div>' +
     '<div class="per">' + (c.mo < 0 ? 'earns you money'
       : c.mo === 0 ? 'costs nothing and buys nothing real'
-      : fmt(per) + ' a month per point') + '</div>' +
+      : fmt(per) + ' a month for each point') + '</div>' +
     (c.breaks && warnOn() ? '<div class="warn">Off schedule. ' + esc(c.note) +
       (c.doubled ? '. Counts double against you' : '') + '</div>' : '');
   d.onclick = function(){ takeOffer(i); };
@@ -870,17 +896,17 @@ function render(){
   var th = document.getElementById('themHand'); th.innerHTML = '';
   S.them.forEach(function(c, i){ th.appendChild(themCard(c, S.live && i > 0)); });
   document.getElementById('themTotal').textContent =
-    S.them.length ? (S.live ? 'you can see one of them' : 'they held out for ' + total(S.them)) : 'nothing yet';
+    S.them.length ? (S.live ? 'one of their reasons is showing' : 'they were holding out for ' + total(S.them)) : 'nothing yet';
 
   var yh = document.getElementById('youHand'); yh.innerHTML = '';
   S.you.forEach(function(c){ yh.appendChild(givenChip(c)); });
 
   var t = total(S.you);
   var yt = document.getElementById('youTotal');
-  yt.textContent = 'Goodwill ' + t + ' of 21';
+  yt.textContent = 'Your offer: ' + t + ' of 21';
   yt.className = 'pill' + (t > 21 ? ' bust' : t >= 17 ? ' hot' : '');
   var cn = document.getElementById('closeNow');
-  cn.textContent = S.live ? 'Beat them now and you bank ' + fmt(closeValue()) + ' a month' : 'Not in a deal';
+  cn.textContent = S.live ? 'Sign now and beat them, and you bank ' + fmt(closeValue()) + ' a month' : 'Not in a deal';
   cn.className = 'pill' + (S.live ? ' money' : '');
 
   var co = document.getElementById('counter'); co.innerHTML = '';
@@ -1053,10 +1079,10 @@ document.getElementById('btnHow').onclick = function(){
   setWhy('You are selling Odoo. Every customer is worth a monthly amount, shown as Worth. ' +
     'They open by asking for something. Give in and they get it, which moves them a long way and costs you the most. ' +
     'Counter and you offer three cheaper things instead, each of which moves them less. ' +
-    'Close when you think you are ahead, and you keep whatever you did not give away. ' +
+    'Sign the deal when you think you are ahead, and you keep whatever you did not give away. ' +
     'Go past 21 and you have given away too much: the deal dies and everything you conceded dies with it. ' +
     'Small concessions alone will not get you there, so sooner or later you have to give them something real. ' +
-    'Closing early pays a bonus, but only when you beat them outright.');
+    'Signing early pays a bonus, but only when you beat them outright.');
 };
 
 document.getElementById('btnWipe').onclick = function(){
