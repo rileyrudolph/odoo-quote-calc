@@ -505,38 +505,61 @@ function quote(d){
 }
 
 // Every way you can make the quote bigger. Nothing here is a discount.
+// Seats compound: the bigger the account already is, the bigger the next
+// step, so the last card you dare take is worth far more than the first.
+// That is what makes pushing tempting, and pushing is the whole game.
 function growth(d){
   var r = LIC[d.plan], out = [];
-  var seatSteps = d.users < 15 ? [3, 6] : d.users < 40 ? [5, 12] : [10, 25];
-  seatSteps.forEach(function(n){
-    out.push({ kind:'users', tag:'Users', head:'+' + n + ' seats',
-      body:'Bring another ' + n + ' people onto the platform',
-      mrr: r.y1 * n, ask: n < 6 ? 1 : n < 12 ? 2 : 3,
-      apply:function(x){ x.users += n; } });
+
+  var steps = [
+    { n: Math.max(2, Math.round(d.users * 0.25)), ask: 1 },
+    { n: Math.max(4, Math.round(d.users * 0.6)),  ask: 2 },
+    { n: Math.max(8, Math.round(d.users * 1.2)),  ask: 4 }
+  ];
+  steps.forEach(function(st){
+    out.push({
+      kind:'users', tag:'Users', head:'+' + st.n + ' seats',
+      body: st.n >= d.users
+        ? 'Roll it out across the business, another ' + st.n + ' people'
+        : 'Bring another ' + st.n + ' people onto the platform',
+      mrr: r.y1 * st.n, ask: st.ask,
+      apply:(function(n){ return function(x){ x.users += n; }; })(st.n)
+    });
   });
-  if (d.term < 5) {
-    [1, 2].forEach(function(n){
-      var t = Math.min(5, d.term + n);
-      if (t === d.term) return;
-      out.push({ kind:'term', tag:'Commitment', head:t + ' year term',
-        body:'Get them to commit for ' + t + ' years instead of ' + d.term,
-        mrr: 0, ask: (t - d.term) * 2,
-        apply:function(x){ x.term = t; } });
+
+  for (var t = d.term + 1; t <= 5; t++) {
+    out.push({
+      kind:'term', tag:'Commitment', head:t + ' year term',
+      body:'Get them to commit for ' + t + ' years instead of ' + d.term,
+      mrr: 0, ask: (t - d.term),
+      apply:(function(y){ return function(x){ x.term = y; }; })(t)
     });
   }
-  if (d.packIdx < PACKS.length - 1) {
-    var next = PACKS[d.packIdx + 1];
-    out.push({ kind:'pack', tag:'Success Pack', head:next.name,
-      body:'Move them up to the ' + next.name.toLowerCase(),
-      mrr: 0, ask: 2,
-      apply:function(x){ x.packIdx += 1; } });
+
+  for (var k = 1; k <= 2 && d.packIdx + k < PACKS.length; k++) {
+    var nx = PACKS[d.packIdx + k];
+    out.push({
+      kind:'pack', tag:'Success Pack', head:nx.name,
+      body:'Scope them properly, up to the ' + nx.name.toLowerCase(),
+      mrr: 0, ask: k + 1,
+      apply:(function(step){ return function(x){ x.packIdx += step; }; })(k)
+    });
   }
+
   if (!d.sh) {
     out.push({ kind:'sh', tag:'Hosting', head:'Odoo.sh',
       body:'Put them on Odoo.sh rather than leaving hosting to them',
       mrr: SH_WORKER + SH_STAGING, ask: 2,
       apply:function(x){ x.sh = true; } });
   }
+
+  if (d.plan === 'standard') {
+    out.push({ kind:'plan', tag:'Plan', head:'Custom',
+      body:'Move them to Custom for the studio, multi company and external API',
+      mrr: (LIC.custom.y1 - LIC.standard.y1) * d.users, ask: 3,
+      apply:function(x){ x.plan = 'custom'; } });
+  }
+
   return out;
 }
 
