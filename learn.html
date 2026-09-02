@@ -213,7 +213,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
       <button class="tbtn" id="btnPanel">Menu</button>
       <button class="tbtn" id="btnHow">How to play</button>
       <div class="bank">
-        <span class="bank-label">Monthly revenue closed</span>
+        <span class="bank-label">Contract value closed</span>
         <span class="bank-amt" id="bank">$0</span>
       </div>
     </div>
@@ -720,7 +720,7 @@ function settle(kind){
   var delta = 0, cls = '', msg = '', why = '';
 
   if (kind === 'signed') {
-    delta = q.mrr;
+    delta = q.contract;
     cls = 'win'; S.won++;
     msg = 'Signed. ' + fmt(q.mrr) + ' a month, ' + fmt(q.contract) + ' over the term.';
     why = d.users + ' seats on ' + LIC[d.plan].name + ' for ' + d.term + ' year' + (d.term === 1 ? '' : 's') +
@@ -762,7 +762,12 @@ function offerCard(c, i){
   var d = document.createElement('div');
   var isDisc = S.mode === 'disc';
   d.className = 'cc' + (isDisc ? ' discount' : '');
-  var money = isDisc ? '' : (c.mrr > 0 ? '+' + fmt(c.mrr) + '/mo' : 'no extra MRR');
+  var money = '';
+  if (!isDisc) {
+    var before = quote(S.deal).contract;
+    var probe = JSON.parse(JSON.stringify(S.deal)); c.apply(probe);
+    money = '+' + fmt(quote(probe).contract - before) + ' on the deal';
+  }
   d.innerHTML =
     '<div class="num">' + (i + 1) + '</div>' +
     '<div class="kind">' + esc(c.tag) + '</div>' +
@@ -811,7 +816,7 @@ function render(){
   yt.textContent = 'You have asked ' + asked + ' of 21';
   yt.className = 'pill' + (asked > 21 ? ' bust' : asked >= 17 ? ' hot' : '');
   var cn = document.getElementById('closeNow');
-  cn.textContent = S.live ? 'Send it now and bank ' + fmt(q.mrr) + ' a month' : 'Not in a deal';
+  cn.textContent = S.live ? 'Send it now and bank ' + fmt(q.contract) : 'Not in a deal';
   cn.className = 'pill' + (S.live ? ' money' : '');
 
   var co = document.getElementById('counter'); co.innerHTML = '';
