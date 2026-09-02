@@ -191,9 +191,9 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
 .lbrow .amt{font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;}
 .lbrow.you{background:rgba(217,164,65,.10);border-radius:6px;padding-left:6px;padding-right:6px;}
 
-.tab.tab-x{flex:0 0 40px;font-size:.9rem;color:var(--faint);}
-.tab.tab-x:hover{color:#fff;}
-body.panel-hidden .panel{display:none;}
+.panel-x{flex:0 0 38px;background:none;border:0;border-bottom:1px solid transparent;font-size:.9rem;color:var(--faint);cursor:pointer;}
+.panel-x:hover{color:#fff;}
+body.panel-hidden .panel{display:none !important;}
 #btnPanel{display:none;}
 #howBack{position:fixed;inset:0;z-index:80;background:rgba(8,10,14,.72);display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow:auto;}
 body.how-open #howBack{display:flex;}
@@ -270,7 +270,7 @@ body.how-open #howBack{display:flex;}
       <button class="tab" data-pane="rules">Pricing rules</button>
       <button class="tab" data-pane="history">History</button>
       <button class="tab" data-pane="settings">Settings</button>
-      <button class="tab tab-x" id="panelClose" title="Hide this panel">&#10005;</button>
+      <button class="panel-x" id="panelClose" title="Hide this panel">&#10005;</button>
     </div>
 
     <div class="pane on" id="pane-board">
@@ -916,7 +916,7 @@ function render(){
   yt.textContent = 'Your quote reaches ' + asked + ' of 21';
   yt.className = 'pill' + (asked > 21 ? ' bust' : asked >= 17 ? ' hot' : '');
   var cn = document.getElementById('closeNow');
-  cn.textContent = S.live ? 'Send it now and bank ' + fmt(q.contract) : 'Not in a deal';
+  cn.textContent = S.live ? 'Sending now puts ' + fmt(q.contract) + ' on the table' : 'Not in a deal';
   cn.className = 'pill' + (S.live ? ' money' : '');
 
   var co = document.getElementById('counter'); co.innerHTML = '';
