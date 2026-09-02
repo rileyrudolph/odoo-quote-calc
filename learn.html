@@ -824,6 +824,88 @@ function render(){
   document.getElementById('btnStand').disabled = !S.live;
 }
 
+// ===================================================================
+// LEADERBOARD. Talks to a small Cloudflare Worker if one is configured,
+// and falls back to this browser alone if it is not reachable.
+// ===================================================================
+var LB_URL = '';                 // set to the Worker URL to go shared
+var LB_KEY = 'odooTableBoard';
+var lbPeriod = 'day';
+
+function periodKey(p, d){
+  d = d || new Date();
+  var y = d.getUTCFullYear(), m = d.getUTCMonth() + 1, day = d.getUTCDate();
+  var pad = function(n){ return (n < 10 ? '0' : '') + n; };
+  if (p === 'all') return 'all';
+  if (p === 'month') return y + '-' + pad(m);
+  if (p === 'day') return y + '-' + pad(m) + '-' + pad(day);
+  var t = new Date(Date.UTC(y, d.getUTCMonth(), day));
+  var dow = (t.getUTCDay() + 6) % 7;
+  t.setUTCDate(t.getUTCDate() - dow);
+  return 'w' + t.getUTCFullYear() + '-' + pad(t.getUTCMonth() + 1) + '-' + pad(t.getUTCDate());
+}
+
+function localBoard(){
+  try { return JSON.parse(localStorage.getItem(LB_KEY) || '{}'); } catch (e) { return {}; }
+}
+function saveLocalBoard(b){
+  try { localStorage.setItem(LB_KEY, JSON.stringify(b)); } catch (e) {}
+}
+function recordLocal(name, amount){
+  var b = localBoard();
+  ['day','week','month','all'].forEach(function(p){
+    var k = p + ':' + periodKey(p);
+    b[k] = b[k] || {};
+    b[k][name] = Math.max(b[k][name] || 0, Math.round(amount));
+  });
+  saveLocalBoard(b);
+}
+function readLocal(p){
+  var b = localBoard(), k = p + ':' + periodKey(p), rows = [];
+  var m = b[k] || {};
+  for (var n in m) rows.push({ name:n, amount:m[n] });
+  rows.sort(function(x, y){ return y.amount - x.amount; });
+  return rows.slice(0, 12);
+}
+
+function postScore(){
+  var name = (S.name || '').trim();
+  if (!name || S.bank <= 0) { renderBoard(); return; }
+  recordLocal(name, S.bank);
+  if (LB_URL) {
+    try {
+      fetch(LB_URL + '/score', {
+        method:'POST', headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ name:name, amount:Math.round(S.bank) })
+      }).then(function(){ renderBoard(); }).catch(function(){ renderBoard(); });
+      return;
+    } catch (e) {}
+  }
+  renderBoard();
+}
+
+function renderBoard(){
+  var host = document.getElementById('lbList');
+  var draw = function(rows, shared){
+    if (!rows.length) { host.innerHTML = '<p class="mini">Nobody on this board yet. Play a hand.</p>'; return; }
+    host.innerHTML = rows.map(function(r, i){
+      var mine = r.name === (S.name || '').trim();
+      return '<div class="lbrow' + (mine ? ' you' : '') + '">' +
+        '<span class="rank">' + (i + 1) + '</span>' +
+        '<span class="who">' + esc(r.name) + '</span>' +
+        '<span class="amt">' + fmt(r.amount) + '/mo</span></div>';
+    }).join('') + (shared ? '' : '<p class="mini" style="margin-top:10px">This device only. Connect the Worker to share it.</p>');
+  };
+  if (LB_URL) {
+    fetch(LB_URL + '/top?period=' + lbPeriod + '&key=' + encodeURIComponent(periodKey(lbPeriod)))
+      .then(function(r){ return r.json(); })
+      .then(function(j){ draw(j.rows || [], true); })
+      .catch(function(){ draw(readLocal(lbPeriod), false); });
+  } else {
+    draw(readLocal(lbPeriod), false);
+  }
+}
+
 function renderStats(){
   document.getElementById('stHands').textContent = S.hands;
   document.getElementById('stWon').textContent = S.won;
