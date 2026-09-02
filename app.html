@@ -47,9 +47,9 @@
 
   /* Odoo buttons are 4px. Cards get a little more so the density stays readable. */
   --r-sm:4px; --r-md:6px; --r-lg:10px; --r-xl:14px;
-  --sh-1:0 1px 2px rgba(17,24,39,.05), 0 1px 3px rgba(17,24,39,.04);
-  --sh-2:0 1px 3px rgba(17,24,39,.06), 0 8px 24px -12px rgba(17,24,39,.16);
-  --sh-3:0 4px 8px rgba(17,24,39,.06), 0 20px 40px -20px rgba(17,24,39,.20);
+  --sh-1:0 1px 2px rgba(17,24,39.05), 0 1px 3px rgba(17,24,39.04);
+  --sh-2:0 1px 3px rgba(17,24,39.06), 0 8px 24px -12px rgba(17,24,39.16);
+  --sh-3:0 4px 8px rgba(17,24,39.06), 0 20px 40px -20px rgba(17,24,39.20);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -74,9 +74,9 @@
 
     --line:#2f343e;
     --line-soft:#262a33;
-    --sh-1:0 1px 2px rgba(0,0,0,.4);
-    --sh-2:0 2px 6px rgba(0,0,0,.45), 0 10px 28px -14px rgba(0,0,0,.6);
-    --sh-3:0 6px 14px rgba(0,0,0,.5), 0 24px 48px -20px rgba(0,0,0,.7);
+    --sh-1:0 1px 2px rgba(0,0,0.4);
+    --sh-2:0 2px 6px rgba(0,0,0.45), 0 10px 28px -14px rgba(0,0,0.6);
+    --sh-3:0 6px 14px rgba(0,0,0.5), 0 24px 48px -20px rgba(0,0,0.7);
   }
 }
 :root[data-theme="dark"]{
@@ -107,12 +107,12 @@ body{
 
 /* ── App bar ── */
 .appbar{
-  position:sticky;top:0;z-index:40;background:rgba(255,255,255,.82);
+  position:sticky;top:0;z-index:40;background:rgba(255,255,255.82);
   backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
   border-bottom:1px solid var(--line);margin:0 -20px 0;padding:0 20px;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .appbar{background:rgba(33,27,36,.82);}}
-:root[data-theme="dark"] .appbar{background:rgba(33,27,36,.82);}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .appbar{background:rgba(33,27,36.82);}}
+:root[data-theme="dark"] .appbar{background:rgba(33,27,36.82);}
 .appbar-inner{
   max-width:1320px;margin:0 auto;height:58px;
   display:flex;align-items:center;justify-content:space-between;gap:16px;
@@ -121,7 +121,7 @@ body{
 .brand-mark{
   width:22px;height:22px;border-radius:7px;flex:none;
   background:linear-gradient(140deg,var(--accent) 0%,var(--accent-deep) 100%);
-  box-shadow:0 2px 6px rgba(var(--accent-rgb),.4);
+  box-shadow:0 2px 6px rgba(var(--accent-rgb).4);
 }
 .brand-name{font-weight:700;font-size:.92rem;letter-spacing:-.01em;color:var(--ink);white-space:nowrap;}
 .appbar-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
@@ -161,8 +161,8 @@ body{
   font-family:inherit;font-size:1.02rem;font-weight:700;padding:9px 2px;
   font-variant-numeric:tabular-nums;-moz-appearance:textfield;
 }
-.stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-.stepper:focus-within{border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13);}
+.stepper input::-webkit-outer-spin-button.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.stepper:focus-within{border-color:rgba(var(--accent-rgb).55);box-shadow:0 0 0 3px rgba(var(--accent-rgb).13);}
 .step-btn{
   width:36px;align-self:stretch;border:none;background:transparent;color:var(--sub);
   font-size:1.05rem;font-weight:600;cursor:pointer;transition:background .15s,color .15s;
@@ -171,7 +171,7 @@ body{
 
 .bd-chip{
   display:inline-block;font-family:"Inter",sans-serif;font-size:.72rem;font-weight:700;
-  background:var(--accent-soft);color:var(--accent);border:1px solid rgba(var(--accent-rgb),.28);
+  background:var(--accent-soft);color:var(--accent);border:1px solid rgba(var(--accent-rgb).28);
   padding:3px 11px;border-radius:4px;vertical-align:middle;margin-left:8px;letter-spacing:0;
 }
 
@@ -200,7 +200,7 @@ body{
 .mark-ul{
   position:relative;display:inline-block;
   background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/blue_highlight_04.svg");
-    background-size:103% auto;background-repeat:no-repeat;background-position:50% 100%;padding-bottom:.14em;
+    background-size:110% auto;background-repeat:no-repeat;background-position:50% 88%;padding-bottom:.38em;
 }
 
 /* ── Masthead ── */
@@ -244,9 +244,9 @@ label.lbl{
   font-family:inherit;font-size:1rem;font-weight:650;padding:10px 12px;
   font-variant-numeric:tabular-nums;-moz-appearance:textfield;
 }
-.numfield input::-webkit-outer-spin-button,.numfield input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.numfield input::-webkit-outer-spin-button.numfield input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .numfield span{padding:0 12px 0 4px;color:var(--faint);font-size:.78rem;white-space:nowrap;}
-.numfield:focus-within{border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13);}
+.numfield:focus-within{border-color:rgba(var(--accent-rgb).55);box-shadow:0 0 0 3px rgba(var(--accent-rgb).13);}
 select{
   padding:8px 26px 8px 10px;border-radius:var(--r-md);border:1px solid var(--line);
   background:var(--surface-2);color:var(--ink);font-family:inherit;font-size:.83rem;
@@ -256,7 +256,7 @@ select{
   background-position:calc(100% - 14px) 52%,calc(100% - 9px) 52%;
   background-size:5px 5px,5px 5px;background-repeat:no-repeat;
 }
-select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13);}
+select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb).55);box-shadow:0 0 0 3px rgba(var(--accent-rgb).13);}
 
 .pill-toggle{display:inline-flex;gap:4px;background:var(--surface-3);padding:4px;border-radius:999px;}
 .pill-toggle button{
@@ -278,18 +278,18 @@ select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb),.55);box-s
   transition:border-color .16s,color .16s,background .16s,box-shadow .16s,transform .06s;
   box-shadow:var(--sh-1);
 }
-.btn:hover{border-color:rgba(var(--accent-rgb),.5);color:var(--accent);box-shadow:var(--sh-2);}
+.btn:hover{border-color:rgba(var(--accent-rgb).5);color:var(--accent);box-shadow:var(--sh-2);}
 .btn:active{transform:translateY(1px);}
 .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:none;}
 .btn-primary:hover{color:#fff;background:var(--accent-deep);border-color:var(--accent-deep);}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SCENARIO TABLE — the heart of the tool. Configuration columns sit left of a
+   SCENARIO TABLE, the heart of the tool. Configuration columns sit left of a
    divider, computed results right of it, so the eye reads inputs → outputs.
    ═══════════════════════════════════════════════════════════════════════════ */
 .scroll-x{overflow-x:auto;margin:0 -4px;padding:0 4px;}
-/* Sized so the money columns — All-in and Per mo. — are on screen without scrolling on a
+/* Sized so the money columns, All-in and Per mo., are on screen without scrolling on a
    normal laptop. They are the whole point of the table; hiding them behind a scrollbar would
    defeat it. */
 .sctable{width:100%;border-collapse:separate;border-spacing:0;font-size:.8rem;min-width:900px;}
@@ -298,8 +298,8 @@ select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb),.55);box-s
   font-weight:700;text-align:left;padding:0 4px 9px;white-space:nowrap;
   border-bottom:1px solid var(--line);
 }
-.sctable th.num,.sctable td.num{text-align:right;}
-.sctable th.center,.sctable td.center{text-align:center;}
+.sctable th.num.sctable td.num{text-align:right;}
+.sctable th.center.sctable td.center{text-align:center;}
 .sctable tbody td{
   padding:9px 4px;border-bottom:1px solid var(--line-soft);
   vertical-align:middle;color:var(--ink-2);
@@ -325,8 +325,8 @@ select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb),.55);box-s
   text-align:right;font-variant-numeric:tabular-nums;-moz-appearance:textfield;
   transition:border-color .15s,box-shadow .15s;
 }
-.sctable .pct::-webkit-outer-spin-button,.sctable .pct::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-.sctable .pct:focus{outline:none;border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13);}
+.sctable .pct::-webkit-outer-spin-button.sctable .pct::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.sctable .pct:focus{outline:none;border-color:rgba(var(--accent-rgb).55);box-shadow:0 0 0 3px rgba(var(--accent-rgb).13);}
 .sctable .pct:disabled{opacity:.32;cursor:not-allowed;}
 .sctable .na{color:var(--sub);}
 .rm-btn{
@@ -374,7 +374,7 @@ select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb),.55);box-s
 }
 .bd-total{font-size:1.75rem;font-weight:800;color:var(--accent);letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1;}
 .bd-sub{font-size:.74rem;color:var(--sub);margin-top:3px;}
-.bd-permo,.bd-save{
+.bd-permo.bd-save{
   display:flex;justify-content:space-between;gap:10px;font-size:.8rem;
   padding-top:9px;margin-top:9px;border-top:1px solid var(--line);color:var(--sub);
 }
@@ -413,8 +413,8 @@ select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb),.55);box-s
 .mr-pick{font-size:.72rem;font-weight:500;text-transform:none;letter-spacing:0;color:var(--faint);margin-top:3px;}
 .mr-h{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--sub);}
 .mr-table{width:100%;table-layout:fixed;}
-.mr-table th:first-child,.mr-table td:first-child{width:34%;text-align:left;}
-.mr-table th:not(:first-child),.mr-table td:not(:first-child){width:22%;text-align:right;}
+.mr-table th:first-child.mr-table td:first-child{width:34%;text-align:left;}
+.mr-table th:not(:first-child).mr-table td:not(:first-child){width:22%;text-align:right;}
 .mr-table th{font-size:.78rem;font-weight:800;color:var(--ink);text-transform:none;letter-spacing:0;padding-bottom:9px;}
 .mr-table td{padding:8px 6px;}
 .th-sub{display:block;font-size:.58rem;font-weight:600;text-transform:none;letter-spacing:.01em;color:var(--faint);margin-top:3px;}
@@ -458,7 +458,7 @@ select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb),.55);box-s
 
 /* ── Warnings: present only when they apply ── */
 .warnbox:empty{display:none;}
-/* Warnings are notes, not alarms. Nothing here is forbidden — the rep is being told what the
+/* Warnings are notes, not alarms. Nothing here is forbidden, the rep is being told what the
    system will do, so these read as quiet asides rather than errors demanding to be cleared. */
 .warnbox{margin-top:16px;display:flex;flex-direction:column;gap:5px;}
 .warnmsg{
@@ -479,7 +479,7 @@ select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb),.55);box-s
 /* ── Marketing / context blocks (these print with the quote) ── */
 
 /* ── Internal view ── */
-#internalCard{border:1px dashed rgba(var(--accent-rgb),.55);background:var(--surface-2);}
+#internalCard{border:1px dashed rgba(var(--accent-rgb).55);background:var(--surface-2);}
 .tag-internal{
   font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
   background:var(--accent);color:#fff;padding:3px 9px;border-radius:4px;vertical-align:middle;margin-left:8px;
@@ -491,7 +491,7 @@ footer{
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PRINT — the exported PDF is a customer-facing document, so the controls,
+   PRINT, the exported PDF is a customer-facing document, so the controls,
    the internal view and the scenario chrome all drop away.
    ═══════════════════════════════════════════════════════════════════════════ */
 @media print{
@@ -519,7 +519,7 @@ footer{
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   COMPOSE PANEL — a small mail client, not a form. Anchored bottom-right and
+   COMPOSE PANEL, a small mail client, not a form. Anchored bottom-right and
    collapsible, the way Gmail's own compose window behaves, so sending a quote
    reads as a real, deliberate email rather than a generic "submit" dialog.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -541,7 +541,7 @@ footer{
   font-size:1.05rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
   opacity:.9;
 }
-.compose-icon-btn:hover{background:rgba(255,255,255,.2);opacity:1;}
+.compose-icon-btn:hover{background:rgba(255,255,255.2);opacity:1;}
 .compose-body{padding:2px 16px 0;display:flex;flex-direction:column;}
 .compose-row{border-bottom:1px solid var(--line-soft);padding:10px 0;}
 .compose-row.compose-message-row{border-bottom:none;padding-top:12px;padding-bottom:4px;}
@@ -589,10 +589,9 @@ footer{
 .compose-sig-row{border-bottom:none;padding:0 0 10px;}
 .compose-sig{height:84px;resize:vertical;line-height:1.5;font-size:.82rem;color:var(--sub);}
 .compose-panel.collapsed{width:280px;}
-.compose-panel.collapsed .compose-body,
-.compose-panel.collapsed .compose-footer{display:none;}
+.compose-panel.collapsed .compose-body.compose-panel.collapsed .compose-footer{display:none;}
 @media (max-width:480px){.compose-panel{right:0;left:0;width:100%;max-width:100%;}}
-/* Extra compose fields — the details that turn a raw send into a personalised,
+/* Extra compose fields, the details that turn a raw send into a personalised,
    on-brand proposal: who it's for, which scenario, and a copy to the rep. */
 .compose-body{max-height:calc(100vh - 210px);overflow-y:auto;}
 .compose-split{display:flex;gap:10px;}
@@ -615,9 +614,9 @@ footer{
 .compose-attachment.warn{background:var(--warn-soft);color:var(--warn);}
 .compose-attachment.warn::before{content:"⚠️";}
 
-/* Preview — shows the exact email that will land in the customer's inbox. */
+/* Preview, shows the exact email that will land in the customer's inbox. */
 .eprev-overlay{
-  position:fixed;inset:0;z-index:10000;background:rgba(17,24,39,.55);
+  position:fixed;inset:0;z-index:10000;background:rgba(17,24,39.55);
   display:none;align-items:center;justify-content:center;padding:24px;
 }
 .eprev-overlay.on{display:flex;}
@@ -634,15 +633,15 @@ footer{
 .eprev-frame{flex:1;border:none;width:100%;background:#f4f5f7;}
    
 /* ═══════════════════════════════════════════════════════════════════════════
-      PASSWORD GATE — one shared unlock for the whole site. Enter it once per
-      browser session (sessionStorage — cleared on tab/browser close) and moving
+      PASSWORD GATE, one shared unlock for the whole site. Enter it once per
+      browser session (sessionStorage, cleared on tab/browser close) and moving
       between the calculator and the deck won't ask again.═══════════════════════════════════════════════════════════════════════════ */
 .pw-gate{
   position:fixed;inset:0;z-index:99999;
   display:flex;align-items:center;justify-content:center;padding:24px;
   background:
-    radial-gradient(760px 520px at 10% -12%, rgba(var(--accent-rgb),.20), transparent 60%),
-    radial-gradient(680px 480px at 108% 112%, rgba(var(--teal-rgb),.16), transparent 60%),
+    radial-gradient(760px 520px at 10% -12%, rgba(var(--accent-rgb).20), transparent 60%),
+    radial-gradient(680px 480px at 108% 112%, rgba(var(--teal-rgb).16), transparent 60%),
     var(--bg);
   animation:pwFadeIn .4s ease both;
 }
@@ -652,13 +651,13 @@ footer{
 .pw-card{
   width:100%;max-width:392px;background:var(--surface);border:1px solid var(--line);
   border-radius:var(--r-xl);box-shadow:var(--sh-3);padding:40px 36px 32px;text-align:center;
-  animation:pwRise .5s cubic-bezier(.2,.7,.3,1) both;
+  animation:pwRise .5s cubic-bezier(.2.7.3,1) both;
 }
 @keyframes pwRise{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
 .pw-mark{
   width:58px;height:58px;border-radius:17px;margin:0 auto 20px;
   background:linear-gradient(140deg,var(--accent) 0%,var(--accent-deep) 100%);
-  box-shadow:0 8px 18px -4px rgba(var(--accent-rgb),.5);
+  box-shadow:0 8px 18px -4px rgba(var(--accent-rgb).5);
   display:flex;align-items:center;justify-content:center;
   color:#fff;font-family:"Inter",sans-serif;font-weight:800;font-size:27px;
 }
@@ -672,7 +671,7 @@ footer{
   transition:border-color .16s,box-shadow .16s;
 }
 .pw-field input::placeholder{font-weight:500;letter-spacing:normal;color:var(--faint);}
-.pw-field input:focus{outline:none;border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.15);}
+.pw-field input:focus{outline:none;border-color:rgba(var(--accent-rgb).55);box-shadow:0 0 0 3px rgba(var(--accent-rgb).15);}
 .pw-gate.pw-shake .pw-card{animation:pwShake .4s;}
 @keyframes pwShake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-5px)}40%,60%{transform:translateX(5px)}}
 .pw-error{font-size:.8rem;color:var(--warn);margin:10px 0 4px;min-height:1.1em;opacity:0;transition:opacity .15s;}
@@ -681,7 +680,7 @@ footer{
   width:100%;margin-top:16px;font-family:inherit;font-weight:700;font-size:.94rem;border-radius:999px;
   padding:13px 19px;cursor:pointer;border:1px solid var(--accent);
   background:var(--accent);color:#fff;
-  box-shadow:0 2px 6px rgba(var(--accent-rgb),.3),0 10px 22px -10px rgba(var(--accent-rgb),.6);
+  box-shadow:0 2px 6px rgba(var(--accent-rgb).3),0 10px 22px -10px rgba(var(--accent-rgb).6);
   transition:background .16s,border-color .16s,transform .06s;
 }
 .pw-submit:hover{background:var(--accent-deep);border-color:var(--accent-deep);}
@@ -699,7 +698,7 @@ footer{
       <div class="pw-field">
         <input type="password" id="pwInput" name="pwInput" placeholder="Password" autocomplete="new-password" spellcheck="false">
       </div>
-      <p class="pw-error" id="pwError">Incorrect password — try again.</p>
+      <p class="pw-error" id="pwError">Incorrect password, try again.</p>
       <button type="submit" class="pw-submit">Unlock</button>
     </form>
     <p class="pw-foot">Access is restricted to authorized users.</p>
@@ -721,8 +720,7 @@ footer{
     }
 
     // One password for the whole site: if it was already entered earlier in
-    // this browser tab/session (including on the Deck page), skip the gate —
-    // no re-prompt when navigating back and forth. A brand-new tab or
+    // this browser tab/session (including on the Deck page), skip the gate, // no re-prompt when navigating back and forth. A brand-new tab or
     // browser restart clears this and asks again.
     if (alreadyUnlocked()) {
       if (gate && gate.parentNode) gate.parentNode.removeChild(gate);
@@ -1016,28 +1014,26 @@ footer{
     <div class="compose-row">
       <input type="email" id="emailTo" class="compose-field" placeholder="Recipient" autocomplete="off">
     </div>
-    <div class="compose-row compose-split">
-      <input type="text" id="emailContact" class="compose-field" placeholder="Contact first name" autocomplete="off">
-      <input type="text" id="emailCompany" class="compose-field" placeholder="Company" autocomplete="off">
-    </div>
-    <div class="compose-row compose-split">
-      <input type="text" id="emailSenderName" class="compose-field" placeholder="Your name" autocomplete="off">
-      <input type="text" id="emailSenderPhone" class="compose-field" placeholder="Your phone (optional)" autocomplete="off">
-    </div>
-    <div class="compose-row" id="composeScenarioRow">
-      <select id="emailScenario" class="compose-select" aria-label="Which scenario to send"></select>
-      <div class="compose-hint">The proposal is built from this scenario.</div>
-    </div>
-    <div class="compose-row">
+    
+    <!-- Fields the compose form no longer shows. Kept as empty stubs so the
+             existing send logic keeps working without a rewrite. A rep only sees
+             To, Subject, the message and their signature, the way Gmail looks. -->
+        <div style="display:none" aria-hidden="true">
+          <input type="text" id="emailContact" value="">
+          <input type="text" id="emailCompany" value="">
+          <input type="text" id="emailSenderName" value="">
+          <input type="text" id="emailSenderPhone" value="">
+          <input type="checkbox" id="emailCcSelf">
+          <div id="composeScenarioRow"><select id="emailScenario"><option value="all" selected>All scenarios</option></select></div>
+        </div>
+        <div class="compose-row">
       <input type="text" id="emailSubject" class="compose-field" placeholder="Subject">
     </div>
     <div class="compose-row compose-message-row">
       <textarea id="emailMessage" class="compose-field compose-message" placeholder="Write a message..."></textarea>
     </div>
     <label class="compose-check"><input type="checkbox" id="emailSigOn"> Include signature</label>
-    <div class="compose-row compose-sig-row" id="composeSigRow" style="display:none;">
-      <textarea id="emailSignature" class="compose-field compose-sig" placeholder="Your name&#10;Title | Odoo Inc.&#10;Phone&#10;Street, City ST ZIP"></textarea>
-    </div>
+    
     <label class="compose-check"><input type="checkbox" id="emailCcSelf" checked> Send me a copy</label>
     <div class="compose-attachment" id="composeAttachNote">Pricing, term and payment options are laid out in the email.</div>
   </div>
@@ -1049,7 +1045,7 @@ footer{
   </div>
 </div>
 
-<!-- Preview — renders the outgoing HTML in a sandboxed frame so the rep sees exactly
+<!-- Preview, renders the outgoing HTML in a sandboxed frame so the rep sees exactly
      what the customer will get before anything is sent. -->
 <div class="eprev-overlay" id="emailPreviewOverlay">
   <div class="eprev-card">
@@ -1070,11 +1066,10 @@ footer{
 // Both plans confirmed live on odoo.com/pricing (Aug 27, 2026). Standard = all apps, Odoo Online
 // only. Custom = all apps + Studio, multi-company, external API, Odoo.sh/on-prem hosting.
 // noCommitY1: paying monthly (no annual commitment) still gets its own Year-1 promo rate before
-// stepping up to the steady noCommit rate — it's not one flat rate from day one. Sourced from
+// stepping up to the steady noCommit rate, it's not one flat rate from day one. Sourced from
 // vepat's reference calculator (PRICING table) cross-checked against odoo.com/pricing's display.
 // Slightly less certain than the annual-commit rates, which were confirmed with a live fetch.
-// US rates were confirmed with a live fetch. CA rates come from vepat's PRICING table only —
-// odoo.com serves localised pricing that could not be re-fetched from here, so treat CAD as
+// US rates were confirmed with a live fetch. CA rates come from vepat's PRICING table only, // odoo.com serves localised pricing that could not be re-fetched from here, so treat CAD as
 // third-party-sourced the same way the SH numbers are.
 const PLANS_BY_COUNTRY = {
   US: {
@@ -1083,7 +1078,7 @@ const PLANS_BY_COUNTRY = {
   },
   // Live-read from odoo.com/pricing with the country selector set to Canada, Aug 28 2026.
   // The previous third-party CAD figures were wrong in seven of eight places. Note especially
-  // that Custom's monthly Year-1 rate (68.50) is BELOW its yearly steady rate (69.00) — the old
+  // that Custom's monthly Year-1 rate (68.50) is BELOW its yearly steady rate (69.00), the old
   // data assumed noCommitY1 always equals y2, which is true for US Standard and CA Standard but
   // not here. Odoo's CAD list is an independently set regional pricelist, NOT an FX conversion:
   // the implied USD->CAD rate ranges from 1.12x (Custom promo) to 1.47x (50hr pack).
@@ -1100,8 +1095,7 @@ let country = 'US';
 function PLANS_() { return PLANS_BY_COUNTRY[country]; }
 
 // The real per-term system ceiling Josh live-tested on the Aug 27 call (0/5/10/12.5/15% for
-// 1/2/3/4/5yr). This is a hard limit — the system will not apply more than this on a given term —
-// so exceeding it is warned about, not just hinted at.
+// 1/2/3/4/5yr). This is a hard limit, the system will not apply more than this on a given term, // so exceeding it is warned about, not just hinted at.
 const DISCOUNT_SCHEDULE = {1:0, 2:0.05, 3:0.10, 4:0.125, 5:0.15};
 
 // Read the ceiling as a clean percentage. Going through the fraction matters: 0.05 * 100 is
@@ -1119,7 +1113,7 @@ const TYPICAL_IMPL_DISCOUNT = 30;
 
 
 // Odoo sells implementation as discrete Success Pack SKUs (odoo.com/pricing-packs), not a
-// continuous hourly rate. A customer buying "50 hours" buys the 50hr pack flat at $140/hr — they
+// continuous hourly rate. A customer buying "50 hours" buys the 50hr pack flat at $140/hr, they
 // don't blend through smaller packs. Cost is flat-per-pack and pack size only goes up, so a
 // bigger ask can never total less.
 // US pack prices verified against odoo.com/pricing-packs. CA from vepat's IMPLEMENTATIONS table.
@@ -1144,23 +1138,23 @@ const PACKS_BY_COUNTRY = {
 function PACKS_() { return PACKS_BY_COUNTRY[country]; }
 const DISCOUNT_ELIGIBLE_HOURS = 200; // initial invoice only, per Josh's Aug 27 training call
 
-// Odoo.sh rates. odoo.sh/pricing is entirely client-rendered — no numeric pricing is present in
+// Odoo.sh rates. odoo.sh/pricing is entirely client-rendered, no numeric pricing is present in
 // the static page, so these could not be independently re-confirmed the way the license and
 // implementation numbers were. Sourced from vepat's calculator (SH table, US rates), whose
 // license figures matched the verified ones exactly. Treat as third-party-sourced.
 // Odoo sells three hosting choices. Two are free; only Odoo.sh is metered.
-//   Standard Cloud Hosting — free (Odoo Online)
-//   Self Hosting           — free (on-premise)
-//   Odoo.sh Cloud Platform — per worker / GB / staging environment
+//   Standard Cloud Hosting, free (Odoo Online)
+//   Self Hosting, free (on-premise)
+//   Odoo.sh Cloud Platform, per worker / GB / staging environment
 // The per-unit figures below were confirmed against Odoo's own hosting pricing:
 // worker US$57.60/mo, storage US$0.20/GB/mo, staging env US$14.40/mo.
-// The no-commitment monthly uplift is still third-party sourced (vepat) — it is what makes the
+// The no-commitment monthly uplift is still third-party sourced (vepat), it is what makes the
 // "save vs monthly" line work for hosting, but it is the one part here not directly confirmed.
 // Odoo.sh unit rates, live-read from odoo.sh/pricing Aug 28 2026 (verified against the widget's
 // own total: 4 workers + 1GB + 0 staging = $230.60, i.e. 4*57.60 + 0.20, so the model is purely
 // linear with no base fee).
 //
-// odoo.sh publishes ONLY USD (and EUR) — there is no Canadian Odoo.sh pricelist. The previous CAD
+// odoo.sh publishes ONLY USD (and EUR), there is no Canadian Odoo.sh pricelist. The previous CAD
 // figures here were invented, and internally inconsistent: workers and staging were 1.5x the USD
 // rate while storage was 1.6x. They are now derived from the published USD rates at a stated FX,
 // and the UI says so whenever a Canadian quote uses Odoo.sh. Confirm before it reaches a customer.
@@ -1181,8 +1175,8 @@ const SH_RATES_BY_COUNTRY = {
 };
 function SH_RATES_() { return SH_RATES_BY_COUNTRY[country]; }
 
-// Typical sizing envelope for Odoo.sh. Warning thresholds only — never hard caps.
-// Sliders on odoo.sh/pricing, read Aug 28 2026. Dedicated raises the ceilings sharply — it is a
+// Typical sizing envelope for Odoo.sh. Warning thresholds only, never hard caps.
+// Sliders on odoo.sh/pricing, read Aug 28 2026. Dedicated raises the ceilings sharply, it is a
 // different class of server, which is why the flat fee buys headroom as well as isolation.
 const SH_LIMITS          = { workersMin: 1, workersMax: 8,   storageMax: 512  };
 const SH_LIMITS_DEDICATED = { workersMin: 4, workersMax: 256, storageMax: 4096 };
@@ -1207,7 +1201,7 @@ function packFor(hours){
 }
 
 // Arbitrary hour counts are quoted as the cheapest realistic combination of Success Packs that
-// covers them — a rep quoting 135 hours sells a 100 + a 50 ($19,500), not a 200 ($25,000).
+// covers them, a rep quoting 135 hours sells a 100 + a 50 ($19,500), not a 200 ($25,000).
 // Deliberately capped at TWO packs: an unconstrained search "wins" by stacking nine 4-hour
 // Starter packs, which is cheaper on paper and not something anyone would ever quote. Past two
 // packs' worth of hours it falls back to whole Pro packs plus one pack for the remainder.
@@ -1274,14 +1268,13 @@ function shMonthlyCost(type, annual){
   if (!isPaidHosting(type)) return 0;
   const r = annual ? SH_RATES_().yearly : SH_RATES_().monthly;
   const {workers, storage, staging} = shInputs();
-  // Dedicated is a flat monthly fee ON TOP of the metered lines, not a replacement for them —
-  // odoo.sh prices it as its own row while workers/storage/staging keep billing as normal.
+  // Dedicated is a flat monthly fee ON TOP of the metered lines, not a replacement for them, // odoo.sh prices it as its own row while workers/storage/staging keep billing as normal.
   const ded = isDedicated() ? r.dedicated : 0;
   return r.base + ded + workers * r.worker + storage * r.storage + staging * r.staging;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SCENARIOS — each one is a complete, independent deal configuration.
+// SCENARIOS, each one is a complete, independent deal configuration.
 // Everything starts neutral: 1-year, Custom, no implementation, 0% on both discounts, no SH.
 // ─────────────────────────────────────────────────────────────────────────────
 let internalView = false;   // commission view, off by default and never printed
@@ -1311,12 +1304,12 @@ function termLabel(t){ return t === 'mo' ? 'Mo (no commit)' : (t === 1 ? '1 Yr' 
 function planLabel(p){ return p === 'custom' ? 'Custom' : 'Standard'; }
 // Which terms accept a licence discount at all. A no-commitment monthly deal does not: there is
 // no term to discount against. A 1-year deal does, but it behaves differently from 2-5 years and
-// the tool says so — see licDiscountBasis below.
+// the tool says so, see licDiscountBasis below.
 function isDiscountableTerm(t){ return t !== 'mo'; }
 
 // WHERE a licence discount lands. On 2-5 years it reduces only the Year-2-onward licence, which
 // is the rule Josh live-tested and the bug he found in the public reference tool. A 1-year deal
-// has no Year 2, so a discount there can only come off the Year-1 promotional rate — which is
+// has no Year 2, so a discount there can only come off the Year-1 promotional rate, which is
 // outside the standard multi-year schedule. The tool allows it and flags it rather than blocking
 // it, because reps do negotiate them and a calculator that cannot show one is no use in the room.
 function licDiscountBasis(t){ return (t !== 'mo' && t > 1) ? 'year2' : 'year1'; }
@@ -1325,7 +1318,7 @@ function isOffScheduleLicDiscount(s){
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// THE MATH — one function, used by both the table row and the detail breakdown, so the two can
+// THE MATH, one function, used by both the table row and the detail breakdown, so the two can
 // never drift apart.
 // ─────────────────────────────────────────────────────────────────────────────
 function compute(s){
@@ -1335,7 +1328,7 @@ function compute(s){
   const years = isMo ? 1 : s.term;      // Mo is priced as a 12-month equivalent so every column
   const months = years * 12;            // lines up against the committed terms.
 
-  // License. The multi-year discount applies ONLY to the Year-2-onward portion — never Year 1,
+  // License. The multi-year discount applies ONLY to the Year-2-onward portion, never Year 1,
   // never the whole contract. (Josh caught exactly that bug in the public reference tool.)
   let y1Total, y2PlusTotal, licDiscAmt;
   if (isMo) {
@@ -1352,7 +1345,7 @@ function compute(s){
   }
   const licTotal = y1Total + y2PlusTotal - licDiscAmt;
 
-  // Implementation — rounds up to the nearest real pack; the discount only reaches the first
+  // Implementation, rounds up to the nearest real pack; the discount only reaches the first
   // 200 hours, on the initial invoice.
   const implList = packCost(s.hours);
   const implDiscPct = Math.max(0, s.implDisc) / 100;
@@ -1388,7 +1381,7 @@ function compute(s){
   const grand = Math.round((licTotal + implTotal + shTotal) * 100) / 100;
   const perMonth = Math.round((grand / months) * 100) / 100;
 
-  // Savings vs. paying monthly with no commitment, over the same span — license plus hosting
+  // Savings vs. paying monthly with no commitment, over the same span, license plus hosting
   // plus whatever came off implementation. Mo scenarios have nothing to save against.
   let savings = 0;
   if (!isMo) {
@@ -1406,7 +1399,7 @@ function compute(s){
   const finHigh = grand > 0 ? pmt(APR_HIGH) : 0;
 
   // Year-by-year cash. Reps get asked "so what do I actually pay in year three?" and an
-  // amortized average is the wrong answer — Year 1 carries the whole implementation and the
+  // amortized average is the wrong answer, Year 1 carries the whole implementation and the
   // undiscounted licence, so it is materially bigger than every year after it.
   //   Year 1     = Year-1 promo licence + undiscounted hosting + implementation (initial invoice)
   //   Year 2..n  = discounted Year-2+ licence and hosting, split evenly across the remaining years
@@ -1465,7 +1458,7 @@ function renderScenarios(){
   const anySh = scenarios.some(s => isPaidHosting(s.sh));
   const anyCommitted = scenarios.some(s => s.term !== 'mo');
 
-  // Conditional columns — hosting and savings only appear when they mean something.
+  // Conditional columns, hosting and savings only appear when they mean something.
   document.querySelectorAll('.col-sh').forEach(el => el.style.display = anySh ? '' : 'none');
   document.querySelectorAll('.col-save').forEach(el => el.style.display = anyCommitted ? '' : 'none');
   document.getElementById('shSizingWrap').style.display = anySh ? '' : 'none';
@@ -1499,8 +1492,7 @@ function renderScenarios(){
     const n = 'scenario ' + (scenarios.indexOf(s) + 1);
 
     // Remove sits FIRST so it is always on screen. As the last column it fell off the right of
-    // the table on a narrower window, behind a horizontal scrollbar most people never touch —
-    // and it was omitted entirely on a single row, so there was no affordance to discover.
+    // the table on a narrower window, behind a horizontal scrollbar most people never touch, // and it was omitted entirely on a single row, so there was no affordance to discover.
     // It now always renders; with one scenario left it is simply disabled and says why.
     const tdRm = document.createElement('td');
     tdRm.className = 'no-print center';
@@ -1581,7 +1573,7 @@ function renderScenarios(){
       s.plan, v => { s.plan = v; render(); }, 'plan_' + s.id, 'Plan for ' + n));
     tr.appendChild(tdPlan);
 
-    // License discount — n/a on Mo and 1yr
+    // License discount, n/a on Mo and 1yr
     const tdLic = document.createElement('td');
     tdLic.className = 'center';
     if (isDiscountableTerm(s.term)) {
@@ -1596,8 +1588,7 @@ function renderScenarios(){
     } else {
       // Not a policy block so much as arithmetic: the multi-year discount only ever reduces the
       // Year-2-onward licence, and neither a 1-year nor a no-commitment deal has one. Both still
-      // get the automatic Year-1 promotional rate, and both can still discount implementation —
-      // so the cell explains itself rather than just reading "no discount".
+      // get the automatic Year-1 promotional rate, and both can still discount implementation, // so the cell explains itself rather than just reading "no discount".
       tdLic.innerHTML = '<span class="na">n/a</span>';
       tdLic.title = s.term === 'mo'
         ? 'No commitment, so there is no Year 2+ to discount. The no-commit Year-1 rate still applies, and implementation can still be discounted.'
@@ -1639,7 +1630,7 @@ function renderScenarios(){
     }
     tr.appendChild(tdImpl);
 
-    // Implementation discount — only meaningful once a package is on the row
+    // Implementation discount, only meaningful once a package is on the row
     const tdImplPct = document.createElement('td');
     tdImplPct.className = 'center';
     tdImplPct.appendChild(buildPct(s.implDisc, s.hours <= 0, v => { s.implDisc = v; render(); },
@@ -1661,7 +1652,7 @@ function renderScenarios(){
       tr.appendChild(td);
       return td;
     };
-    // A dash means "this deal has none of that" — not "it rounded to zero". An over-100%
+    // A dash means "this deal has none of that", not "it rounded to zero". An over-100%
     // discount legitimately drives the number negative and must still be readable.
     addNum('cLic_' + s.id, fmt(q.licTotal), 'divide'); // starts the results half of the row
     addNum('cImpl_' + s.id, q.implList > 0 ? fmt(q.implTotal) : '-');
@@ -1677,7 +1668,7 @@ function renderScenarios(){
   });
 }
 
-// Warnings are built fresh each render and only exist when they actually apply — nothing sits
+// Warnings are built fresh each render and only exist when they actually apply, nothing sits
 // on screen as permanent noise.
 function renderWarnings(){
   const box = document.getElementById('scWarns');
@@ -1730,7 +1721,7 @@ function renderWarnings(){
   const implNeg = scenarios.filter(s => s.hours > 0 && s.implDisc > 100);
   if (implNeg.length) add(box, 'Impl %', 'Implementation discount over 100%, which pushes the implementation cost negative');
 
-  // Year 1 sits at the promotional rate and a multi-year discount cannot reach it — this is
+  // Year 1 sits at the promotional rate and a multi-year discount cannot reach it, this is
   // exactly the error Josh found in the public reference calculator, which discounted the whole
   // contract. Surfaced when a licence discount is actually being applied, since that is the
   // moment a rep might assume it comes off everything.
@@ -1759,7 +1750,7 @@ function renderWarnings(){
   if (scenarios.some(s => s.hours > DISCOUNT_ELIGIBLE_HOURS && s.implDisc > 0)) {
     add(box, 'Impl %', `The ${TYPICAL_IMPL_DISCOUNT}% only reaches the first ${DISCOUNT_ELIGIBLE_HOURS} hrs of implementation, on the initial invoice`);
   }
-  // Hosting sizing — only when hosting is actually in play.
+  // Hosting sizing, only when hosting is actually in play.
   if (scenarios.some(s => isPaidHosting(s.sh))) {
     const {workers, storage, staging} = shInputs();
     const lim = shLimits();
@@ -1826,7 +1817,7 @@ function renderDetail(){
         `<div class="fin-sub">over ${q.months} months at 6-13% APR · repays ${fmt(tl)} to ${fmt(th)}</div></div>`;
     }
 
-    // Year-by-year cash. Hidden by default — it answers a question that only some customers ask.
+    // Year-by-year cash. Hidden by default, it answers a question that only some customers ask.
     const yrRows = q.schedule.map(y => {
       const label = q.isMo ? '12 months' : 'Year ' + y.year;
       // Rows show whole dollars because that is what gets said out loud; the exact figure is on
@@ -1851,7 +1842,7 @@ function renderDetail(){
       return row;
     }).join('');
     // Year 1 is the odd one out, so say why rather than leaving the rep to explain the jump.
-    // Careful with the wording: Year 1's LICENCE is the cheapest of the term — it sits at the
+    // Careful with the wording: Year 1's LICENCE is the cheapest of the term, it sits at the
     // promotional rate, so it is lower than every later year even after the multi-year discount.
     // Year 1 is only the biggest year because the whole implementation lands on it. Calling the
     // Year-1 licence "undiscounted" read as though it were the expensive one, which is backwards.
@@ -1894,7 +1885,7 @@ function renderDetail(){
   applyDetailVisibility();
 }
 
-// One switch each for the whole grid — with several scenarios open at once, per-card toggles
+// One switch each for the whole grid, with several scenarios open at once, per-card toggles
 // would just be more clicking.
 let detailOpen = true;
 let yearsOpen = false;   // off by default: only some customers ask for the year-by-year
@@ -1912,18 +1903,18 @@ function applyDetailVisibility(){
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PAYOUT — internal commission maths. THIS IS THE ONLY BLOCK TO EDIT when the comp plan
+// PAYOUT, internal commission maths. THIS IS THE ONLY BLOCK TO EDIT when the comp plan
 // changes; nothing below reads the pricing model directly.
 //
 // Each function receives the computed scenario `q`, the raw scenario `s`, and
-// `ctx = { users, country, fx }`, and returns a figure in the quoting currency — the caller
+// `ctx = { users, country, fx }`, and returns a figure in the quoting currency, the caller
 // applies `fx` to convert to USD.
 // ─────────────────────────────────────────────────────────────────────────────
 const PAYOUT = {
   // The "MRR change line": the plan divides the contract by its length in months.
   //   "A client signed a 2-year account for an amount of $10,000.
   //    MRR change line will be $10,000 / 24 months = $416.66"
-  // The contract here is the recurring part — licence plus hosting. Success packs are explicitly
+  // The contract here is the recurring part, licence plus hosting. Success packs are explicitly
   // listed as NRR, not MRR, so they are excluded.
   mrrChangeLine(q, s, ctx){
     return (q.licTotal + q.shTotal) / q.months;
@@ -1937,7 +1928,7 @@ const PAYOUT = {
   mrrAchieved(q, s, ctx){
     return PAYOUT.mrrChangeLine(q, s, ctx) * mrrRateFor(s.term);
   },
-  // NRR achieved value — success pack x NRR rate, and "The NRR rate is equal to 100%."
+  // NRR achieved value, success pack x NRR rate, and "The NRR rate is equal to 100%."
   nrrAchieved(q, s, ctx){
     return q.implTotal * COMMISSION.nrrRate;
   },
@@ -1949,17 +1940,17 @@ const PAYOUT = {
 
 
 // ─────────────────────────────────────────────────────────────────────────────
-// COMMISSION — the BU-DS-NA plan, 07/15/2025.
+// COMMISSION, the BU-DS-NA plan, 07/15/2025.
 //
-// Reps are split by book — a 1–5 user team and a 6+ team — and each carries its own quota. The
-// 6+ figures are the doc's. The 1–5 targets are NOT in that extract: they are scaled here so the
+// Reps are split by book, a 1 to 5 user team and a 6+ team, and each carries its own quota. The
+// 6+ figures are the doc's. The 1 to 5 targets are NOT in that extract: they are scaled here so the
 // band structure (50/70/100/120/150% of quota) still holds, and are marked unconfirmed in the UI.
 // Replace SEGMENTS['1-5'] with the real numbers when you have them.
 //
 // Bands are treated as MARGINAL (each rate applies only to the slice of achieved value inside
 // that band), like tax brackets. The document does not say so outright, but a flat whole-amount
-// rate would pay $129.65 at $1,049.79 (x0.1235) and $1,293.88 at $1,049.80 (x1.2325) — a 9.98x
-// jump for one cent — so
+// rate would pay $129.65 at $1,049.79 (x0.1235) and $1,293.88 at $1,049.80 (x1.2325), a 9.98x
+// jump for one cent, so
 // marginal is the only coherent reading. Worth confirming with Finance.
 //
 // Commission is earned on the MONTH's achieved value, not on one deal in isolation, so a deal's
@@ -1971,7 +1962,7 @@ const PAYOUT = {
 //
 // Each book has its OWN rate table. They are not scaled versions of one another: the 1-5 plan
 // spikes to 5.5212 in the 70-100%-of-quota band and then flattens to 0.65, while 6+ peaks at
-// 1.2325 and tapers. What the two share is the band geometry and — strikingly — the payout at
+// 1.2325 and tapers. What the two share is the band geometry and, strikingly, the payout at
 // 100%: both land on ~$2,036, which is the 1-5 plan's stated monthly on-target goal of $2,036.04.
 // That coincidence is load-bearing: it cross-validates both rate tables at once, and a test
 // asserts it, so a typo in either table would show up immediately.
@@ -2002,7 +1993,7 @@ const PAYOUT_CAP_MULTIPLE = 30;
 // intended to incentivize the sale of longer contracts."  The plan gives two worked values:
 // a 2-year contract carries a rate of 2, and a churned monthly account carries 0.8. The rate
 // therefore tracks the committed years. 1 / 3 / 4 / 5 follow the pattern but are NOT stated in
-// the document — they are marked below and surfaced in the UI so nobody mistakes them for quoted
+// the document, they are marked below and surfaced in the UI so nobody mistakes them for quoted
 // facts. Change them here if Finance says otherwise; nothing else needs touching.
 const MRR_RATE = { mo: 0.8, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
 const MRR_RATE_CONFIRMED = { mo: true, 1: false, 2: true, 3: false, 4: false, 5: false };
@@ -2026,7 +2017,7 @@ const COMMISSION = {
   get mrrBands(){ return bandsFor(SEGMENTS[segment].mrrTarget, SEGMENTS[segment].mrrRates); },
   get nrrBands(){ return bandsFor(SEGMENTS[segment].nrrTarget, SEGMENTS[segment].nrrRates); },
   nrrRate: 1,                      // "The NRR rate is equal to 100%."
-  // The month's payout at exactly 100% of both quotas — the plan's "on-target commission goal".
+  // The month's payout at exactly 100% of both quotas, the plan's "on-target commission goal".
   get onTargetPayout(){
     return bandedCommission(this.mrrTarget, this.mrrBands)
          + bandedCommission(this.nrrTarget, this.nrrBands);
@@ -2048,9 +2039,9 @@ function bandedCommission(value, bands){
 
 // What THIS deal adds, given what the rep has already booked this month. Because the bands
 // accelerate then decelerate, the same deal is worth different amounts depending on where in
-// the month it lands — so the honest figure is the difference the deal makes.
+// the month it lands, so the honest figure is the difference the deal makes.
 // The month's total payout, with the plan's hard cap applied. The cap is on the MONTH, not on a
-// line, so it has to be evaluated on MRR and NRR together — capping each separately would let a
+// line, so it has to be evaluated on MRR and NRR together, capping each separately would let a
 // month slip past the limit.
 function cappedMonthPayout(mrrValue, nrrValue){
   const raw = bandedCommission(mrrValue, COMMISSION.mrrBands)
@@ -2104,7 +2095,7 @@ function renderInternal(){
   body.innerHTML = '';
   const ctx = { country, fx };
 
-  // The book is which team the rep sits on, not something derived from the quote — so it is
+  // The book is which team the rep sits on, not something derived from the quote, so it is
   // simply whichever segment is selected.
   const seg = SEGMENTS[segment];
   document.getElementById('segNote').innerHTML =
@@ -2248,7 +2239,7 @@ function renderInternal(){
       + `The Total column shows what would actually be paid.`;
   }
   // Which band the next dollar lands in. On the 1-5 book the 70-100%-of-quota band pays 5.5212,
-  // more than eight times the 0.65 that applies above quota — so where the month currently sits
+  // more than eight times the 0.65 that applies above quota, so where the month currently sits
   // changes what a deal is worth far more than its size does. Worth stating outright.
   const bandAt = v => (COMMISSION.mrrBands.find(b => v < b.upTo) || COMMISSION.mrrBands[COMMISSION.mrrBands.length - 1]).rate;
   const nowRate = bandAt(Math.max(0, priorMrr));
@@ -2296,7 +2287,7 @@ function render(){
   syncUsers();
   // renderScenarios() rebuilds the table from scratch, which destroys whatever input the user is
   // typing into and drops focus after a single keystroke. Capture the caret first and put it back
-  // afterwards, including the raw text they had typed — re-deriving the value from state would
+  // afterwards, including the raw text they had typed, re-deriving the value from state would
   // fight them mid-edit (clearing the box would snap it back to "0" and they'd end up with "0135").
   const active = document.activeElement;
   const focusId = active && active.id ? active.id : null;
@@ -2327,7 +2318,7 @@ document.getElementById('addScenario').addEventListener('click', () => {
   scenarios.push(blankScenario());
   render();
 });
-// Duplicating the shown row is the fast path for "same deal, one thing changed" — the way you'd
+// Duplicating the shown row is the fast path for "same deal, one thing changed", the way you'd
 // duplicate a quote in the pricing sheet to compare terms.
 document.getElementById('dupScenario').addEventListener('click', () => {
   const src = scenarios[scenarios.length - 1];
@@ -2338,7 +2329,7 @@ document.getElementById('dupScenario').addEventListener('click', () => {
 });
 
 // SH sizing seeds off seats the first time a *paid* plan is switched on: ~1 worker per 15 users,
-// ~2 GB per user, 1 staging branch. A starting guess only — never re-clamped after a manual edit.
+// ~2 GB per user, 1 staging branch. A starting guess only, never re-clamped after a manual edit.
 // The guard must test isPaidHosting, not "not none": Standard Cloud and Self-hosted are free and
 // are what every new scenario starts on, so a looser test fires on the first render at 1 seat and
 // latches there, leaving a 400-user quote sized for one.
@@ -2366,7 +2357,7 @@ function maybeSeedShSizing(){
   el.addEventListener('change', render);
 });
 
-// Country switch — repoints every rate table at once. Pack sizes are identical across countries,
+// Country switch, repoints every rate table at once. Pack sizes are identical across countries,
 // so each scenario's selection stays valid.
 const countryUSBtn = document.getElementById('countryUS');
 const countryCABtn = document.getElementById('countryCA');
@@ -2433,10 +2424,10 @@ internalBtn.addEventListener('click', () => {
    
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DECK HAND-OFF — the slide deck (deck.html) is a pure renderer with no pricing
+// DECK HAND-OFF, the slide deck (deck.html) is a pure renderer with no pricing
 // logic of its own. Everything it shows is computed here, by the exact same
 // compute() used on screen, so the deck can never drift from the calculator.
-// Only customer-facing figures are included — nothing from renderInternal()'s
+// Only customer-facing figures are included, nothing from renderInternal()'s
 // commission math is ever touched or exported.
 // ─────────────────────────────────────────────────────────────────────────────
 function buildDeckHandoff(){
@@ -2462,12 +2453,12 @@ function buildDeckHandoff(){
 }
 document.getElementById('openDeck').addEventListener('click', () => {
   try { localStorage.setItem('odooDeckHandoff', JSON.stringify(buildDeckHandoff())); }
-  catch(e) { /* storage unavailable — deck.html falls back to sample numbers */ }
+  catch(e) { /* storage unavailable, deck.html falls back to sample numbers */ }
   window.location.href = 'deck.html';
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GMAIL OAUTH — Send quotes via Gmail API (memory-only token, cleared on logout)
+// GMAIL OAUTH, Send quotes via Gmail API (memory-only token, cleared on logout)
 // ─────────────────────────────────────────────────────────────────────────────
 // This is a pure static page (GitHub Pages, no backend), so it uses Google's
 // token client: the browser gets a short-lived access token directly, with no
@@ -2609,7 +2600,7 @@ function saveSender(){
 }
 
 function defaultMessage(){
-  return "Thanks for your time today — I've put together the Odoo pricing we discussed. "
+  return "Thanks for your time today, I've put together the Odoo pricing we discussed. "
        + "The full breakdown is below.\n\n"
        + "Happy to walk through any of it, or adjust the scope if something doesn't look right.";
 }
@@ -2617,7 +2608,7 @@ function defaultMessage(){
 function syncSubject(){
   const company = emailCompanyInput.value.trim();
   emailSubjectInput.value = company
-    ? `Odoo Pricing Proposal — ${company}`
+    ? `Odoo Pricing Proposal, ${company}`
     : 'Your Odoo Pricing Proposal';
 }
 
@@ -2635,7 +2626,7 @@ function refreshScenarioPicker(){
   emailPreviewBtn.disabled = none;
   composeAttachNote.classList.toggle('warn', none);
   composeAttachNote.textContent = none
-    ? 'Add a scenario before sending — there is no pricing to include yet.'
+    ? 'Add a scenario before sending, there is no pricing to include yet.'
     : 'Pricing, term and payment options are laid out in the email.';
 }
 
@@ -2647,7 +2638,7 @@ function openCompose() {
   emailCompanyInput.value = '';
   emailSenderNameInput.value = prof.name || '';
   emailSenderPhoneInput.value = prof.phone || '';
-  emailMessageInput.value = ''; composeSigRow.style.display = emailSigOn.checked ? '' : 'none'; applySig();
+  emailMessageInput.value = 'Hi,\n\nHere is the Odoo pricing we went through, laid out the same way you saw it.\n\nThis is pricing for your reference, not a formal quote. The official quotation comes from Odoo once we agree the shape of it.\n\nHappy to walk back through any line of it.'; composeSigRow.style.display = emailSigOn.checked ? '' : 'none'; applySig();
   syncSubject();
   refreshScenarioPicker();
   composeStatus.textContent = '';
@@ -2660,7 +2651,7 @@ emailCompanyInput.addEventListener('input', syncSubject);
 emailSenderNameInput.addEventListener('change', saveSender);
 emailSenderPhoneInput.addEventListener('change', saveSender);
 // ─────────────────────────────────────────────────────────────────────────────
-// COMPOSE EXTRAS — full-screen toggle and an optional signature. Gmail keeps the
+// COMPOSE EXTRAS, full-screen toggle and an optional signature. Gmail keeps the
 // signature in the body under a "--" separator, so this does the same: switching
 // it on appends the block to whatever has been typed, switching it off strips it
 // again. The signature text lives in this browser only, never in the source.
@@ -2704,8 +2695,8 @@ emailSignature.addEventListener('input', () => { applySig(); saveSig(); });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PROPOSAL EMAIL
-// Built from compute() only — the same single source of truth the on-screen
-// quote uses — so the customer's email can never disagree with the calculator,
+// Built from compute() only, the same single source of truth the on-screen
+// quote uses, so the customer's email can never disagree with the calculator,
 // and the internal/commission view has no path into it at all.
 // Table-based with fully inline styles, because Gmail and Outlook strip <style>
 // blocks and ignore flexbox/grid.
@@ -2748,7 +2739,7 @@ function buildProposalHtml(f){
     </tr>`;
   };
 
-  // Investment lines — only what this scenario actually contains.
+  // Investment lines, only what this scenario actually contains.
   let lines = row('Software licence', `${fmt(q.licTotal)}`);
   if (q.implTotal > 0) lines += row(`Implementation · ${s.hours} hrs`, `${fmt(q.implTotal)}`);
   if (q.shTotal > 0)   lines += row(`Hosting · ${HOSTING[s.sh].label}`, `${fmt(q.shTotal)}`);
@@ -2757,7 +2748,7 @@ function buildProposalHtml(f){
       <td align="right" style="padding:15px 0 0;font-size:16px;color:${INK};font-weight:800;white-space:nowrap;">${escEmail(fmt(q.grand))}</td>
     </tr>`;
 
-  // Year-by-year — the question every customer asks about a multi-year deal.
+  // Year-by-year, the question every customer asks about a multi-year deal.
   let schedule = '';
   if (q.schedule.length > 1) {
     const cells = q.schedule.map(y => `
@@ -2787,7 +2778,7 @@ function buildProposalHtml(f){
 
   const financing = (!isMo && q.finLow > 0) ? `
     <tr><td style="padding:8px 0 0;font-size:14px;color:${SUB};line-height:1.6;">
-      Financing is available from about <strong style="color:${INK};">${escEmail(fmt(q.finLow))}–${escEmail(fmt(q.finHigh))}/month</strong> across the ${escEmail(term)} term, in the US and Canada.
+      Financing is available from about <strong style="color:${INK};">${escEmail(fmt(q.finLow))}, ${escEmail(fmt(q.finHigh))}/month</strong> across the ${escEmail(term)} term, in the US and Canada.
     </td></tr>` : '';
 
   const included = [
@@ -2893,7 +2884,7 @@ function buildProposalText(f){
   const L = [];
   L.push(f.contact ? `Hi ${f.contact},` : 'Hi,', '');
   if (f.message) L.push(f.message, '');
-  L.push('ODOO PRICING PROPOSAL' + (f.company ? ` — ${f.company}` : ''), '');
+  L.push('ODOO PRICING PROPOSAL' + (f.company ? `, ${f.company}` : ''), '');
   L.push(`Total investment${q.isMo ? ' (12 mo)' : ` (${term})`}: ${fmt(q.grand)}`);
   L.push(`${fmt(q.perMonth)} per month${q.isMo ? '' : ' equivalent'} · ${users} user${users === 1 ? '' : 's'}`, '');
   if (q.savings > 0) L.push(`You save ${fmt(q.savings)} against paying month to month.`, '');
@@ -2907,9 +2898,9 @@ function buildProposalText(f){
     q.schedule.forEach(y => L.push(`  Year ${y.year}: ${fmt(y.total)} (${fmt(y.perMonth)}/mo)`));
     L.push('');
   }
-  if (!q.isMo && q.finLow > 0) L.push(`Financing available from about ${fmt(q.finLow)}–${fmt(q.finHigh)}/month.`, '');
+  if (!q.isMo && q.finLow > 0) L.push(`Financing available from about ${fmt(q.finLow)}, ${fmt(q.finHigh)}/month.`, '');
   L.push('Payment: paid in full at signing (ACH or wire), or financed across flexible terms.', '');
-  L.push('—', f.senderName || (gmailUserEmail || ''), 'Business Advisor · Odoo');
+  L.push(', ', f.senderName || (gmailUserEmail || ''), 'Business Advisor · Odoo');
   if (gmailUserEmail) L.push(gmailUserEmail);
   if (f.senderPhone) L.push(f.senderPhone);
   L.push('', `Valid for 30 days. Final pricing is confirmed on the signed order form. Taxes not included.`);
@@ -2955,7 +2946,7 @@ function openPreview(){
   const f = emailFields();
   if (!f.scenario) return;
   emailPreviewSub.textContent =
-    `${f.subject} — to ${emailToInput.value.trim() || 'your recipient'}`;
+    `${f.subject}, to ${emailToInput.value.trim() || 'your recipient'}`;
   emailPreviewFrame.src = 'data:application/pdf;base64,' + buildQuotePdf(f);
   emailPreviewOverlay.classList.add('on');
 }
@@ -2970,7 +2961,7 @@ document.addEventListener('keydown', e => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// QUOTE PDF — the attachment. Built from compute() like everything else, so it
+// QUOTE PDF, the attachment. Built from compute() like everything else, so it
 // cannot disagree with the screen. Drawing it here is what lets the email body
 // stay plain: the customer gets a message a person wrote, and the pricing as a
 // document they can file, forward or print.
@@ -3060,7 +3051,7 @@ emailSubmitBtn.addEventListener('click', async () => {
     return;
   }
   if (scenarios.length === 0) {
-    composeStatus.textContent = 'Add a scenario first — there is no pricing to send.';
+    composeStatus.textContent = 'Add a scenario first, there is no pricing to send.';
     composeStatus.style.color = 'var(--warn)';
     return;
   }
@@ -3154,7 +3145,7 @@ window.MRR_RATE = MRR_RATE;
 window.setSegment = function(v){ segment = v; render(); };
 window.setPayCurrency = function(v){ payCurrency = v; render(); };
 // ─────────────────────────────────────────────────────────────────────────────
-// SESSION MEMORY — a rep's work stays exactly where they left it, through a
+// SESSION MEMORY, a rep's work stays exactly where they left it, through a
 // reload or a week later. The commission view is deliberately not remembered:
 // it always opens closed, so it can never be on screen by accident.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3209,4 +3200,82 @@ document.getElementById('resetAll').addEventListener('click', () => {
 restoreState();
 
 render();
+
+// ---------------------------------------------------------------
+// A starting signature for Buffalo reps. The office details are the
+// same for everyone; the name on top is theirs to fill in.
+// ---------------------------------------------------------------
+(function(){
+  var sig = document.getElementById("emailSignature");
+  if (sig && !String(sig.value || "").trim()) {
+    sig.value = [
+      "Your name",
+      "Account Executive",
+      "",
+      "Odoo Inc.",
+      "40 Fountain Plaza, Suite 1200",
+      "Buffalo, NY 14202",
+      "odoo.com"
+    ].join("\n");
+  }
+})();
+
+// ---------------------------------------------------------------
+// Preview shows exactly what lands in their inbox: the message as they
+// will read it, signature and attachment included, rather than the raw
+// PDF on its own.
+// ---------------------------------------------------------------
+(function(){
+  var btn = document.getElementById("emailPreview");
+  var overlay = document.getElementById("emailPreviewOverlay");
+  var frame = document.getElementById("emailPreviewFrame");
+  if (!btn || !overlay || !frame) return;
+  var esc = function(t){ return String(t == null ? "" : t)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); };
+  btn.onclick = function(){
+    var val = function(id){ var e = document.getElementById(id); return e ? (e.value || "") : ""; };
+    var to = val("emailTo") || "your customer";
+    var subject = val("emailSubject") || "(no subject)";
+    var body = val("emailMessage");
+    var sigEl = document.getElementById("emailSigOn");
+    var sig = (sigEl && sigEl.checked) ? val("emailSignature") : "";
+    var fromEl = document.getElementById("composeFromEmail");
+    var from = fromEl ? (fromEl.textContent || fromEl.value || "") : "";
+    var when = new Date().toLocaleString("en-US",
+      { weekday:"short", month:"short", day:"numeric", hour:"numeric", minute:"2-digit" });
+    var html = [
+      "<!doctype html><meta charset=utf-8>",
+      "<style>",
+      "body{margin:0;background:#fff;font-family:Roboto,Arial,sans-serif;color:#202124;}",
+      ".wrap{max-width:700px;margin:0 auto;padding:22px 26px;}",
+      ".subj{font-size:1.35rem;font-weight:400;margin:0 0 18px;}",
+      ".hdr{display:flex;gap:12px;align-items:flex-start;}",
+      ".av{width:40px;height:40px;border-radius:50%;background:#7b3f61;color:#fff;",
+      "display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;}",
+      ".who{font-size:.87rem;font-weight:700;}",
+      ".meta{font-size:.78rem;color:#5f6368;}",
+      ".body{margin:20px 0 0 52px;font-size:.9rem;line-height:1.62;white-space:pre-wrap;}",
+      ".sig{margin:18px 0 0 52px;font-size:.86rem;line-height:1.5;color:#202124;white-space:pre-wrap;}",
+      ".rule{margin:16px 0 0 52px;border-top:1px solid #e0e0e0;width:120px;}",
+      ".att{margin:22px 0 0 52px;display:inline-flex;align-items:center;gap:10px;",
+      "border:1px solid #dadce0;border-radius:8px;padding:10px 14px;font-size:.82rem;}",
+      ".att b{font-weight:600;} .att span{color:#5f6368;}",
+      "</style>",
+      "<div class=wrap>",
+      "<p class=subj>" + esc(subject) + "</p>",
+      "<div class=hdr><div class=av>O</div><div>",
+      "<div class=who>" + esc(from) + "</div>",
+      "<div class=meta>to " + esc(to) + "</div>",
+      "<div class=meta>" + esc(when) + "</div>",
+      "</div></div>",
+      "<div class=body>" + esc(body) + "</div>",
+      sig ? "<div class=rule></div><div class=sig>" + esc(sig) + "</div>" : "",
+      "<div class=att><b>Odoo pricing.pdf</b><span>PDF</span></div>",
+      "</div>"
+    ].join("");
+    frame.removeAttribute("src");
+    frame.setAttribute("srcdoc", html);
+    overlay.style.display = "flex";
+  };
+})();
 </script>
