@@ -1396,13 +1396,16 @@ function compute(s){
   const grand = Math.round((licTotal + implTotal + shTotal) * 100) / 100;
   const perMonth = Math.round((grand / months) * 100) / 100;
 
-  // Savings vs. paying monthly with no commitment, over the same span, license plus hosting
-  // plus whatever came off implementation. Mo scenarios have nothing to save against.
+  // What the commitment itself is worth: the same span billed month to month with no
+  // commitment against this term, compared list to list on both sides. A discount you
+  // chose to give is not a saving the commitment earned, and an implementation discount
+  // has nothing to do with how often they are billed, so neither belongs in this number.
+  // Both are reported separately as discountGiven. Mo scenarios have nothing to save against.
   let savings = 0;
   if (!isMo) {
     const licMonthlyEquiv = (LIC.noCommitY1 * 12 + LIC.noCommit * 12 * (years - 1)) * users;
     const shMonthlyEquiv = isPaidHosting(s.sh) ? shMonthlyCost(s.sh, false) * months : 0;
-    savings = (licMonthlyEquiv - licTotal) + implDiscAmt + (shMonthlyEquiv - shTotal);
+    savings = (licMonthlyEquiv - (licTotal + licDiscAmt)) + (shMonthlyEquiv - shTotal);
   }
 
   // Financed monthly payment band (standard amortization), same APRs vepat quotes.
@@ -1434,7 +1437,7 @@ function compute(s){
 
   return { isMo, years, months, y1Total, y2PlusTotal, licDiscAmt, licTotal,
            implList, implDiscAmt, implTotal, shList, shDiscAmt, shTotal, shYear1,
-           grand, perMonth, savings, finLow, finHigh, schedule };
+           grand, perMonth, savings, discountGiven: (licDiscAmt + implDiscAmt), licDiscAmt, implDiscAmt, finLow, finHigh, schedule };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1885,7 +1888,9 @@ function renderDetail(){
       `<div class="bd-sub">${q.isMo ? 'Billed monthly, no commitment · 12-month equivalent' : q.years + '-year term · ' + q.months + ' months'}</div>` +
       `<div class="bd-permo"><span>Amortized per month</span><span id="bdPer_${s.id}">${fmt(q.perMonth)}</span></div>` +
       (!q.isMo && q.savings > 0
-        ? `<div class="bd-save"><span>Saves vs paying monthly</span><span id="bdSave_${s.id}">${fmt(q.savings)}</span></div>` : '') +
+        ? `<div class="bd-save"><span>Saving vs month to month</span><span id="bdSave_${s.id}">${fmt(q.savings)}</span></div>` : '') +
+      (q.discountGiven > 0
+        ? `<div class="bd-save"><span>Discount you gave</span><span id="bdDisc_${s.id}">${fmt(q.discountGiven)}</span></div>` : '') +
       fin +
       yearsBlock +
       `<div class="bd-detail">` +
@@ -2786,7 +2791,7 @@ function buildProposalHtml(f){
     <tr><td style="padding:18px 0 0;">
       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#e6f3f4;border-radius:10px;">
         <tr><td style="padding:14px 18px;font-size:14px;color:${TEAL};font-weight:700;">
-          You save ${escEmail(fmt(q.savings))} against paying month to month over the same period.
+          Committing to this term rather than paying month to month saves ${escEmail(fmt(q.savings))} over the same period.
         </td></tr>
       </table>
     </td></tr>` : '';
@@ -2902,7 +2907,7 @@ function buildProposalText(f){
   L.push('ODOO PRICING PROPOSAL' + (f.company ? `, ${f.company}` : ''), '');
   L.push(`Total investment${q.isMo ? ' (12 mo)' : ` (${term})`}: ${fmt(q.grand)}`);
   L.push(`${fmt(q.perMonth)} per month${q.isMo ? '' : ' equivalent'} · ${users} user${users === 1 ? '' : 's'}`, '');
-  if (q.savings > 0) L.push(`You save ${fmt(q.savings)} against paying month to month.`, '');
+  if (q.savings > 0) L.push(`Committing to this term rather than paying month to month saves ${fmt(q.savings)}.`, '');
   L.push("What's included:");
   L.push(`  Software licence: ${fmt(q.licTotal)}`);
   if (q.implTotal > 0) L.push(`  Implementation (${s.hours} hrs): ${fmt(q.implTotal)}`);
