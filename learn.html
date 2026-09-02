@@ -191,7 +191,20 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
 .lbrow .amt{font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;}
 .lbrow.you{background:rgba(217,164,65,.10);border-radius:6px;padding-left:6px;padding-right:6px;}
 
+.tab.tab-x{flex:0 0 40px;font-size:.9rem;color:var(--faint);}
+.tab.tab-x:hover{color:#fff;}
+body.panel-hidden .panel{display:none;}
 #btnPanel{display:none;}
+#howBack{position:fixed;inset:0;z-index:80;background:rgba(8,10,14,.72);display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow:auto;}
+body.how-open #howBack{display:flex;}
+#howCard{position:relative;width:min(680px,100%);background:#14171d;border:1px solid #262b33;border-radius:14px;padding:26px 28px 30px;}
+#howCard h2{margin:0 0 4px;font-size:1.15rem;}
+#howCard h3{margin:20px 0 6px;font-size:.9rem;color:var(--gold);letter-spacing:.02em;}
+#howCard p{margin:0 0 10px;line-height:1.62;color:#c8cdd6;font-size:.9rem;}
+#howCard li{line-height:1.62;color:#c8cdd6;font-size:.9rem;margin-bottom:6px;}
+#howClose{position:absolute;top:12px;right:14px;background:none;border:0;color:var(--faint);font-size:1.05rem;cursor:pointer;padding:6px 8px;}
+#howClose:hover{color:#fff;}
+#btnPanel{display:inline-block;}
 @media (max-width:1000px){
   .panel{position:fixed;top:0;right:0;bottom:0;width:min(392px,92vw);z-index:60;
     transform:translateX(100%);transition:transform .22s ease;box-shadow:-14px 0 40px rgba(0,0,0,.55);}
@@ -257,6 +270,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
       <button class="tab" data-pane="rules">Pricing rules</button>
       <button class="tab" data-pane="history">History</button>
       <button class="tab" data-pane="settings">Settings</button>
+      <button class="tab tab-x" id="panelClose" title="Hide this panel">&#10005;</button>
     </div>
 
     <div class="pane on" id="pane-board">
@@ -339,6 +353,32 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
     </div>
   </aside>
 </div>
+
+<div id="howBack"><div id="howCard">
+<button id="howClose" title="Close">&#10005;</button>
+<h2>How to play</h2>
+<p>You are the rep. Every hand is one live deal, and your job is the same as it is at work: build a quote that actually covers what the customer needs, then send it.</p>
+<h3>The two sides</h3>
+<p>On their side of the table are the reasons they have not signed yet. You only ever see one of them. The rest are face down, and together they add up to a number you are trying to beat.</p>
+<p>On your side is your quote. Every piece you add is worth points, and points are the value of what you sold.</p>
+<h3>Your three moves</h3>
+<ul>
+<li><b>Grow the quote.</b> Add seats, extend the term, add a Success Pack, add Odoo.sh. Real money, and your number goes up.</li>
+<li><b>Offer a discount.</b> This does not raise your quote. It lowers what they are holding out for, which makes their number easier to beat. It also costs you at renewal if you gave it to someone who never earned it.</li>
+<li><b>Send the quote.</b> You stop building and find out.</li>
+</ul>
+<h3>How a hand ends</h3>
+<ul>
+<li><b>Signed.</b> Your quote beat their objections and stayed at or under 21. You bank the contract.</li>
+<li><b>Not enough.</b> Your quote did not cover what they needed, so they went with someone who scoped it properly. Sending straight away almost always ends here.</li>
+<li><b>They walked.</b> You went past 21. You asked for more than this customer could carry, and you lose everything you built.</li>
+</ul>
+<h3>About discounts</h3>
+<p>Read the customer first. Some are straightforward and easy to satisfy. Some will never be satisfied no matter what you take off. Discounting the ones who were never going to be reasonable is the fastest way to lose money in this game, exactly as it is in the job: you give up margin, and it still does not close, or it closes and then churns at renewal.</p>
+<p>The strongest hands here are the ones that close at full price.</p>
+<h3>The rules you cannot break</h3>
+<p>The quote can only do what an Odoo rep can actually do. Multi-year licence discounts have a ceiling by term, one-year deals get none of it, implementation discounts stop at 30 percent, and you cannot take the same concession twice. The Rules tab in the Menu lists all of them.</p>
+</div></div>
 
 <script>
 
@@ -632,7 +672,7 @@ var RULES = {
 
 var S = {
   bank:0, deal:null, them:[], offer:[], mode:'grow',
-  live:false, accept:17, hands:0, won:0, lost:0, discounts:0,
+  live:false, accept:13, relief:0, hands:0, won:0, lost:0, discounts:0,
   unlocked:{}, log:[], name:''
 };
 
@@ -643,12 +683,19 @@ var totalObj = function(h){ var n=0; for (var i=0;i<h.length;i++) n += h[i].pts;
 function objection(){ var o = pick(OBJECTIONS); return { pts:o.pts, body:o.body }; }
 
 // How big a quote this customer will actually sign. Never shown.
+// How far they keep pushing back before they settle. Their objections are
+// dealt up to this, and the total is the bar your quote has to clear.
 function rollAccept(d){
-  var base = 16 + between(0, 5);
-  if (d.conduct.k === 'straight') base += 2;
-  if (d.conduct.k === 'fair') base += 1;
-  if (d.conduct.k === 'bully') base -= 2;
-  return Math.max(13, Math.min(23, base));
+  var base = 11 + between(0, 4);
+  if (d.conduct.k === 'straight') base -= 2;   // easy to satisfy
+  if (d.conduct.k === 'fair') base -= 1;
+  if (d.conduct.k === 'bully') base += 2;      // never satisfied
+  return Math.max(8, Math.min(17, base));
+}
+
+// What their objections come to after any discount has taken the edge off.
+function resistance(){
+  return Math.max(0, totalObj(S.them) - (S.relief || 0));
 }
 
 function deal(){
@@ -657,6 +704,7 @@ function deal(){
   S.accept = rollAccept(S.deal);
   S.them = [objection(), objection()];
   S.offer = [];
+  S.relief = 0;
   S.mode = 'grow';
   S.live = true;
   render();
@@ -700,14 +748,15 @@ function takeOffer(i){
   if (!c) return;
   if (S.mode === 'disc') {
     var room = roomBought(S.deal, c.pct);
-    S.deal.asked = Math.max(0, S.deal.asked - room);
+    S.relief = (S.relief || 0) + room;
     S.discounts++;
     c.apply(S.deal);
     if (c.over) unlock(c.kind === 'pack' ? 'implMax' : (S.deal.term === 1 ? 'oneYear' : 'ceiling'));
     if (c.kind === 'lic') unlock('recurring');
     S.offer = [];
     render();
-    setMsg('Discount applied. It bought you ' + room + ' back.', '');
+    setMsg(room > 0 ? 'Discount applied. It took ' + room + ' off what they were holding out for.'
+      : 'Discount applied, and it bought you nothing.', '');
     setWhy(discountLine(c, room));
     return;
   }
@@ -737,14 +786,21 @@ function discountLine(c, room){
 
 function sendQuote(){
   if (!S.live) return;
-  while (totalObj(S.them) < S.accept) S.them.push(objection());
-  return settle(S.deal.asked <= S.accept ? 'signed' : 'walked');
+  var guard = 0;
+  while (totalObj(S.them) < S.accept && guard++ < 30) {
+    var o = objection();
+    if (totalObj(S.them) + o.pts > 20) break;
+    S.them.push(o);
+  }
+  var bar = resistance();
+  if (S.deal.asked > 21) return settle('walked');
+  return settle(S.deal.asked > bar ? 'signed' : 'short');
 }
 
 function settle(kind){
   S.live = false; S.offer = [];
   var q = quote(S.deal), d = S.deal;
-  var delta = 0, cls = '', msg = '', why = '';
+  var delta = 0, cls = '', msg = '', why = '', why0 = '';
 
   if (kind === 'signed') {
     delta = q.contract;
@@ -754,7 +810,8 @@ function settle(kind){
     if (caved) delta = Math.round(delta * 0.7);
     cls = 'win'; S.won++;
     msg = 'Signed. ' + fmt(q.mrr) + ' a month, ' + fmt(q.contract) + ' over the term.';
-    why = d.users + ' seats on ' + LIC[d.plan].name + ' for ' + d.term + ' year' + (d.term === 1 ? '' : 's') +
+    why0 = 'Your quote reached ' + d.asked + ' against objections worth ' + resistance() + '. ';
+    why = why0 + d.users + ' seats on ' + LIC[d.plan].name + ' for ' + d.term + ' year' + (d.term === 1 ? '' : 's') +
       (q.pack.hours ? ', ' + q.pack.name.toLowerCase() : ', no Success Pack') +
       (d.sh ? ', on Odoo.sh' : '') + '. ' +
       (d.licDisc || d.packDisc
@@ -764,12 +821,19 @@ function settle(kind){
         : 'You closed it without a single discount.') +
       (caved ? ' They ground you for it all week and you gave it, so thirty percent of this comes straight back off at renewal. They will open there and push again.' : '') +
       ((d.licDisc || d.packDisc) && d.conduct.room >= 5 ? ' They earned that one, and it will not come back to bite you.' : '');
+  } else if (kind === 'short') {
+    delta = 0;
+    cls = 'lose'; S.lost++;
+    msg = 'Not enough. They went with somebody who scoped it properly.';
+    why = 'Their objections came to ' + resistance() + ' and your quote only reached ' + d.asked +
+      '. A quote that does not cover what they actually need does not win on being cheap. ' +
+      'You left ' + fmt(q.mrr) + ' a month on the table.';
   } else {
     delta = 0;
     cls = 'lose'; S.lost++;
-    msg = 'They walked. Nothing signed.';
-    why = 'You asked ' + d.asked + ' of them and they would only carry ' + S.accept +
-      '. Everything you built is gone, and so is the ' + fmt(q.mrr) + ' a month it was worth.' +
+    msg = 'You asked for more than they could carry. They walked.';
+    why = 'You went to ' + d.asked + ', past the 21 they could bear. Everything you built is gone, ' +
+      'and so is the ' + fmt(q.mrr) + ' a month it was worth.' +
       (d.licDisc || d.packDisc ? ' The discounts went with it.' : '');
   }
 
@@ -840,13 +904,16 @@ function render(){
 
   var th = document.getElementById('themHand'); th.innerHTML = '';
   S.them.forEach(function(o, i){ th.appendChild(objCard(o, S.live && i > 0)); });
-  document.getElementById('themTotal').textContent =
-    S.them.length ? (S.live ? 'one of their reasons is showing' : 'they carried ' + totalObj(S.them)) : 'nothing yet';
+  var tt = document.getElementById('themTotal');
+  if (!S.them.length) tt.textContent = 'nothing yet';
+  else if (S.live) tt.textContent = 'showing ' + S.them[0].pts + ', and there is more you cannot see'
+    + ((S.relief || 0) ? ', less ' + S.relief + ' from your discount' : '');
+  else tt.textContent = 'their objections came to ' + resistance();
 
   var yh = document.getElementById('youHand'); yh.innerHTML = '';
   var yt = document.getElementById('youTotal');
   var asked = d ? d.asked : 0;
-  yt.textContent = 'You have asked ' + asked + ' of 21';
+  yt.textContent = 'Your quote reaches ' + asked + ' of 21';
   yt.className = 'pill' + (asked > 21 ? ' bust' : asked >= 17 ? ' hot' : '');
   var cn = document.getElementById('closeNow');
   cn.textContent = S.live ? 'Send it now and bank ' + fmt(q.contract) : 'Not in a deal';
@@ -1015,17 +1082,24 @@ document.getElementById('btnDeal').onclick = deal;
 document.getElementById('btnHit').onclick = showGrowth;
 document.getElementById('btnCounter').onclick = showDiscounts;
 document.getElementById('btnStand').onclick = sendQuote;
-document.getElementById('btnPanel').onclick = function(){ document.body.classList.toggle('panel-open'); };
-document.getElementById('btnHow').onclick = function(){
-  setMsg('How it works', '');
-  setWhy('You are building a quote. Grow the quote adds seats, term, a Success Pack or Odoo.sh, and every one of ' +
-    'those is worth real money. Every one also asks a bit more of the customer, and the number to watch is how much ' +
-    'you have asked out of 21. Ask more than they will carry and they walk, and everything you built goes with them. ' +
-    'Send the quote when you think they will still sign. A discount is not an upgrade: it buys you room with somebody ' +
-    'who has run out of patience, it costs you every month for the length of the term, and you get one on licence and ' +
-    'one on the Success Pack. What it buys depends on how they have behaved. Somebody who dealt straight with you gives ' +
-    'you real room. Somebody who has ground you on price all week gives you almost none, and takes it back at renewal.');
+document.getElementById('btnPanel').onclick = function(){
+  document.body.classList.remove('panel-hidden');
+  document.body.classList.toggle('panel-open');
 };
+document.getElementById('panelClose').onclick = function(){
+  document.body.classList.add('panel-hidden');
+  document.body.classList.remove('panel-open');
+};
+document.getElementById('btnHow').onclick = function(){ openHow(); };
+function openHow(){ document.body.classList.add('how-open'); }
+function closeHow(){ document.body.classList.remove('how-open'); }
+document.getElementById('howClose').onclick = closeHow;
+document.getElementById('howBack').onclick = function(e){ if (e.target === this) closeHow(); };
+document.addEventListener('keydown', function(e){
+  if (e.key !== 'Escape') return;
+  if (document.body.classList.contains('how-open')) return closeHow();
+  if (document.body.classList.contains('panel-open')) return document.body.classList.remove('panel-open');
+});
 
 document.getElementById('btnWipe').onclick = function(){
   if (!confirm('Clear your banked revenue and history on this device?')) return;
