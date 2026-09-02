@@ -19,7 +19,7 @@
   --rail:#4a2f1c; --rail-2:#7a5133;
   --gold:#d9a441; --gold-2:#f0c775; --gold-soft:rgba(217,164,65,.16);
   --card:#fdfbf6; --ink:#16202b; --sub:#5d6b7a; --faint:#8b98a6;
-  --red:#c0392b; --win:#2ecc71; --lose:#e74c3c; --push:#95a5a6;
+  --red:#c0392b; --win:#2ecc71; --lose:#e74c3c; --pushWorkers: 1, shDedicated: false, sh:#95a5a6;
   --panel:#101a22; --panel-2:#16232d; --line:rgba(255,255,255,.09);
   --r:10px;
 }
@@ -377,7 +377,7 @@ body.how-open #howBack{display:flex;}
 <p>Read the customer first. Some are straightforward and easy to satisfy. Some will never be satisfied no matter what you take off. Discounting the ones who were never going to be reasonable is the fastest way to lose money in this game, exactly as it is in the job: you give up margin, and it still does not close, or it closes and then churns at renewal.</p>
 <p>The strongest hands here are the ones that close at full price.</p>
 <h3>The rules you cannot break</h3>
-<p>The quote can only do what an Odoo rep can actually do. Multi-year licence discounts have a ceiling by term, one-year deals get none of it, implementation discounts stop at 30 percent, and you cannot take the same concession twice. The Rules tab in the Menu lists all of them.</p>
+<p>The quote can only do what an Odoo rep can actually do. Multi-year licence discounts have a ceiling by term, one-year deals get none of it, implementation discounts stop at 30 percent, hosting stops at three workers before it has to move to a dedicated server, and you cannot take the same concession twice. The Rules tab in the Menu lists all of them.</p>
 </div></div>
 
 <script>
@@ -402,10 +402,19 @@ var PACKS = [
   { hours:200, rate:125, name:'200 hour pack' },
   { hours:400, rate:125, name:'400 hours, two packs' }
 ];
+var BAR_BASE = 13, BAR_SPREAD = 4, BAR_MIN = 9, BAR_MAX = 19, BAR_CAP = 21;
+var ASK_SPAN = 13, ASK_GAIN = 0.35, ASK_MIN = 2, ASK_MAX = 11, ASK_JITTER = 2;
+var OPEN_BASE = 4, OPEN_MIN = 4, OPEN_MAX = 13, OPEN_JITTER = 3;
 var IMPL_MAX_PCT   = 30;   // the most the desk will sign off
 var IMPL_CAP_HOURS = 200;  // and it only reaches the first 200 hours
 var SH_WORKER  = 57.60;    // Odoo.sh, one extra worker, per month
-var SH_STAGING = 14.40;    // Odoo.sh, one staging branch, per month
+var SH_STAGING = 14.40;
+/* Odoo.sh dedicated server: a flat monthly fee that replaces per worker billing
+   and lifts the ceiling to 256 workers and 4096GB. Anything above 3 workers is
+   dedicated only, which is the whole reason a deal moves onto one. */
+var SH_DEDICATED = 480;
+var SH_SHARED_MAX_WORKERS = 3;
+var SH_DEDICATED_MAX_WORKERS = 256;    // Odoo.sh, one staging branch, per month
 
 function mulberry32(a){
   return function(){
@@ -530,7 +539,12 @@ function quote(d){
   var r = LIC[d.plan];
   var pack = PACKS[d.packIdx];
   var licMo = r.y1 * d.users * (1 - d.licDisc / 100);
-  var shMo  = d.sh ? (SH_WORKER + SH_STAGING) : 0;
+  var shMo = 0;
+  if (d.sh) {
+    shMo = d.shDedicated
+      ? SH_DEDICATED
+      : (d.shWorkers || 1) * SH_WORKER + SH_STAGING;
+  }
   var reached = Math.min(pack.hours, IMPL_CAP_HOURS);
   var packTotal = pack.hours * pack.rate - reached * pack.rate * (d.packDisc / 100);
   return {
@@ -664,6 +678,10 @@ var RULES = {
     d:'And it reaches the first 200 hours only, on the first invoice. On a 400 hour engagement a headline 30% is really 15% of the whole thing.' },
   onePer: { t:'One licence discount and one Success Pack discount',
     d:'A quote carries a single discount line of each kind. You do not get to stack them, so the one you pick is the one you live with.' },
+  hosting: {
+    t: 'Odoo.sh workers',
+    d: 'A shared Odoo.sh server bills $57.60 a worker plus   4.40 for staging and stops at three workers. Past that the database has to move to a dedicated server, which is a flat $480 a month with workers included up to 256. You cannot quote a fourth worker on shared hosting.'
+  },
   conduct: { t:'A discount is a reward, not a rescue',
     d:'Given to somebody who has dealt straight with you it buys real room. Given to somebody who has ground you on price all week it buys almost nothing, because they were always going to ask again.' },
   recurring: { t:'Licence money comes back every month, hours do not',
@@ -686,11 +704,11 @@ function objection(){ var o = pick(OBJECTIONS); return { pts:o.pts, body:o.body 
 // How far they keep pushing back before they settle. Their objections are
 // dealt up to this, and the total is the bar your quote has to clear.
 function rollAccept(d){
-  var base = 11 + between(0, 4);
+  var base = BAR_BASE + between(0, BAR_SPREAD);
   if (d.conduct.k === 'straight') base -= 2;   // easy to satisfy
   if (d.conduct.k === 'fair') base -= 1;
   if (d.conduct.k === 'bully') base += 2;      // never satisfied
-  return Math.max(8, Math.min(17, base));
+  return Math.max(BAR_MIN, Math.min(BAR_MAX, base));
 }
 
 // What their objections come to after any discount has taken the edge off.
@@ -701,6 +719,8 @@ function resistance(){
 function deal(){
   if (S.live) return;
   S.deal = newDeal();
+  S.deal.baseContract = quote(S.deal).contract;
+  S.deal.asked = openingAsk(S.deal);
   S.accept = rollAccept(S.deal);
   S.them = [objection(), objection()];
   S.offer = [];
@@ -712,9 +732,60 @@ function deal(){
   setWhy('Every card you add is worth more money and asks more of them. Send it while they will still sign.');
 }
 
+/* Hosting concessions. Odoo.sh bills per worker on a shared server up to three
+   workers, and anything beyond that has to move to a dedicated server, which is
+   a flat fee with workers included up to 256. These are the two real hosting
+   conversations a rep has, so they belong in the deck alongside seats and term. */
+function hostingCards(d){
+  var out = [];
+  if (!d.sh) return out;
+  var w = d.shWorkers || 1;
+  if (!d.shDedicated && w < SH_SHARED_MAX_WORKERS) {
+    out.push({
+      kind: 'worker', tag: 'Hosting',
+      head: (w + 1) + ' workers',
+      body: 'Add a worker so the database keeps up at their volume',
+      mrr: SH_WORKER,
+      apply: function(x){ x.shWorkers = (x.shWorkers || 1) + 1; }
+    });
+  }
+  if (!d.shDedicated) {
+    out.push({
+      kind: 'dedicated', tag: 'Hosting',
+      head: 'Dedicated server',
+      body: 'Move them onto a dedicated server, which is a flat ' + fmt(SH_DEDICATED) +
+            ' a month and is the only way past ' + SH_SHARED_MAX_WORKERS + ' workers',
+      mrr: SH_DEDICATED - (w * SH_WORKER + SH_STAGING),
+      apply: function(x){ x.shDedicated = true; x.shWorkers = Math.max(4, x.shWorkers || 1); }
+    });
+  }
+  return out;
+}
+
+/* The growth deck plus whatever hosting conversation this deal has earned.
+   Three are dealt from the union, so hosting competes for a slot rather than
+   always showing or never showing. */
+function growthPlus(d){
+  var all = growth(d).concat(hostingCards(d));
+  for (var i = all.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = all[i]; all[i] = all[j]; all[j] = t;
+  }
+  /* One card per lever. Three versions of the same concession is not a choice,
+     and no rep ever opens a call with three different term options on the table. */
+  var seen = {}, pick = [], spare = [];
+  for (var k = 0; k < all.length; k++) {
+    var kind = all[k].kind;
+    if (seen[kind]) { spare.push(all[k]); continue; }
+    seen[kind] = 1; pick.push(all[k]);
+  }
+  while (pick.length < 3 && spare.length) pick.push(spare.shift());
+  return pick.slice(0, 3);
+}
+
 function showGrowth(){
   if (!S.live) return;
-  var g = growth(S.deal);
+  var g = growthPlus(S.deal);
   var seen = {}, out = [];
   for (var i = 0; i < 60 && out.length < 3; i++) {
     var c = pick(g);
@@ -742,10 +813,40 @@ function showDiscounts(){
   unlock('conduct');
 }
 
+/* How much a concession asks of the customer.
+   It is measured against what they are already committing to, so the same
+   card is a small ask on a big deal and a large one on a small deal. The
+   curve saturates: doubling the commitment costs a lot, quadrupling it
+   costs somewhat more, never proportionally more. */
+function askFor(d, c){
+  var before = quote(d).contract;
+  var probe = JSON.parse(JSON.stringify(d));
+  try { c.apply(probe); } catch (e) { return 4; }
+  var after = quote(probe).contract;
+  /* Measured against the deal as first scoped, so a discount you gave earlier
+     does not change what the next concession is worth. */
+  var anchor = d.baseContract || before;
+  var lift = anchor > 0 ? (after - before) / anchor : 1;
+  if (lift < 0) lift = 0;
+  var pts = Math.round(ASK_SPAN * (1 - 1 / (1 + lift * ASK_GAIN)));
+  return Math.max(ASK_MIN, Math.min(ASK_MAX, pts + between(0, ASK_JITTER)));
+}
+
+/* What the deal as scoped already asks of them, before you add anything.
+   You are never starting from nothing: a quote is already on the table. */
+function openingAsk(d){
+  var base = OPEN_BASE;
+  if (d.users >= 50) base += 3; else if (d.users >= 20) base += 2; else if (d.users >= 8) base += 1;
+  if (d.plan === 'custom') base += 2;
+  if (d.term >= 3) base += 1;
+  return Math.max(OPEN_MIN, Math.min(OPEN_MAX, base + between(0, OPEN_JITTER)));
+}
+
 function takeOffer(i){
   if (!S.live) return;
   var c = S.offer[i];
   if (!c) return;
+  var askNow = (S.mode === 'grow') ? askFor(S.deal, c) : 0;
   if (S.mode === 'disc') {
     var room = roomBought(S.deal, c.pct);
     S.relief = (S.relief || 0) + room;
@@ -761,7 +862,7 @@ function takeOffer(i){
     return;
   }
   c.apply(S.deal);
-  S.deal.asked += c.ask;
+  S.deal.asked += askNow;
   S.offer = [];
   if (S.deal.asked > 21) return settle('walked');
   render();
@@ -788,8 +889,9 @@ function sendQuote(){
   if (!S.live) return;
   var guard = 0;
   while (totalObj(S.them) < S.accept && guard++ < 30) {
-    var o = objection();
-    if (totalObj(S.them) + o.pts > 20) break;
+    var o = objection(), tries = 0;
+    while (totalObj(S.them) + o.pts > BAR_CAP && tries++ < 8) o = objection();
+    if (totalObj(S.them) + o.pts > BAR_CAP) break;
     S.them.push(o);
   }
   var bar = resistance();
