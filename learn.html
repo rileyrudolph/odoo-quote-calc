@@ -511,7 +511,7 @@ function growth(d){
   seatSteps.forEach(function(n){
     out.push({ kind:'users', tag:'Users', head:'+' + n + ' seats',
       body:'Bring another ' + n + ' people onto the platform',
-      mrr: r.y1 * n, ask: n < 6 ? 2 : n < 12 ? 4 : 6,
+      mrr: r.y1 * n, ask: n < 6 ? 1 : n < 12 ? 2 : 3,
       apply:function(x){ x.users += n; } });
   });
   if (d.term < 5) {
@@ -520,7 +520,7 @@ function growth(d){
       if (t === d.term) return;
       out.push({ kind:'term', tag:'Commitment', head:t + ' year term',
         body:'Get them to commit for ' + t + ' years instead of ' + d.term,
-        mrr: 0, ask: (t - d.term) * 3,
+        mrr: 0, ask: (t - d.term) * 2,
         apply:function(x){ x.term = t; } });
     });
   }
@@ -528,13 +528,13 @@ function growth(d){
     var next = PACKS[d.packIdx + 1];
     out.push({ kind:'pack', tag:'Success Pack', head:next.name,
       body:'Move them up to the ' + next.name.toLowerCase(),
-      mrr: 0, ask: 3,
+      mrr: 0, ask: 2,
       apply:function(x){ x.packIdx += 1; } });
   }
   if (!d.sh) {
     out.push({ kind:'sh', tag:'Hosting', head:'Odoo.sh',
       body:'Put them on Odoo.sh rather than leaving hosting to them',
-      mrr: SH_WORKER + SH_STAGING, ask: 3,
+      mrr: SH_WORKER + SH_STAGING, ask: 2,
       apply:function(x){ x.sh = true; } });
   }
   return out;
@@ -618,10 +618,11 @@ function objection(){ var o = pick(OBJECTIONS); return { pts:o.pts, body:o.body 
 
 // How big a quote this customer will actually sign. Never shown.
 function rollAccept(d){
-  var base = 15 + between(0, 4);
+  var base = 16 + between(0, 5);
   if (d.conduct.k === 'straight') base += 2;
+  if (d.conduct.k === 'fair') base += 1;
   if (d.conduct.k === 'bully') base -= 2;
-  return Math.max(12, Math.min(21, base));
+  return Math.max(13, Math.min(23, base));
 }
 
 function deal(){
