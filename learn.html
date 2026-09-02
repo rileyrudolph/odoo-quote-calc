@@ -212,11 +212,18 @@ body.how-open #howBack{display:flex;}
 .card .tcv{display:block;font-weight:600;opacity:.72;font-size:.86em;margin-top:2px;}
 .dealtype{margin:6px 0 2px;font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
   color:var(--gold);opacity:.85;}
+/* The action bar is one row. Buttons share it and shrink together rather than
+   dropping Send onto a second line. */
+.actions{flex-wrap:nowrap;}
+.actions .abtn{flex:1 1 0;min-width:0;}
+.actions .abtn small{display:block;margin-top:3px;font-size:.66rem;line-height:1.3;white-space:normal;}
+@media (max-width:820px){ .actions{flex-wrap:wrap;} .actions .abtn{flex:1 1 45%;} }
 .abtn kbd{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
   border:1px solid rgba(255,255,255,.28);font:inherit;font-size:.82em;opacity:.8;}
 .abtn:disabled kbd{opacity:.35;}
 /* The running total is the thing you are deciding on, so it reads like a hand. */
 #youTotal{font-size:1.02rem;font-weight:800;letter-spacing:.01em;padding:7px 15px;}
+.bank-amt.neg{color:var(--lose);}
 #btnPanel{display:inline-block;}
 @media (max-width:1000px){
   .panel{position:fixed;top:0;right:0;bottom:0;width:min(392px,92vw);z-index:60;
@@ -230,11 +237,18 @@ body.how-open #howBack{display:flex;}
 .card .tcv{display:block;font-weight:600;opacity:.72;font-size:.86em;margin-top:2px;}
 .dealtype{margin:6px 0 2px;font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
   color:var(--gold);opacity:.85;}
+/* The action bar is one row. Buttons share it and shrink together rather than
+   dropping Send onto a second line. */
+.actions{flex-wrap:nowrap;}
+.actions .abtn{flex:1 1 0;min-width:0;}
+.actions .abtn small{display:block;margin-top:3px;font-size:.66rem;line-height:1.3;white-space:normal;}
+@media (max-width:820px){ .actions{flex-wrap:wrap;} .actions .abtn{flex:1 1 45%;} }
 .abtn kbd{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
   border:1px solid rgba(255,255,255,.28);font:inherit;font-size:.82em;opacity:.8;}
 .abtn:disabled kbd{opacity:.35;}
 /* The running total is the thing you are deciding on, so it reads like a hand. */
 #youTotal{font-size:1.02rem;font-weight:800;letter-spacing:.01em;padding:7px 15px;}
+.bank-amt.neg{color:var(--lose);}
 #btnPanel{display:inline-block;}
 }
 @media (max-width:640px){ .cc{width:calc(50% - 6px);} }
@@ -252,7 +266,7 @@ body.how-open #howBack{display:flex;}
       <button class="tbtn" id="btnPanel">Menu</button>
       <button class="tbtn" id="btnHow">How to play</button>
       <div class="bank">
-        <span class="bank-label">Contract value closed</span>
+        <span class="bank-label">Book value</span>
         <span class="bank-amt" id="bank">$0</span>
       </div>
     </div>
@@ -284,9 +298,9 @@ body.how-open #howBack{display:flex;}
     <div class="actions">
       <div class="chiprow" id="chips"></div>
       <button class="abtn gold wide" id="btnDeal">Deal<small>next customer <kbd>Enter</kbd></small></button>
-      <button class="abtn counter" id="btnHit" disabled>Add to the quote<small>hit. worth more, asks more <kbd>G</kbd></small></button>
-      <button class="abtn give" id="btnCounter" disabled>Give a discount<small>lowers what they need, costs you <kbd>D</kbd></small></button>
-      <button class="abtn sign" id="btnStand" disabled>Send the quote<small>stand. lock it in and find out <kbd>X</kbd></small></button>
+      <button class="abtn counter" id="btnHit" disabled>Add to the quote<small>worth more, asks more <kbd>G</kbd></small></button>
+      <button class="abtn give" id="btnCounter" disabled>Give a discount<small>only helps on price <kbd>D</kbd></small></button>
+      <button class="abtn sign" id="btnStand" disabled>Send the quote<small>stand and find out <kbd>X</kbd></small></button>
     </div>
   </div>
 
@@ -392,17 +406,20 @@ body.how-open #howBack{display:flex;}
 <h3>Your three moves</h3>
 <ul>
 <li><b>Grow the quote.</b> Add seats, extend the term, add a Success Pack, add Odoo.sh. Real money, and your number goes up.</li>
-<li><b>Offer a discount.</b> This does not raise your quote. It lowers what they are holding out for, which makes their number easier to beat. It also costs you at renewal if you gave it to someone who never earned it.</li>
+<li><b>Give a discount.</b> This does not raise your quote, and it does not make a requirement go away. It only moves the part of their resistance that was about money. If what is stopping them is a migration question or a signature from upstairs, a discount buys you nothing and still costs you every month.</li>
 <li><b>Send the quote.</b> You stop building and find out.</li>
 </ul>
+<h3>The chip you pick</h3>
+<p>The chip is the room you walk into. A bigger chip puts you in front of a bigger customer: more seats, more likely to need Custom and Odoo.sh, worth far more if it lands, and a longer committee to talk round. It also costs more to chase. A deal you lose takes the pursuit with it, and on a big deal that is a large number.</p>
+<p>So the right moment to send is not the same at every chip. On small deals you can send earlier. On enterprise you have to scope further before it is worth sending, because their bar is higher and losing costs more. Playing a big room with a small room instinct is how a book goes backwards.</p>
 <h3>How a hand ends</h3>
 <ul>
-<li><b>Signed.</b> Your quote beat their objections and stayed at or under 21. You bank the contract.</li>
-<li><b>Not enough.</b> Your quote did not cover what they needed, so they went with someone who scoped it properly. Sending straight away almost always ends here.</li>
-<li><b>They walked.</b> You went past 21. You asked for more than this customer could carry, and you lose everything you built.</li>
+<li><b>Signed.</b> Your quote beat their objections and stayed at or under 21. The contract goes on your book.</li>
+<li><b>Not enough.</b> Your quote did not cover what they needed, so they went with someone who scoped it properly. You carry what the pursuit cost. Sending straight away almost always ends here.</li>
+<li><b>They walked.</b> You went past 21. You asked for more than this customer could carry, you lose everything you built, and you still carry what the pursuit cost.</li>
 </ul>
 <h3>About discounts</h3>
-<p>Read the customer first. Some are straightforward and easy to satisfy. Some will never be satisfied no matter what you take off. Discounting the ones who were never going to be reasonable is the fastest way to lose money in this game, exactly as it is in the job: you give up margin, and it still does not close, or it closes and then churns at renewal.</p>
+<p>Two things have to be true before a discount is worth giving. Price has to be what is actually holding them back, and the customer has to have earned it. Discount somebody who was never going to be reasonable and you give up margin, it still may not close, and if it does it churns at renewal. Discount somebody whose problem was never the price and you have paid for nothing.</p>
 <p>The strongest hands here are the ones that close at full price.</p>
 <h3>The rules you cannot break</h3>
 <p>The quote can only do what an Odoo rep can actually do. Multi-year licence discounts have a ceiling by term, one-year deals get none of it, implementation discounts stop at 30 percent, hosting stops at three workers before it has to move to a dedicated server, and you cannot take the same concession twice. The Rules tab in the Menu lists all of them.</p>
@@ -430,6 +447,10 @@ var PACKS = [
   { hours:200, rate:125, name:'200 hour pack' },
   { hours:400, rate:125, name:'400 hours, two packs' }
 ];
+/* Chasing a deal is not free. Solution engineering, demos, the time of everyone
+   you pulled in. Close it and that cost is covered by the contract. Lose it and
+   you carry it, and the bigger the deal you chased the more it hurts. */
+var CHASE_COST_PCT = 0.28;
 var BAR_BASE = 13, BAR_SPREAD = 4, BAR_MIN = 9, BAR_MAX = 19, BAR_CAP = 21;
 var ASK_SPAN = 13, ASK_GAIN = 0.35, ASK_MIN = 2, ASK_MAX = 11, ASK_JITTER = 2;
 var OPEN_BASE = 4, OPEN_MIN = 4, OPEN_MAX = 13, OPEN_JITTER = 3;
@@ -532,11 +553,11 @@ var OBJECTIONS = [
   { pts:3, body:'Has questions about data migration' },
   { pts:4, body:'Worried about the go live date' },
   { pts:4, body:'Someone above them has to sign' },
-  { pts:5, body:'Has a competing quote on the desk' },
-  { pts:5, body:'Budget was set last quarter' },
+  { pts:5, body:'Has a competing quote on the desk', price: 1 },
+  { pts:5, body:'Budget was set last quarter', price: 1 },
   { pts:6, body:'Burned by their last rollout' },
-  { pts:6, body:'Finance wants the number lower' },
-  { pts:7, body:'Still under contract elsewhere' },
+  { pts:6, body:'Finance wants the number lower', price: 1 },
+  { pts:7, body:'Still under contract elsewhere', price: 1 },
   { pts:7, body:'Procurement runs a formal process' }
 ];
 
@@ -728,7 +749,7 @@ function unlock(id){ if (!id || S.unlocked[id]) return; S.unlocked[id] = true; r
 
 var totalObj = function(h){ var n=0; for (var i=0;i<h.length;i++) n += h[i].pts; return n; };
 
-function objection(){ var o = pick(OBJECTIONS); return { pts:o.pts, body:o.body }; }
+function objection(){ var o = pick(OBJECTIONS); return { pts:o.pts, body:o.body, price:o.price || 0 }; }
 
 // How big a quote this customer will actually sign. Never shown.
 // How far they keep pushing back before they settle. Their objections are
@@ -809,8 +830,17 @@ function rollAccept(d){
 }
 
 // What their objections come to after any discount has taken the edge off.
+/* A discount does not make a requirement go away. Nobody stops needing their
+   data migrated because the licence got cheaper. Money only moves the part of
+   their resistance that was about money in the first place. */
+function priceablePts(){
+  var n = 0;
+  for (var i = 0; i < S.them.length; i++) if (S.them[i].price) n += S.them[i].pts;
+  return n;
+}
 function resistance(){
-  return Math.max(0, totalObj(S.them) - (S.relief || 0));
+  var relief = Math.min(S.relief || 0, priceablePts());
+  return Math.max(0, totalObj(S.them) - relief);
 }
 
 function deal(){
@@ -991,8 +1021,8 @@ function takeOffer(i){
     if (c.kind === 'lic') unlock('recurring');
     S.offer = [];
     render();
-    setMsg(room > 0 ? 'Discount applied. It took ' + room + ' off what they were holding out for.'
-      : 'Discount applied, and it bought you nothing.', '');
+    setMsg('Discount applied.', '');
+    setWhy('A discount only moves them if price is what is holding them back. If what they need is a migration answer or a signature from upstairs, it buys you nothing and still costs you every month.');
     setWhy(discountLine(c, room));
     return;
   }
@@ -1074,6 +1104,13 @@ function settle(kind){
      who never earned it barely renews at all. A customer who was straight with you
      the whole way costs you nothing. */
   var gave = (d.licDisc || d.packDisc);
+  /* Was the discount aimed at anything? */
+  var priceHeld = 0;
+  for (var pi = 0; pi < S.them.length; pi++) if (S.them[pi].price) priceHeld += S.them[pi].pts;
+  var discountNote = !gave ? ''
+    : priceHeld === 0
+      ? ' Nothing they raised was about price, so the discount bought you nothing and still costs you every month.'
+      : ' Your discount came off the ' + priceHeld + ' they were holding out on price.';
   var keep = !gave ? 1 : d.conduct.room >= 5 ? 1 : d.conduct.room >= 1 ? 0.6 : 0.4;
   var caved = gave && keep < 1;
   if (caved) delta = Math.round(delta * keep);
@@ -1099,20 +1136,20 @@ function settle(kind){
       (caved ? ' They ground you for it all week and you gave it, so thirty percent of this comes straight back off at renewal. They will open there and push again.' : '') +
       ((d.licDisc || d.packDisc) && d.conduct.room >= 5 ? ' They earned that one, and it will not come back to bite you.' : '');
   } else if (kind === 'short') {
-    delta = 0;
+    delta = -Math.round(q.contract * CHASE_COST_PCT);
     cls = 'lose'; S.lost++;
     if (d.type === 'renewal' || d.type === 'expansion') S.baseMrr += (d.startMrr || 0);
     S.streak = 0;
-    msg = 'Not enough. They went with somebody who scoped it properly.';
+    msg = 'Not enough. They went with somebody who scoped it properly. ' + fmt(-delta) + ' of pursuit gone.';
     why = 'Their objections came to ' + resistance() + ' and your quote only reached ' + d.asked +
       '. A quote that does not cover what they actually need does not win on being cheap. ' +
       'You left ' + fmt(q.mrr) + ' a month on the table.';
   } else {
-    delta = 0;
+    delta = -Math.round(q.contract * CHASE_COST_PCT);
     cls = 'lose'; S.lost++;
     if (d.type === 'renewal' || d.type === 'expansion') S.baseMrr += (d.startMrr || 0);
     S.streak = 0;
-    msg = 'You asked for more than they could carry. They walked.';
+    msg = 'You asked for more than they could carry. They walked. ' + fmt(-delta) + ' of pursuit gone.';
     why = 'You went to ' + d.asked + ', past the 21 they could bear. Everything you built is gone, ' +
       'and so is the ' + fmt(q.mrr) + ' a month it was worth.' +
       (d.licDisc || d.packDisc ? ' The discounts went with it.' : '');
@@ -1122,7 +1159,7 @@ function settle(kind){
   S.log.unshift({ who:d.a.n, kind:kind, delta:delta, why:why,
     line: d.users + ' seats, ' + d.term + ' yr' + (d.licDisc ? ', ' + d.licDisc + '% off' : '') });
   var read = readOut(kind, d.asked, kind === 'walked' ? 21 : resistance());
-  setMsg(msg, cls); setWhy(why + ' ' + read);
+  setMsg(msg, cls); setWhy(why + (discountNote || '') + ' ' + read);
   render(); renderStats(); renderLog(); save(); postScore();
 }
 
@@ -1211,7 +1248,9 @@ function render(){
   var co = document.getElementById('counter'); co.innerHTML = '';
   if (S.live && S.offer.length) S.offer.forEach(function(c, i){ co.appendChild(offerCard(c, i)); });
 
-  document.getElementById('bank').textContent = fmt(S.bank);
+  var bankEl = document.getElementById('bank');
+  bankEl.textContent = (S.bank < 0 ? '-' : '') + fmt(Math.abs(S.bank));
+  bankEl.classList.toggle('neg', S.bank < 0);
   document.getElementById('btnDeal').disabled = S.live;
   document.getElementById('btnHit').disabled = !S.live;
   document.getElementById('btnCounter').disabled = !S.live;
