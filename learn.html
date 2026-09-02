@@ -431,16 +431,16 @@ var ACCOUNTS = [
 var CONDUCT = [
   { k:'straight', label:'Straight with you all the way',
     hint:'Took every meeting, answered honestly, has not once asked for a discount',
-    room:9, weight:2 },
+    room:8, weight:2 },
   { k:'fair', label:'Fair to deal with',
     hint:'Reasonable, a little slow, no games',
-    room:6, weight:3 },
+    room:5, weight:3 },
   { k:'grinder', label:'Grinds on price every call',
     hint:'Opens every conversation with the number, never moves on anything else',
-    room:3, weight:3 },
+    room:1, weight:3 },
   { k:'bully', label:'Threatening to walk since day one',
     hint:'Has used a competitor quote as a stick in every meeting',
-    room:1, weight:2 }
+    room:0, weight:2 }
 ];
 function pickConduct(){
   var bag = [];
@@ -586,7 +586,8 @@ function discounts(d){
 // with you as it is on somebody who has ground you all week.
 function roomBought(d, pct){
   var base = d.conduct.room;           // 9 straight, 6 fair, 3 grinder, 1 bully
-  return Math.max(1, Math.round(base * (pct / 10)));
+  // Somebody who ground you on price all week gets almost nothing back for it.
+  return Math.max(0, Math.round(base * (pct / 10)));
 }
 
 var RULES = {
