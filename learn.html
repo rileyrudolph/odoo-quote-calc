@@ -705,6 +705,20 @@ function objection(){ var o = pick(OBJECTIONS); return { pts:o.pts, body:o.body 
 // How big a quote this customer will actually sign. Never shown.
 // How far they keep pushing back before they settle. Their objections are
 // dealt up to this, and the total is the bar your quote has to clear.
+/* Draw an objection this customer has not already raised. A hand that shows the
+   same reason twice reads as a bug, not as a customer. */
+function freshObjection(list, cap){
+  var o = objection(), tries = 0;
+  while (tries++ < 24) {
+    var dup = false;
+    for (var i = 0; i < list.length; i++) if (list[i].body === o.body) { dup = true; break; }
+    var fits = cap == null || totalObj(list) + o.pts <= cap;
+    if (!dup && fits) return o;
+    o = objection();
+  }
+  return null;
+}
+
 function rollAccept(d){
   var base = BAR_BASE + between(0, BAR_SPREAD);
   if (d.conduct.k === 'straight') base -= 2;   // easy to satisfy
@@ -724,7 +738,8 @@ function deal(){
   S.deal.baseContract = quote(S.deal).contract;
   S.deal.asked = openingAsk(S.deal);
   S.accept = rollAccept(S.deal);
-  S.them = [objection(), objection()];
+  S.them = [];
+  for (var oi = 0; oi < 2; oi++) { var o0 = freshObjection(S.them, null); if (o0) S.them.push(o0); }
   S.offer = [];
   S.relief = 0;
   S.mode = 'grow';
@@ -891,9 +906,8 @@ function sendQuote(){
   if (!S.live) return;
   var guard = 0;
   while (totalObj(S.them) < S.accept && guard++ < 30) {
-    var o = objection(), tries = 0;
-    while (totalObj(S.them) + o.pts > BAR_CAP && tries++ < 8) o = objection();
-    if (totalObj(S.them) + o.pts > BAR_CAP) break;
+    var o = freshObjection(S.them, BAR_CAP);
+    if (!o) break;
     S.them.push(o);
   }
   var bar = resistance();
