@@ -1,7 +1,7 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Discount Table</title>
+<title>The Deal Table</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
@@ -113,6 +113,11 @@ body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b1319;color:#e
 .cc .pts{font-size:.72rem;font-weight:800;}
 .cc .mo{font-size:.72rem;font-weight:700;color:var(--red);}
 .cc .mo.gain{color:#2f6b46;}
+.ask .conduct-hint{font-size:.68rem;color:var(--faint);margin-top:3px;font-style:italic;}
+.fact.big .v{color:var(--gold-2);font-size:1rem;}
+.cc.discount{border-color:#8e3b36;background:#fdf4f2;}
+.cc.discount .head{color:var(--red);}
+.cc .mo.grow{color:var(--sub);font-weight:600;font-size:.6rem;}
 .cc .tenor{font-size:.55rem;letter-spacing:.05em;text-transform:uppercase;color:#8b98a6;margin-top:5px;font-weight:700;}
 .cc .per{font-size:.57rem;color:var(--sub);margin-top:3px;}
 .cc .warn{margin-top:4px;font-size:.56rem;color:var(--red);font-weight:700;line-height:1.25;}
@@ -201,14 +206,14 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
     <div class="topbar">
       <a class="brand" href="app.html">
         <span class="brand-mark">$</span>
-        <span><span class="brand-name">The Discount Table</span><br>
+        <span><span class="brand-name">The Deal Table</span><br>
         <span class="brand-sub">Back to calculator</span></span>
       </a>
       <div class="top-spacer"></div>
       <button class="tbtn" id="btnPanel">Menu</button>
       <button class="tbtn" id="btnHow">How to play</button>
       <div class="bank">
-        <span class="bank-label">Monthly revenue banked</span>
+        <span class="bank-label">Monthly revenue closed</span>
         <span class="bank-amt" id="bank">$0</span>
       </div>
     </div>
@@ -217,7 +222,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
       <div class="ask" id="ask"></div>
 
       <div class="seat">
-        <div class="seat-label">What they are holding out for
+        <div class="seat-label">Why they have not signed yet
           <span class="pill" id="themTotal">nothing yet</span>
         </div>
         <div class="hand" id="themHand"></div>
@@ -240,9 +245,9 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
     <div class="actions">
       <div class="chiprow" id="chips"></div>
       <button class="abtn gold wide" id="btnDeal">Deal</button>
-      <button class="abtn give" id="btnHit" disabled>Give in<small>their ask, costs most</small></button>
-      <button class="abtn counter" id="btnCounter" disabled>Counter<small>cheaper, moves less</small></button>
-      <button class="abtn sign" id="btnStand" disabled>Sign the deal<small>stop here and bank it</small></button>
+      <button class="abtn counter" id="btnHit" disabled>Grow the quote<small>more seats, term, scope</small></button>
+      <button class="abtn give" id="btnCounter" disabled>Discount<small>one each, costs you monthly</small></button>
+      <button class="abtn sign" id="btnStand" disabled>Send the quote<small>bank it if they sign</small></button>
     </div>
   </div>
 
@@ -272,9 +277,9 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
         <div class="sec-h">Your session</div>
         <div class="stat"><span>Deals played</span><span id="stHands">0</span></div>
         <div class="stat"><span>Deals won</span><span id="stWon">0</span></div>
-        <div class="stat"><span>Gave away too much</span><span id="stBust">0</span></div>
-        <div class="stat"><span>Average given per deal</span><span id="stAvg">nothing yet</span></div>
-        <div class="stat"><span>Left on the table</span><span id="stLeft">$0</span></div>
+        <div class="stat"><span>Deals lost</span><span id="stBust">0</span></div>
+        <div class="stat"><span>Discounts given</span><span id="stAvg">nothing yet</span></div>
+        <div class="stat"><span>Close rate</span><span id="stLeft">$0</span></div>
       </div>
     </div>
 
@@ -293,27 +298,25 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
     <div class="pane" id="pane-settings">
       <h3>How to play</h3>
       <div class="sec">
-        <p class="mini">It is blackjack, with you on one side of the table and the customer on the other.</p>
-        <p class="mini"><b>Their hand</b> is what they are holding out for. Every card is a reason they have
-        not signed yet, like a competing quote or a finance team that wants the number lower. One is face up.
-        The rest you find out when you sign.</p>
-        <p class="mini"><b>Your hand</b> is what you have put on the table. Every card is a discount you have
-        offered. The more you put down, the more likely they are to sign.</p>
-        <p class="mini">Put more on the table than they were holding out for and the deal is yours. Go past 21
-        and you have given away more than the deal can carry, and you lose it along with everything you offered.</p>
-        <p class="mini">You keep whatever you did not give away, so the aim is not to win every deal. It is to
-        win while offering as little as possible.</p>
+        <p class="mini">You are building a quote. Every deal starts small and your job is to make it bigger
+        without losing it.</p>
+        <p class="mini"><b>Grow the quote</b> adds seats, term, a Success Pack or Odoo.sh. Every one of those
+        is worth real money every month, and every one asks a bit more of the customer.</p>
+        <p class="mini">Ask more than they will carry and they walk. You get nothing, and everything you built
+        goes with them. The number to watch is how much you have asked, out of 21.</p>
+        <p class="mini"><b>Send the quote</b> when you think they will still sign. Whatever they sign is what
+        you bank.</p>
       </div>
       <div class="sec">
-        <div class="sec-h">Your three moves</div>
-        <p class="mini"><b>Give in.</b> Hand them the exact thing they asked for. Puts a lot on the table,
-        and costs you the most.</p>
-        <p class="mini"><b>Counter.</b> Offer one of three cheaper things instead. Puts less on the table,
-        and keeps far more of the deal.</p>
-        <p class="mini"><b>Sign the deal.</b> Stop and see if your offer beat what they were holding out for.</p>
-        <p class="mini">Signing while your offer is still low pays a bonus, but only if you actually beat them.
-        If they talk themselves out of it you still get the deal, just without the bonus.</p>
-        <p class="mini">Bigger wagers pay more, and bring tougher customers.</p>
+        <div class="sec-h">About discounting</div>
+        <p class="mini">A discount does not make the quote better. It buys you room with somebody who has run
+        out of patience, and it costs you every month for the length of the term.</p>
+        <p class="mini">You get <b>one licence discount and one Success Pack discount</b> per quote, and the
+        licence one has a ceiling that depends on the term.</p>
+        <p class="mini">What it buys depends entirely on how the customer has behaved. Give one to somebody who
+        has dealt straight with you and it buys real room. Give one to somebody who has ground you on price
+        since day one and it buys almost nothing, because they were always going to ask again.</p>
+        <p class="mini">The best scores come from quotes closed without a discount at all.</p>
       </div>
       <h3 style="margin-top:22px">Settings</h3>
       <div class="sec">
@@ -385,244 +388,69 @@ var fmt2 = function(n){
 };
 
 var ACCOUNTS = [
-  {n:'Halstead Freight',   t:'Logistics, three depots',   bias:1,  tell:'has a competing quote on the desk'},
-  {n:'Verity Labs',        t:'Biotech, regulated',        bias:2,  tell:'needs it signed this quarter'},
-  {n:'Marrow and Sons',    t:'Family manufacturer',       bias:-1, tell:'has never bought software before'},
-  {n:'Ardleigh Minerals',  t:'Mining, seasonal',          bias:0,  tell:'is comparing you against doing nothing'},
-  {n:'Copperline Retail',  t:'Retail, forty stores',      bias:2,  tell:'asks for a discount on principle'},
-  {n:'Northgate Clinics',  t:'Healthcare group',          bias:-1, tell:'already has the budget approved'},
-  {n:'Pell and Vance',     t:'Professional services',     bias:0,  tell:'is fine on price but slow to sign'},
-  {n:'Turnbull Foods',     t:'Food distribution',         bias:1,  tell:'is squeezed on margin'},
-  {n:'Solent Marine',      t:'Marine services',           bias:-2, tell:'came to you already sold'},
-  {n:'Kestrel Aviation',   t:'Aviation parts',            bias:1,  tell:'is renewing off a rival'},
-  {n:'Ambrose Textiles',   t:'Textiles, exporting',       bias:0,  tell:'wants multi year certainty'},
-  {n:'Fairhaven Housing',  t:'Property management',       bias:2,  tell:'has a procurement committee'},
-  {n:'Bracken and Roe',    t:'Legal practice',            bias:1,  tell:'bills by the hour and knows it'},
-  {n:'Dunmore Castings',   t:'Metal foundry',             bias:-1, tell:'was burned by its last vendor'},
-  {n:'Wexley Dairy',       t:'Agriculture co-op',         bias:0,  tell:'answers to a member board'},
-  {n:'Orrin Scaffolding',  t:'Construction hire',         bias:2,  tell:'opens every call with price'},
-  {n:'Thackeray Print',    t:'Commercial printing',       bias:-2, tell:'has a deadline of its own'},
-  {n:'Loxley Interiors',   t:'Design and fit out',        bias:0,  tell:'wants to start with one team'},
-  {n:'Grantham Plastics',  t:'Injection moulding',        bias:1,  tell:'is midway through a rival trial'},
-  {n:'Vale and Hutchins',  t:'Accountancy firm',          bias:-1, tell:'understands recurring cost'},
-  {n:'Ashcombe Nurseries', t:'Horticulture, seasonal',    bias:0,  tell:'buys hard before its busy season'},
-  {n:'Merrick Cold Chain', t:'Refrigerated logistics',    bias:2,  tell:'is running a formal tender'},
-  {n:'Selby Instruments',  t:'Precision engineering',     bias:-1, tell:'was referred by a customer'},
-  {n:'Padstow Hotels',     t:'Hospitality, six sites',    bias:1,  tell:'has a flat cap on capital spend'},
-  {n:'Ironbridge Steel',   t:'Steel stockholding',        bias:0,  tell:'wants proof before it commits'},
-  {n:'Calder Renewables',  t:'Solar installation',        bias:-2, tell:'is scaling fast and knows it'},
-  {n:'Hexham Optical',     t:'Optical retail',            bias:1,  tell:'is comparing on price alone'},
-  {n:'Roundhay Pharma',    t:'Pharma distribution',       bias:2,  tell:'has a compliance review to clear'},
-  {n:'Draycott Timber',    t:'Timber merchants',          bias:-1, tell:'has done the maths already'},
-  {n:'Feltham Security',   t:'Security services',         bias:0,  tell:'is consolidating three systems'},
-  {n:'Nairn Whisky',       t:'Distilling, export',        bias:1,  tell:'is protective of its margin'},
-  {n:'Wingate Academies',  t:'Education trust',           bias:2,  tell:'spends on a fixed budget cycle'},
-  {n:'Perrin Automotive',  t:'Vehicle parts',             bias:-1, tell:'needs it live before year end'},
-  {n:'Cawley Logistics',   t:'Freight forwarding',        bias:0,  tell:'has just lost its old system'}
+  {n:'Halstead Freight',   t:'Logistics, three depots'},
+  {n:'Verity Labs',        t:'Biotech, regulated'},
+  {n:'Marrow and Sons',    t:'Family manufacturer'},
+  {n:'Ardleigh Minerals',  t:'Mining, seasonal'},
+  {n:'Copperline Retail',  t:'Retail, forty stores'},
+  {n:'Northgate Clinics',  t:'Healthcare group'},
+  {n:'Pell and Vance',     t:'Professional services'},
+  {n:'Turnbull Foods',     t:'Food distribution'},
+  {n:'Solent Marine',      t:'Marine services'},
+  {n:'Kestrel Aviation',   t:'Aviation parts'},
+  {n:'Ambrose Textiles',   t:'Textiles, exporting'},
+  {n:'Fairhaven Housing',  t:'Property management'},
+  {n:'Bracken and Roe',    t:'Legal practice'},
+  {n:'Dunmore Castings',   t:'Metal foundry'},
+  {n:'Wexley Dairy',       t:'Agriculture co-op'},
+  {n:'Orrin Scaffolding',  t:'Construction hire'},
+  {n:'Thackeray Print',    t:'Commercial printing'},
+  {n:'Loxley Interiors',   t:'Design and fit out'},
+  {n:'Grantham Plastics',  t:'Injection moulding'},
+  {n:'Vale and Hutchins',  t:'Accountancy firm'},
+  {n:'Ashcombe Nurseries', t:'Horticulture, seasonal'},
+  {n:'Merrick Cold Chain', t:'Refrigerated logistics'},
+  {n:'Selby Instruments',  t:'Precision engineering'},
+  {n:'Padstow Hotels',     t:'Hospitality, six sites'},
+  {n:'Ironbridge Steel',   t:'Steel stockholding'},
+  {n:'Calder Renewables',  t:'Solar installation'},
+  {n:'Hexham Optical',     t:'Optical retail'},
+  {n:'Roundhay Pharma',    t:'Pharma distribution'},
+  {n:'Draycott Timber',    t:'Timber merchants'},
+  {n:'Feltham Security',   t:'Security services'},
+  {n:'Nairn Whisky',       t:'Distilling, export'},
+  {n:'Wingate Academies',  t:'Education trust'},
+  {n:'Perrin Automotive',  t:'Vehicle parts'},
+  {n:'Cawley Logistics',   t:'Freight forwarding'}
 ];
-var SEATS = [3, 6, 9, 14, 22, 35, 60, 110];
 
-function dealBrief(){
-  var a = pick(ACCOUNTS);
-  var users = Math.max(1, pick(SEATS) + between(-2, 3));
-  var plan = rng() < 0.45 ? 'custom' : 'standard';
-  // Scope follows the size of the business. A three seat company does not
-  // buy a four hundred hour engagement, and a hundred seat rollout is not
-  // finished in twenty five hours.
-  var pack = pick(
-    users < 10  ? [PACKS[0], PACKS[1], PACKS[1], PACKS[2]] :
-    users < 30  ? [PACKS[0], PACKS[1], PACKS[2], PACKS[2], PACKS[3]] :
-    users < 60  ? [PACKS[1], PACKS[2], PACKS[3], PACKS[3], PACKS[4]] :
-                  [PACKS[2], PACKS[3], PACKS[4], PACKS[4], PACKS[5]]);
-  var onSh = rng() < 0.45;
-  // Paying month to month is the no commitment option, so such a customer
-  // has no term at all. That is exactly why moving them is worth money.
-  var billing = rng() < 0.3 ? 'monthly' : 'annual';
-  var term = billing === 'monthly' ? 1 : pick([1, 2, 3, 3, 4, 5]);
-  return { a:a, users:users, term:term, plan:plan, pack:pack, sh:onSh, billing:billing };
+// How the customer has behaved through the process. This is the whole reason
+// a discount is worth anything. Give one to somebody who has dealt straight
+// with you and it buys real room. Give one to somebody who has ground you
+// down all week and they simply come back for more.
+var CONDUCT = [
+  { k:'straight', label:'Straight with you all the way',
+    hint:'Took every meeting, answered honestly, has not once asked for a discount',
+    room:9, weight:2 },
+  { k:'fair', label:'Fair to deal with',
+    hint:'Reasonable, a little slow, no games',
+    room:6, weight:3 },
+  { k:'grinder', label:'Grinds on price every call',
+    hint:'Opens every conversation with the number, never moves on anything else',
+    room:3, weight:3 },
+  { k:'bully', label:'Threatening to walk since day one',
+    hint:'Has used a competitor quote as a stick in every meeting',
+    room:1, weight:2 }
+];
+function pickConduct(){
+  var bag = [];
+  CONDUCT.forEach(function(c){ for (var i = 0; i < c.weight; i++) bag.push(c); });
+  return pick(bag);
 }
 
-// What the deal is worth before you concede anything.
-function value(b){
-  var r = LIC[b.plan];
-  var licMo  = (b.billing === 'monthly' ? r.moY1 : r.y1) * b.users;
-  var shMo   = b.sh ? (SH_WORKER + SH_STAGING) : 0;
-  var implMo = b.pack.hours * b.pack.rate / (b.term * 12);
-  return {
-    licMo: licMo, shMo: shMo, implMo: implMo,
-    mrr: licMo + shMo,                       // what actually recurs
-    implTotal: b.pack.hours * b.pack.rate,   // one off
-    acv: (licMo + shMo) * 12 + b.pack.hours * b.pack.rate
-  };
-}
-
-// ===================================================================
-// THE CONCESSIONS. Only things an Odoo rep can really give away.
-// pts  = how much closer it moves the customer to signing
-// mo   = monthly recurring revenue it costs you, averaged over the term
-// A negative mo means the concession earns you money instead.
-// ===================================================================
-function ground(mo, mrr){
-  // How much a concession puts on the table, as a share of the deal you hand over.
-  // What you can put on the table therefore has a budget, and the budget is the deal.
-  if (mo <= 0) return 3;              // something they give you still counts for a little
-  return Math.max(1, Math.round(0.45 * (mo / (mrr || 1)) * 100));
-}
-
-function concessions(b){
-  var v = value(b), r = LIC[b.plan], out = [];
-  var ceiling = CEILING[b.term];
-
-  // 1. Licence discount. It only ever touches Year 2 onward, so on a one
-  //    year deal there is nothing for it to reach.
-  [2.5, 5, 7.5, 10, 12.5, 15, 20].forEach(function(p){
-    var years = Math.max(0, b.term - 1);
-    var mo = years > 0
-      ? r.y2 * b.users * (p / 100) * years / b.term
-      : (b.billing === 'monthly' ? r.moY1 : r.y1) * b.users * (p / 100);
-    var breaks = null;
-    if (b.term === 1) breaks = 'oneYear';
-    else if (p > ceiling) breaks = 'ceiling';
-    out.push({
-      kind:'lic', tag:'Licence', head:p + '% off',
-      body:'Take ' + p + '% off the licence from Year 2 on',
-      pts: ground(mo, v.mrr), mo: mo, breaks: breaks,
-      note: breaks === 'oneYear'
-        ? 'A one year deal has no Year 2, so this lands on the promotional rate'
-        : (breaks === 'ceiling' ? 'The ceiling on a ' + b.term + ' year term is ' + ceiling + '%' : '')
-    });
-  });
-
-  // 2. Success Pack discount. Capped at 30 percent, and it only reaches
-  //    the first 200 hours on the first invoice.
-  if (b.pack.hours > 0) {
-    [10, 15, 20, 25, 30, 40].forEach(function(p){
-      var reached = Math.min(b.pack.hours, IMPL_CAP_HOURS);
-      var oneOff = reached * b.pack.rate * (p / 100);
-      out.push({
-        kind:'impl', tag:'Success Pack', head:p + '% off',
-        body:'Take ' + p + '% off the ' + b.pack.hours + ' hour pack',
-        pts: ground(oneOff / (b.term * 12), v.mrr),
-        mo: oneOff / (b.term * 12),
-        breaks: p > IMPL_MAX_PCT ? 'implMax' : null,
-        capped: b.pack.hours > IMPL_CAP_HOURS,
-        note: p > IMPL_MAX_PCT ? 'Thirty percent is the most the desk signs off'
-          : (b.pack.hours > IMPL_CAP_HOURS
-            ? 'Only the first ' + IMPL_CAP_HOURS + ' hours are reached, so this is really ' +
-              (p * IMPL_CAP_HOURS / b.pack.hours).toFixed(1) + '% of the whole pack' : '')
-      });
-    });
-  }
-
-  // 4. Hosting. A rep discounts the Odoo.sh line, the same way the quote
-  //    calculator does. Nothing here is waived, because nobody can waive it.
-  if (b.sh) {
-    [10, 20, 30].forEach(function(p){
-      out.push({
-        kind:'host', tag:'Hosting', head:p + '% off',
-        body:'Take ' + p + '% off the Odoo.sh subscription',
-        pts: ground(v.shMo * (p / 100), v.mrr),
-        mo: v.shMo * (p / 100), breaks:null, note:''
-      });
-    });
-  }
-
-  // 5. The one that pays you. Moving a month to month customer onto an
-  //    annual commitment is worth the whole no commitment premium.
-  if (b.billing === 'monthly') {
-    out.push({ kind:'term', tag:'Commitment', head:'Go annual',
-      body:'Ask them to commit for a year instead of paying monthly',
-      pts:3, mo: -((r.moY1 - r.y1) * b.users), breaks:null,
-      note:'Month to month is ' + fmt2(r.moY1) + ' a seat against ' + fmt2(r.y1) + ' on a commitment' });
-  }
-
-  if (!out.length) out.push({ kind:'good', tag:'Nothing to give', head:'No room',
-    body:'There is no lever left on this deal', pts:1, mo:0, breaks:null, note:'' });
-  return out;
-}
-
-var RULES = {
-  ceiling: { t:'The licence ceiling depends on the term',
-    d:'Two years allows 5%, three allows 10%, four allows 12.5%, five allows 15%. Go past the ceiling for the term in front of you and you are off schedule.' },
-  oneYear: { t:'A one year deal has no Year 2 to discount',
-    d:'The multi year discount reduces the Year 2 onward licence. On a one year term there is nothing for it to reach, so the ask lands on the Year 1 promotional rate, which is already discounted.' },
-  implMax: { t:'Thirty percent is the Success Pack maximum',
-    d:'Above 30% you are outside what the desk will approve. The card still plays. It just counts double against you.' },
-  implCap: { t:'The Success Pack discount stops at 200 hours',
-    d:'It reaches the first 200 hours on the first invoice only. On a 400 hour engagement a headline 30% is really 15% of the whole thing.' },
-  recurring: { t:'Licence money comes back every month, hours do not',
-    d:'A point off the licence costs you every month for the length of the term. A point off the Success Pack costs you once. That is why the two look so different on these cards.' },
-  commitment: { t:'A commitment is a concession you receive',
-    d:'Month to month pricing carries a real premium over an annual commitment. Asking for the commitment costs you nothing and earns you the difference, which is why it is the only card here with money on the right side.' }
-};
-
-var S = {
-  bank:0, stake:250, brief:null, pool:null, you:[], them:[], offer:[],
-  live:false, stop:17, used:{}, hands:0, won:0, bust:0, given:0, left:0,
-  unlocked:{}, log:[], name:''
-};
-
-// Some lessons are not rule breaks, they are just things worth noticing
-// the moment you touch that kind of card.
-function unlockFor(c){
-  if (!c) return;
-  if (c.kind === 'lic')  unlock('recurring');
-  if (c.kind === 'term') unlock('commitment');
-  if (c.capped)          unlock('implCap');
-}
-
-function unlock(id){
-  if (!id || S.unlocked[id]) return;
-  S.unlocked[id] = true; renderRules();
-}
-
-var total = function(h){ var n=0; for (var i=0;i<h.length;i++) n += h[i].pts; return n; };
-var moGiven = function(h){ var n=0; for (var i=0;i<h.length;i++) n += h[i].mo; return n; };
-
-function baseStop(){
-  var d = document.getElementById('setDiff').value;
-  return d === 'easy' ? 14 : d === 'hard' ? 17 : 16;
-}
-
-// How hard this particular customer turns out to be. Their disposition
-// leans it, a bigger contract draws more scrutiny, a bigger wager draws a
-// tougher room, and luck does the rest. The number is never shown.
-function rollStop(b){
-  var v = value(b);
-  var acv = v.acv;
-  var sizeWeight = acv > 120000 ? 2 : acv > 45000 ? 1 : 0;
-  var stakeWeight = S.stake >= 2500 ? 2 : S.stake >= 500 ? 1 : 0;
-  return Math.max(13, Math.min(18,
-    baseStop() + (b.a.bias || 0) + sizeWeight + stakeWeight + between(-1, 1)));
-}
-
-// What the customer opens by asking for. It is always a real lever, and
-// it is always one of the more expensive ways to buy their ground.
-function makeAsk(b, pool){
-  var wanted = pool.filter(function(c){ return c.mo > 0 && !c.breaks; });
-  if (!wanted.length) wanted = pool.filter(function(c){ return c.mo > 0; });
-  if (!wanted.length) wanted = pool;
-  wanted.sort(function(x, y){ return (y.mo / Math.max(1, y.pts)) - (x.mo / Math.max(1, x.pts)); });
-  var top = wanted.slice(0, Math.max(3, Math.ceil(wanted.length / 3)));
-  return pick(top);
-}
-
-function harden(c){
-  var copy = {};
-  for (var k in c) copy[k] = c[k];
-  copy.realPts = copy.pts;   // the ground it genuinely buys
-  if (copy.breaks && document.getElementById('setStrict').checked) {
-    copy.pts = Math.min(11, copy.pts * 2);
-    copy.doubled = true;
-  }
-  return copy;
-}
-
-// The customer signals their position one card at a time, the same way a
-// dealer shows an up card. These are their expectations, not your costs.
 var OBJECTIONS = [
   { pts:2, body:'Wants the quote in writing' },
-  { pts:2, body:'Asks who else in their industry uses it' },
+  { pts:2, body:'Asks who else in their industry runs it' },
   { pts:3, body:'Wants to see it working first' },
   { pts:3, body:'Has questions about data migration' },
   { pts:4, body:'Worried about the go live date' },
@@ -632,189 +460,289 @@ var OBJECTIONS = [
   { pts:6, body:'Burned by their last rollout' },
   { pts:6, body:'Finance wants the number lower' },
   { pts:7, body:'Still under contract elsewhere' },
-  { pts:7, body:'Procurement runs a formal process' },
-  { pts:8, body:'Not convinced it beats what they have' },
-  { pts:9, body:'Thinks the whole thing is too expensive' }
+  { pts:7, body:'Procurement runs a formal process' }
 ];
-function signal(b){
-  var o = pick(OBJECTIONS);
-  return { pts:o.pts, tag:'Objection', head:o.pts + '', body:o.body };
+
+// ===================================================================
+// THE QUOTE YOU ARE BUILDING
+// Every deal starts small. Growing it is the whole job: more users, a
+// longer term, the Success Pack, hosting. Each one is worth real MRR and
+// each one asks more of the customer than the last.
+// ===================================================================
+function newDeal(){
+  var a = pick(ACCOUNTS);
+  var c = pickConduct();
+  return {
+    a:a, conduct:c,
+    users: pick([3, 5, 8, 12, 18, 25, 40]),
+    term: 1,
+    plan: rng() < 0.4 ? 'custom' : 'standard',
+    packIdx: 0,
+    sh: false,
+    licDisc: 0,
+    packDisc: 0,
+    asked: 0            // how much you have asked of them so far
+  };
+}
+
+// What the quote is worth, exactly as the calculator would work it out.
+function quote(d){
+  var r = LIC[d.plan];
+  var pack = PACKS[d.packIdx];
+  var licMo = r.y1 * d.users * (1 - d.licDisc / 100);
+  var shMo  = d.sh ? (SH_WORKER + SH_STAGING) : 0;
+  var reached = Math.min(pack.hours, IMPL_CAP_HOURS);
+  var packTotal = pack.hours * pack.rate - reached * pack.rate * (d.packDisc / 100);
+  return {
+    licMo: licMo, shMo: shMo, mrr: licMo + shMo,
+    packTotal: packTotal, pack: pack,
+    year1: (licMo + shMo) * 12 + packTotal,
+    // What the whole commitment is worth, which is what a rep is really
+    // building. Year 2 onward sits at the renewal rate.
+    contract: licMo * 12 + (d.term > 1 ? r.y2 * d.users * (1 - d.licDisc / 100) * 12 * (d.term - 1) : 0)
+              + shMo * 12 * d.term + packTotal
+  };
+}
+
+// Every way you can make the quote bigger. Nothing here is a discount.
+function growth(d){
+  var r = LIC[d.plan], out = [];
+  var seatSteps = d.users < 15 ? [3, 6] : d.users < 40 ? [5, 12] : [10, 25];
+  seatSteps.forEach(function(n){
+    out.push({ kind:'users', tag:'Users', head:'+' + n + ' seats',
+      body:'Bring another ' + n + ' people onto the platform',
+      mrr: r.y1 * n, ask: n < 6 ? 2 : n < 12 ? 4 : 6,
+      apply:function(x){ x.users += n; } });
+  });
+  if (d.term < 5) {
+    [1, 2].forEach(function(n){
+      var t = Math.min(5, d.term + n);
+      if (t === d.term) return;
+      out.push({ kind:'term', tag:'Commitment', head:t + ' year term',
+        body:'Get them to commit for ' + t + ' years instead of ' + d.term,
+        mrr: 0, ask: (t - d.term) * 3,
+        apply:function(x){ x.term = t; } });
+    });
+  }
+  if (d.packIdx < PACKS.length - 1) {
+    var next = PACKS[d.packIdx + 1];
+    out.push({ kind:'pack', tag:'Success Pack', head:next.name,
+      body:'Move them up to the ' + next.name.toLowerCase(),
+      mrr: 0, ask: 3,
+      apply:function(x){ x.packIdx += 1; } });
+  }
+  if (!d.sh) {
+    out.push({ kind:'sh', tag:'Hosting', head:'Odoo.sh',
+      body:'Put them on Odoo.sh rather than leaving hosting to them',
+      mrr: SH_WORKER + SH_STAGING, ask: 3,
+      apply:function(x){ x.sh = true; } });
+  }
+  return out;
+}
+
+// ===================================================================
+// DISCOUNTS. One on licence, one on services, and both need the desk.
+// A discount does not make the quote better. It buys you room with a
+// customer who has run out of patience, and it costs you every month
+// for the length of the term. What it buys depends entirely on how
+// that customer has behaved.
+// ===================================================================
+function discounts(d){
+  var out = [], ceiling = CEILING[d.term];
+  if (!d.licDisc) {
+    [5, 10, 15].forEach(function(p){
+      var over = d.term === 1 || p > ceiling;
+      out.push({
+        kind:'lic', tag:'Licence discount', head:p + '% off',
+        body: d.term === 1
+          ? 'Take ' + p + '% off the licence, which on a one year term lands on the promotional rate'
+          : 'Take ' + p + '% off the licence from Year 2 on',
+        pct:p, over:over,
+        note: d.term === 1
+          ? 'A one year deal has no Year 2 for the multi year discount to reach'
+          : (over ? 'The desk approves up to ' + ceiling + '% on a ' + d.term + ' year term' : 'Within what the desk approves on a ' + d.term + ' year term'),
+        apply:function(x){ x.licDisc = p; }
+      });
+    });
+  }
+  if (!d.packDisc && PACKS[d.packIdx].hours > 0) {
+    [10, 20, 30].forEach(function(p){
+      out.push({
+        kind:'pack', tag:'Success Pack discount', head:p + '% off',
+        body:'Take ' + p + '% off the ' + PACKS[d.packIdx].name.toLowerCase(),
+        pct:p, over:false,
+        note: PACKS[d.packIdx].hours > IMPL_CAP_HOURS
+          ? 'Only the first ' + IMPL_CAP_HOURS + ' hours are reached'
+          : 'Thirty percent is the most the desk signs off',
+        apply:function(x){ x.packDisc = p; }
+      });
+    });
+  }
+  return out;
+}
+
+// How much room a discount actually buys. This is the lesson: the same
+// discount is worth three times as much on somebody who dealt straight
+// with you as it is on somebody who has ground you all week.
+function roomBought(d, pct){
+  var base = d.conduct.room;           // 9 straight, 6 fair, 3 grinder, 1 bully
+  return Math.max(1, Math.round(base * (pct / 10)));
+}
+
+var RULES = {
+  ceiling: { t:'The multi year discount has a ceiling, and it needs approving',
+    d:'Two years allows 5%, three allows 10%, four allows 12.5%, five allows 15%. It is a product line on the quote, added only if applicable and approved, not a number you invent.' },
+  oneYear: { t:'A one year deal has no Year 2 to discount',
+    d:'The multi year discount reduces the Year 2 onward licence. On a one year term there is nothing for it to reach, so the ask lands on the Year 1 promotional rate, which they already have.' },
+  implMax: { t:'Thirty percent is the Success Pack maximum',
+    d:'And it reaches the first 200 hours only, on the first invoice. On a 400 hour engagement a headline 30% is really 15% of the whole thing.' },
+  onePer: { t:'One licence discount and one Success Pack discount',
+    d:'A quote carries a single discount line of each kind. You do not get to stack them, so the one you pick is the one you live with.' },
+  conduct: { t:'A discount is a reward, not a rescue',
+    d:'Given to somebody who has dealt straight with you it buys real room. Given to somebody who has ground you on price all week it buys almost nothing, because they were always going to ask again.' },
+  recurring: { t:'Licence money comes back every month, hours do not',
+    d:'A point off the licence costs you every month for the length of the term. A point off the Success Pack costs you once. Grow the licence, protect the licence.' }
+};
+
+var S = {
+  bank:0, deal:null, them:[], offer:[], mode:'grow',
+  live:false, accept:17, hands:0, won:0, lost:0, discounts:0,
+  unlocked:{}, log:[], name:''
+};
+
+function unlock(id){ if (!id || S.unlocked[id]) return; S.unlocked[id] = true; renderRules(); }
+
+var totalObj = function(h){ var n=0; for (var i=0;i<h.length;i++) n += h[i].pts; return n; };
+
+function objection(){ var o = pick(OBJECTIONS); return { pts:o.pts, body:o.body }; }
+
+// How big a quote this customer will actually sign. Never shown.
+function rollAccept(d){
+  var base = 15 + between(0, 4);
+  if (d.conduct.k === 'straight') base += 2;
+  if (d.conduct.k === 'bully') base -= 2;
+  return Math.max(12, Math.min(21, base));
 }
 
 function deal(){
   if (S.live) return;
-  S.brief = dealBrief();
-  S.pool  = concessions(S.brief);
-  S.stop  = rollStop(S.brief);
-  S.ask   = makeAsk(S.brief, S.pool);
-  S.you   = [];
-  S.used  = {};
-  S.them  = [signal(S.brief), signal(S.brief)];
+  S.deal = newDeal();
+  S.accept = rollAccept(S.deal);
+  S.them = [objection(), objection()];
   S.offer = [];
-  S.live  = true;
-  unlock(S.ask.breaks);
+  S.mode = 'grow';
+  S.live = true;
   render();
-  setMsg('They want ' + S.ask.body.toLowerCase() + '. Give in, counter, or sign it.', '');
-  setWhy('Giving them what they asked for moves them a long way. Countering costs you far less but moves them less.');
+  setMsg('Build the quote up, then send it.', '');
+  setWhy('Every card you add is worth more money and asks more of them. Send it while they will still sign.');
 }
 
-// Give in. You concede what they asked for, or very close to it.
-function giveIn(){
+function showGrowth(){
   if (!S.live) return;
-  // Give them their ask. Sometimes you land a step either side of it while
-  // haggling, but never something wildly different from what they wanted.
-  var sameKind = S.pool.filter(function(c){ return c.kind === S.ask.kind && !S.used[c.body]; });
-  if (!sameKind.length) sameKind = S.pool.filter(function(c){ return !S.used[c.body]; });
-  var at = 0;
-  for (var i = 0; i < sameKind.length; i++) if (sameKind[i].body === S.ask.body) at = i;
-  var drift = rng() < 0.62 ? 0 : (rng() < 0.5 ? -1 : 1);
-  var idx = Math.max(0, Math.min(sameKind.length - 1, at + drift));
-  var c = harden(sameKind.length ? sameKind[idx] : S.ask);
-  // Granting the thing they actually asked for lands harder than an
-  // equivalent alternative, so it puts more on the table for the same money.
-  c.pts = Math.max(c.pts + 1, Math.round(c.pts * 1.35));
-  c.grantedAsk = true;
-  S.used[c.body] = 1;
-  S.you.push(c); unlock(c.breaks); unlockFor(c);
-  if (total(S.you) > 21) return settle('bust');
-  S.offer = [];
-  render();
-  setMsg('You gave them ' + c.body.toLowerCase() + '.', '');
-  setWhy(costLine(c));
-}
-
-// Counter. Three alternatives from other levers, cheaper per point.
-function counter(){
-  if (!S.live) return;
-  var askKind = S.ask.kind;
-  var legal = S.pool.filter(function(c){ return !c.breaks && c.kind !== askKind && !S.used[c.body]; });
-  if (legal.length < 3) legal = S.pool.filter(function(c){ return !c.breaks && !S.used[c.body]; });
-  if (legal.length < 3) legal = S.pool.filter(function(c){ return !S.used[c.body]; });
-  if (!legal.length) legal = S.pool.slice();
-  // Cheapest first by what a point of ground actually costs. A card that
-  // earns you money sorts to the very front, which is the whole lesson.
-  legal.sort(function(x, y){ return (x.mo / Math.max(1, x.pts)) - (y.mo / Math.max(1, y.pts)); });
-  var band = legal.slice(0, Math.min(legal.length, 8));
-  var out = [], seenBody = {}, seenKind = {};
-  for (var pass = 0; pass < 2 && out.length < 3; pass++) {
-    for (var i = 0; i < band.length && out.length < 3; i++) {
-      var c = band[i];
-      if (seenBody[c.body]) continue;
-      if (pass === 0 && seenKind[c.kind]) continue;   // spread the levers first
-      seenBody[c.body] = 1; seenKind[c.kind] = 1; out.push(harden(c));
-    }
+  var g = growth(S.deal);
+  var seen = {}, out = [];
+  for (var i = 0; i < 60 && out.length < 3; i++) {
+    var c = pick(g);
+    if (seen[c.head]) continue;
+    seen[c.head] = 1; out.push(c);
   }
-  // Now and then the desk lets a tempting off schedule card onto the table.
-  var traps = S.pool.filter(function(c){ return c.breaks && !S.used[c.body]; });
-  if (traps.length && out.length === 3 && rng() < 0.22) out[between(0, 2)] = harden(pick(traps));
-  S.offer = out;
+  S.mode = 'grow'; S.offer = out;
   render();
-  setMsg('Counter with one of these instead.', '');
-  setWhy('Each puts less on the table than their ask, and each costs you less. The line underneath is what each point on the table costs you a month.');
+  setMsg('What do you add to the quote?', '');
+  setWhy('Nothing here is a discount. Each one grows the deal and pushes them a little closer to walking.');
+}
+
+function showDiscounts(){
+  if (!S.live) return;
+  var ds = discounts(S.deal);
+  if (!ds.length) {
+    setMsg('You have already used your discount lines on this quote.', '');
+    setWhy('One licence discount and one Success Pack discount. That is the quote.');
+    unlock('onePer'); return;
+  }
+  S.mode = 'disc'; S.offer = ds.slice(0, 3);
+  render();
+  setMsg('A discount buys room. What it buys depends on them.', '');
+  setWhy('This costs you every month for the length of the term, and you only get one of each kind.');
+  unlock('conduct');
 }
 
 function takeOffer(i){
-  if (!S.live || !S.offer.length) return;
+  if (!S.live) return;
   var c = S.offer[i];
   if (!c) return;
-  S.used[c.body] = 1;
-  S.you.push(c); unlock(c.breaks); unlockFor(c);
-  if (total(S.you) > 21) return settle('bust');
-  S.offer = [];
-  render();
-  setMsg('You countered with ' + c.body.toLowerCase() + '.', '');
-  setWhy(costLine(c));
-}
-
-function costLine(c){
-  if (c.mo < 0) return 'That one earns you ' + fmt(-c.mo) + ' a month rather than costing you anything.';
-  if (c.mo === 0) return 'That costs you nothing, which usually means it is worth nothing to them either.';
-  var w = c.realPts || c.pts;
-  var line = 'That is ' + fmt(c.mo) + ' a month for ' + w + ' points onto the table, or ' +
-    fmt(c.mo / w) + ' a month per point.';
-  // If it was off schedule, say so now, plainly, and say why.
-  if (c.breaks) {
-    line += ' That one was off schedule. ' + (c.note || '') + '.';
-    if (c.doubled) line += ' It counted ' + c.pts + ' against you instead of ' + w +
-      ', which is how much closer it just pushed you to giving the deal away.';
-    line += ' Check Pricing rules.';
+  if (S.mode === 'disc') {
+    var room = roomBought(S.deal, c.pct);
+    S.deal.asked = Math.max(0, S.deal.asked - room);
+    S.discounts++;
+    c.apply(S.deal);
+    if (c.over) unlock(S.deal.term === 1 ? 'oneYear' : 'ceiling');
+    if (c.kind === 'lic') unlock('recurring');
+    S.offer = [];
+    render();
+    setMsg('Discount applied. It bought you ' + room + ' back.', '');
+    setWhy(discountLine(c, room));
+    return;
   }
-  return line;
+  c.apply(S.deal);
+  S.deal.asked += c.ask;
+  S.offer = [];
+  if (S.deal.asked > 21) return settle('walked');
+  render();
+  setMsg('Added: ' + c.body.toLowerCase() + '.', '');
+  setWhy(growthLine(c));
 }
 
-function close(){
+function growthLine(c){
+  var q = quote(S.deal);
+  return 'The quote is now ' + fmt(q.mrr) + ' a month, ' + fmt(q.contract) +
+    ' across the whole commitment. You have asked ' + S.deal.asked + ' of 21.';
+}
+
+function discountLine(c, room){
+  var q = quote(S.deal);
+  var t = 'They have dealt with you like this: ' + S.deal.conduct.label.toLowerCase() + '. ';
+  if (S.deal.conduct.room >= 6) t += 'That is why it bought you ' + room + '. A discount lands when somebody has earned it. ';
+  else t += 'That is why it only bought you ' + room + '. They were always going to ask again, so you spent it for very little. ';
+  if (c.over) t += 'It was also outside what the desk approves. ';
+  return t + 'The quote is now ' + fmt(q.mrr) + ' a month.';
+}
+
+function sendQuote(){
   if (!S.live) return;
-  while (total(S.them) < S.stop) S.them.push(signal(S.brief));
-  var you = total(S.you), them = total(S.them);
-  if (them > 21) return settle('theyBroke');
-  if (you > them) return settle('won');
-  if (you === them) return settle('push');
-  return settle('lost');
-}
-
-// The bonus for signing early. It rewards signing them without emptying
-// the margin, and it is only paid when you actually beat them.
-// Only hands that can actually win earn it, so it is measured from 17.
-function earlyBonus(t){ return Math.max(1, 1 + (21 - Math.max(t, 17)) * 0.05); }
-
-// What you would bank if you closed right now and won on merit.
-function closeValue(){
-  if (!S.brief) return 0;
-  var kept = Math.max(0, value(S.brief).mrr - moGiven(S.you));
-  return kept * earlyBonus(total(S.you)) * (S.stake / 250);
+  while (totalObj(S.them) < S.accept) S.them.push(objection());
+  return settle(S.deal.asked <= S.accept ? 'signed' : 'walked');
 }
 
 function settle(kind){
   S.live = false; S.offer = [];
-  var v = value(S.brief);
-  var given = moGiven(S.you);
-  var kept = Math.max(0, v.mrr - given);
-  var you = total(S.you), them = total(S.them);
+  var q = quote(S.deal), d = S.deal;
   var delta = 0, cls = '', msg = '', why = '';
 
-  if (kind === 'won') {
-    var bonus = earlyBonus(you);
-    delta = kept * bonus * (S.stake / 250);
+  if (kind === 'signed') {
+    delta = q.mrr;
     cls = 'win'; S.won++;
-    msg = 'Signed. You banked ' + fmt(delta) + ' a month.';
-    why = 'They were worth ' + fmt(v.mrr) + ' a month. You gave away ' + fmt(given) +
-      ', keeping ' + fmt(kept) + ', and closing on ' + you + ' paid a ' +
-      bonus.toFixed(2) + ' times bonus on that.';
-  } else if (kind === 'theyBroke') {
-    delta = kept * (S.stake / 250);
-    cls = 'win'; S.won++;
-    msg = 'Signed, but they talked themselves into it. ' + fmt(delta) + ' a month.';
-    why = 'You did not close this one, so there is no early bonus. You kept ' + fmt(kept) +
-      ' a month of the ' + fmt(v.mrr) + ' on the table.';
-  } else if (kind === 'push') {
-    cls = 'push';
-    msg = 'Stalled at ' + you + '. Nothing signed, nothing lost.';
-    why = 'You met their expectation exactly, which is not enough to close.';
-  } else if (kind === 'bust') {
-    // You handed all of it over and got nothing back. That is the cost.
-    delta = -given * (S.stake / 250); cls = 'lose'; S.bust++;
-    var broke = S.you.filter(function(c){ return c.breaks; });
-    msg = 'You gave away too much. The deal is gone, and so is ' + fmt(-delta) + ' a month.';
-    why = broke.length
-      ? 'The ' + broke[0].body.toLowerCase() + ' broke a rule and counted double against you, which is what tipped you over 21.'
-      : 'You conceded ' + fmt(given) + ' a month against a deal worth ' + fmt(v.mrr) +
-        ' a month. There was nothing left worth signing.';
-    S.left += Math.round(kept);
-    unlock(broke.length ? broke[0].breaks : 'recurring');
+    msg = 'Signed. ' + fmt(q.mrr) + ' a month, ' + fmt(q.contract) + ' over the term.';
+    why = d.users + ' seats on ' + LIC[d.plan].name + ' for ' + d.term + ' year' + (d.term === 1 ? '' : 's') +
+      (q.pack.hours ? ', ' + q.pack.name.toLowerCase() : ', no Success Pack') +
+      (d.sh ? ', on Odoo.sh' : '') + '. ' +
+      (d.licDisc || d.packDisc
+        ? 'You gave ' + (d.licDisc ? d.licDisc + '% on licence' : '') +
+          (d.licDisc && d.packDisc ? ' and ' : '') +
+          (d.packDisc ? d.packDisc + '% on the pack' : '') + '.'
+        : 'You closed it without a single discount.');
   } else {
-    // Everything you conceded on the way is gone with the deal.
-    delta = -given * (S.stake / 250); cls = 'lose';
-    msg = given > 0
-      ? 'They walked, and the ' + fmt(-delta) + ' a month you had already conceded went with them.'
-      : 'They walked. You conceded nothing, so it cost you nothing.';
-    why = 'They wanted more than ' + you + ' and you stopped short. Everything you give away is only worth ' +
-      'something if the deal actually closes.';
-    S.left += Math.round(kept);
+    delta = 0;
+    cls = 'lose'; S.lost++;
+    msg = 'They walked. Nothing signed.';
+    why = 'You asked ' + d.asked + ' of them and they would only carry ' + S.accept +
+      '. Everything you built is gone, and so is the ' + fmt(q.mrr) + ' a month it was worth.' +
+      (d.licDisc || d.packDisc ? ' The discounts went with it.' : '');
   }
 
-  S.bank += delta; S.hands++; S.given += given;
-  if (kind !== 'won' && kind !== 'theyBroke') S.left += 0;
-  S.log.unshift({ who:S.brief.a.n, kind:kind, you:you, them:them, delta:delta, why:why });
+  S.bank += delta; S.hands++;
+  S.log.unshift({ who:d.a.n, kind:kind, delta:delta, why:why,
+    line: d.users + ' seats, ' + d.term + ' yr' + (d.licDisc ? ', ' + d.licDisc + '% off' : '') });
   setMsg(msg, cls); setWhy(why);
   render(); renderStats(); renderLog(); save(); postScore();
 }
@@ -823,90 +751,67 @@ function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 function setMsg(t, c){ var m = document.getElementById('msg'); m.textContent = t; m.className = 'msg ' + (c || ''); }
 function setWhy(t){ document.getElementById('why').textContent = t || ''; }
 
-function themCard(c, hidden){
+function objCard(o, hidden){
   var d = document.createElement('div');
   d.className = 'pc' + (hidden ? ' back' : '');
-  if (!hidden) d.innerHTML = '<div class="rank">' + c.pts + '</div>' +
-    '<div class="lever">' + esc(c.body) + '</div>';
+  if (!hidden) d.innerHTML = '<div class="rank">' + o.pts + '</div><div class="lever">' + esc(o.body) + '</div>';
   return d;
-}
-
-function givenChip(c){
-  var d = document.createElement('div');
-  d.className = 'given' + (c.breaks ? ' breaks' : '');
-  d.innerHTML = '<span>' + esc(c.body) + '</span>' +
-    '<span class="gm' + (c.mo < 0 ? ' gain' : '') + '">' +
-      (c.mo < 0 ? '+' + fmt(-c.mo) : fmt(c.mo)) + '/mo</span>' +
-    '<span class="gp">+' + c.pts + '</span>';
-  return d;
-}
-
-function warnOn(){
-  var el = document.getElementById('setWarn');
-  return !!(el && el.checked);
 }
 
 function offerCard(c, i){
   var d = document.createElement('div');
-  d.className = 'cc' + (c.breaks && warnOn() ? ' breaks' : '');
-  // Price it against the ground it really buys. The doubling on a rule
-  // break is a penalty, so it must not make the card look efficient.
-  var worth = c.realPts || c.pts;
-  var per = worth ? Math.abs(c.mo) / worth : 0;
+  var isDisc = S.mode === 'disc';
+  d.className = 'cc' + (isDisc ? ' discount' : '');
+  var money = isDisc ? '' : (c.mrr > 0 ? '+' + fmt(c.mrr) + '/mo' : 'no extra MRR');
   d.innerHTML =
     '<div class="num">' + (i + 1) + '</div>' +
     '<div class="kind">' + esc(c.tag) + '</div>' +
     '<div class="head">' + esc(c.head) + '</div>' +
     '<div class="body">' + esc(c.body) + '</div>' +
-    '<div class="tenor">' + (c.mo < 0 ? 'they pay this every month'
-      : c.kind === 'lic' || c.kind === 'host' ? 'costs you every month'
-      : 'one off, spread across the term') + '</div>' +
-    '<div class="split"><span class="pts">+' + c.pts + ' on the table</span>' +
-      '<span class="mo' + (c.mo < 0 ? ' gain' : '') + '">' +
-      (c.mo < 0 ? '+' + fmt(-c.mo) : fmt(c.mo)) + '/mo</span></div>' +
-    '<div class="per">' + (c.mo < 0 ? 'earns you money'
-      : c.mo === 0 ? 'costs nothing and buys nothing real'
-      : fmt(per) + ' a month for each point') + '</div>' +
-    (c.breaks && warnOn() ? '<div class="warn">Off schedule. ' + esc(c.note) +
-      (c.doubled ? '. Counts double against you' : '') + '</div>' : '');
+    (isDisc
+      ? '<div class="tenor">costs you every month, and you only get one</div>' +
+        '<div class="split"><span class="pts">buys you room</span>' +
+        '<span class="mo">' + esc(c.note) + '</span></div>'
+      : '<div class="split"><span class="pts">' + money + '</span>' +
+        '<span class="mo grow">asks more of them</span></div>');
   d.onclick = function(){ takeOffer(i); };
   return d;
 }
 
 function render(){
-  var b = S.brief, v = b ? value(b) : null;
+  var d = S.deal, q = d ? quote(d) : null;
   var askEl = document.getElementById('ask');
-  askEl.innerHTML = b ? (
-    '<div class="who">' + esc(b.a.n) + '</div>' +
-    '<div class="desc">' + esc(b.a.t) + ', ' + esc(b.a.tell) + '</div>' +
-    '<div class="want">They want <b>' + esc(S.ask ? S.ask.body.toLowerCase() : '') + '</b></div>' +
+  askEl.innerHTML = d ? (
+    '<div class="who">' + esc(d.a.n) + '</div>' +
+    '<div class="desc">' + esc(d.a.t) + '</div>' +
+    '<div class="want">' + esc(d.conduct.label) + '</div>' +
+    '<div class="conduct-hint">' + esc(d.conduct.hint) + '</div>' +
     '<div class="facts">' +
-      '<div class="fact"><span class="k">Seats</span><span class="v">' + b.users + '</span></div>' +
-      '<div class="fact"><span class="k">Plan</span><span class="v">' + LIC[b.plan].name + '</span></div>' +
-      '<div class="fact"><span class="k">Commitment</span><span class="v">' +
-        (b.billing === 'monthly' ? 'None' : b.term + ' yr') + '</span></div>' +
-      '<div class="fact"><span class="k">Billing</span><span class="v">' +
-        (b.billing === 'monthly' ? 'Monthly' : 'Annual') + '</span></div>' +
-      '<div class="fact"><span class="k">Success Pack</span><span class="v">' + b.pack.name + '</span></div>' +
-      '<div class="fact"><span class="k">Odoo.sh</span><span class="v">' + (b.sh ? 'Yes' : 'No') + '</span></div>' +
-      '<div class="fact"><span class="k">Worth</span><span class="v">' + fmt(v.mrr) + '/mo</span></div>' +
+      '<div class="fact"><span class="k">Seats</span><span class="v">' + d.users + '</span></div>' +
+      '<div class="fact"><span class="k">Plan</span><span class="v">' + LIC[d.plan].name + '</span></div>' +
+      '<div class="fact"><span class="k">Term</span><span class="v">' + d.term + ' yr</span></div>' +
+      '<div class="fact"><span class="k">Success Pack</span><span class="v">' + q.pack.name + '</span></div>' +
+      '<div class="fact"><span class="k">Odoo.sh</span><span class="v">' + (d.sh ? 'Yes' : 'No') + '</span></div>' +
+      '<div class="fact"><span class="k">Discounts</span><span class="v">' +
+        ((d.licDisc || d.packDisc) ? (d.licDisc ? d.licDisc + '% lic' : '') +
+          (d.licDisc && d.packDisc ? ', ' : '') + (d.packDisc ? d.packDisc + '% pack' : '') : 'None') + '</span></div>' +
+      '<div class="fact big"><span class="k">Monthly</span><span class="v">' + fmt(q.mrr) + '</span></div>' +
+      '<div class="fact big"><span class="k">Whole term</span><span class="v">' + fmt(q.contract) + '</span></div>' +
     '</div>'
   ) : '<div class="want">Press Deal for your first customer.</div>';
 
   var th = document.getElementById('themHand'); th.innerHTML = '';
-  S.them.forEach(function(c, i){ th.appendChild(themCard(c, S.live && i > 0)); });
+  S.them.forEach(function(o, i){ th.appendChild(objCard(o, S.live && i > 0)); });
   document.getElementById('themTotal').textContent =
-    S.them.length ? (S.live ? 'one of their reasons is showing' : 'they were holding out for ' + total(S.them)) : 'nothing yet';
+    S.them.length ? (S.live ? 'one of their reasons is showing' : 'they carried ' + totalObj(S.them)) : 'nothing yet';
 
   var yh = document.getElementById('youHand'); yh.innerHTML = '';
-  S.you.forEach(function(c){ yh.appendChild(givenChip(c)); });
-
-  var t = total(S.you);
   var yt = document.getElementById('youTotal');
-  yt.textContent = 'Your offer: ' + t + ' of 21';
-  yt.className = 'pill' + (t > 21 ? ' bust' : t >= 17 ? ' hot' : '');
+  var asked = d ? d.asked : 0;
+  yt.textContent = 'You have asked ' + asked + ' of 21';
+  yt.className = 'pill' + (asked > 21 ? ' bust' : asked >= 17 ? ' hot' : '');
   var cn = document.getElementById('closeNow');
-  cn.textContent = S.live ? 'Sign now and beat them, and you bank ' + fmt(closeValue()) + ' a month' : 'Not in a deal';
+  cn.textContent = S.live ? 'Send it now and bank ' + fmt(q.mrr) + ' a month' : 'Not in a deal';
   cn.className = 'pill' + (S.live ? ' money' : '');
 
   var co = document.getElementById('counter'); co.innerHTML = '';
@@ -919,95 +824,12 @@ function render(){
   document.getElementById('btnStand').disabled = !S.live;
 }
 
-// ===================================================================
-// LEADERBOARD. Talks to a small Cloudflare Worker if one is configured,
-// and falls back to this browser alone if it is not reachable.
-// ===================================================================
-var LB_URL = '';                 // set to the Worker URL to go shared
-var LB_KEY = 'odooTableBoard';
-var lbPeriod = 'day';
-
-function periodKey(p, d){
-  d = d || new Date();
-  var y = d.getUTCFullYear(), m = d.getUTCMonth() + 1, day = d.getUTCDate();
-  var pad = function(n){ return (n < 10 ? '0' : '') + n; };
-  if (p === 'all') return 'all';
-  if (p === 'month') return y + '-' + pad(m);
-  if (p === 'day') return y + '-' + pad(m) + '-' + pad(day);
-  var t = new Date(Date.UTC(y, d.getUTCMonth(), day));
-  var dow = (t.getUTCDay() + 6) % 7;
-  t.setUTCDate(t.getUTCDate() - dow);
-  return 'w' + t.getUTCFullYear() + '-' + pad(t.getUTCMonth() + 1) + '-' + pad(t.getUTCDate());
-}
-
-function localBoard(){
-  try { return JSON.parse(localStorage.getItem(LB_KEY) || '{}'); } catch (e) { return {}; }
-}
-function saveLocalBoard(b){
-  try { localStorage.setItem(LB_KEY, JSON.stringify(b)); } catch (e) {}
-}
-function recordLocal(name, amount){
-  var b = localBoard();
-  ['day','week','month','all'].forEach(function(p){
-    var k = p + ':' + periodKey(p);
-    b[k] = b[k] || {};
-    b[k][name] = Math.max(b[k][name] || 0, Math.round(amount));
-  });
-  saveLocalBoard(b);
-}
-function readLocal(p){
-  var b = localBoard(), k = p + ':' + periodKey(p), rows = [];
-  var m = b[k] || {};
-  for (var n in m) rows.push({ name:n, amount:m[n] });
-  rows.sort(function(x, y){ return y.amount - x.amount; });
-  return rows.slice(0, 12);
-}
-
-function postScore(){
-  var name = (S.name || '').trim();
-  if (!name || S.bank <= 0) { renderBoard(); return; }
-  recordLocal(name, S.bank);
-  if (LB_URL) {
-    try {
-      fetch(LB_URL + '/score', {
-        method:'POST', headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify({ name:name, amount:Math.round(S.bank) })
-      }).then(function(){ renderBoard(); }).catch(function(){ renderBoard(); });
-      return;
-    } catch (e) {}
-  }
-  renderBoard();
-}
-
-function renderBoard(){
-  var host = document.getElementById('lbList');
-  var draw = function(rows, shared){
-    if (!rows.length) { host.innerHTML = '<p class="mini">Nobody on this board yet. Play a hand.</p>'; return; }
-    host.innerHTML = rows.map(function(r, i){
-      var mine = r.name === (S.name || '').trim();
-      return '<div class="lbrow' + (mine ? ' you' : '') + '">' +
-        '<span class="rank">' + (i + 1) + '</span>' +
-        '<span class="who">' + esc(r.name) + '</span>' +
-        '<span class="amt">' + fmt(r.amount) + '/mo</span></div>';
-    }).join('') + (shared ? '' : '<p class="mini" style="margin-top:10px">This device only. Connect the Worker to share it.</p>');
-  };
-  if (LB_URL) {
-    fetch(LB_URL + '/top?period=' + lbPeriod + '&key=' + encodeURIComponent(periodKey(lbPeriod)))
-      .then(function(r){ return r.json(); })
-      .then(function(j){ draw(j.rows || [], true); })
-      .catch(function(){ draw(readLocal(lbPeriod), false); });
-  } else {
-    draw(readLocal(lbPeriod), false);
-  }
-}
-
 function renderStats(){
   document.getElementById('stHands').textContent = S.hands;
   document.getElementById('stWon').textContent = S.won;
-  document.getElementById('stBust').textContent = S.bust;
-  document.getElementById('stAvg').textContent =
-    S.hands ? fmt(S.given / S.hands) + '/mo' : 'nothing yet';
-  document.getElementById('stLeft').textContent = fmt(S.left) + '/mo';
+  document.getElementById('stBust').textContent = S.lost;
+  document.getElementById('stAvg').textContent = S.hands ? S.discounts + ' given' : 'none yet';
+  document.getElementById('stLeft').textContent = S.hands ? Math.round(S.won / S.hands * 100) + '%' : '0%';
 }
 
 function renderRules(){
@@ -1070,9 +892,9 @@ function load(){
 });
 
 document.getElementById('btnDeal').onclick = deal;
-document.getElementById('btnHit').onclick = giveIn;
-document.getElementById('btnCounter').onclick = counter;
-document.getElementById('btnStand').onclick = close;
+document.getElementById('btnHit').onclick = showGrowth;
+document.getElementById('btnCounter').onclick = showDiscounts;
+document.getElementById('btnStand').onclick = sendQuote;
 document.getElementById('btnPanel').onclick = function(){ document.body.classList.toggle('panel-open'); };
 document.getElementById('btnHow').onclick = function(){
   setMsg('How it works', '');
@@ -1119,9 +941,9 @@ document.addEventListener('keydown', function(e){
   if (e.key === '1') takeOffer(0);
   if (e.key === '2') takeOffer(1);
   if (e.key === '3') takeOffer(2);
-  if (e.key === 'g' || e.key === 'G') giveIn();
-  if (e.key === 'c' || e.key === 'C') counter();
-  if (e.key === 'x' || e.key === 'X') close();
+  if (e.key === 'g' || e.key === 'G') showGrowth();
+  if (e.key === 'd' || e.key === 'D') showDiscounts();
+  if (e.key === 'x' || e.key === 'X') sendQuote();
   if (e.key === 'Enter') { if (!S.live) deal(); }
 });
 
