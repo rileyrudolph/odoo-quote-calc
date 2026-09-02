@@ -723,6 +723,10 @@ function settle(kind){
 
   if (kind === 'signed') {
     delta = q.contract;
+    // A discount given to somebody who ground you for it is not a one off.
+    // It is the number they open the renewal on, and they will push again.
+    var caved = (d.licDisc || d.packDisc) && d.conduct.room <= 1;
+    if (caved) delta = Math.round(delta * 0.7);
     cls = 'win'; S.won++;
     msg = 'Signed. ' + fmt(q.mrr) + ' a month, ' + fmt(q.contract) + ' over the term.';
     why = d.users + ' seats on ' + LIC[d.plan].name + ' for ' + d.term + ' year' + (d.term === 1 ? '' : 's') +
@@ -732,7 +736,9 @@ function settle(kind){
         ? 'You gave ' + (d.licDisc ? d.licDisc + '% on licence' : '') +
           (d.licDisc && d.packDisc ? ' and ' : '') +
           (d.packDisc ? d.packDisc + '% on the pack' : '') + '.'
-        : 'You closed it without a single discount.');
+        : 'You closed it without a single discount.') +
+      (caved ? ' They ground you for it all week and you gave it, so thirty percent of this comes straight back off at renewal. They will open there and push again.' : '') +
+      ((d.licDisc || d.packDisc) && d.conduct.room >= 5 ? ' They earned that one, and it will not come back to bite you.' : '');
   } else {
     delta = 0;
     cls = 'lose'; S.lost++;
