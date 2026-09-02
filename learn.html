@@ -204,12 +204,38 @@ body.how-open #howBack{display:flex;}
 #howCard li{line-height:1.62;color:#c8cdd6;font-size:.9rem;margin-bottom:6px;}
 #howClose{position:absolute;top:12px;right:14px;background:none;border:0;color:var(--faint);font-size:1.05rem;cursor:pointer;padding:6px 8px;}
 #howClose:hover{color:#fff;}
+.logrow .tag{font-style:normal;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 6px;border-radius:4px;margin-left:6px;opacity:.9;}
+.logrow .tag.signed{background:rgba(46,204,113,.16);color:var(--win);}
+.logrow .tag.short{background:rgba(217,164,65,.16);color:var(--gold);}
+.logrow .tag.walked{background:rgba(231,76,60,.16);color:var(--lose);}
+.card .tcv{display:block;font-weight:600;opacity:.72;font-size:.86em;margin-top:2px;}
+.dealtype{margin:6px 0 2px;font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--gold);opacity:.85;}
+.abtn kbd{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
+  border:1px solid rgba(255,255,255,.28);font:inherit;font-size:.82em;opacity:.8;}
+.abtn:disabled kbd{opacity:.35;}
+/* The running total is the thing you are deciding on, so it reads like a hand. */
+#youTotal{font-size:1.02rem;font-weight:800;letter-spacing:.01em;padding:7px 15px;}
 #btnPanel{display:inline-block;}
 @media (max-width:1000px){
   .panel{position:fixed;top:0;right:0;bottom:0;width:min(392px,92vw);z-index:60;
     transform:translateX(100%);transition:transform .22s ease;box-shadow:-14px 0 40px rgba(0,0,0,.55);}
   body.panel-open .panel{transform:none;}
-  #btnPanel{display:inline-block;}
+  .logrow .tag{font-style:normal;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 6px;border-radius:4px;margin-left:6px;opacity:.9;}
+.logrow .tag.signed{background:rgba(46,204,113,.16);color:var(--win);}
+.logrow .tag.short{background:rgba(217,164,65,.16);color:var(--gold);}
+.logrow .tag.walked{background:rgba(231,76,60,.16);color:var(--lose);}
+.card .tcv{display:block;font-weight:600;opacity:.72;font-size:.86em;margin-top:2px;}
+.dealtype{margin:6px 0 2px;font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--gold);opacity:.85;}
+.abtn kbd{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
+  border:1px solid rgba(255,255,255,.28);font:inherit;font-size:.82em;opacity:.8;}
+.abtn:disabled kbd{opacity:.35;}
+/* The running total is the thing you are deciding on, so it reads like a hand. */
+#youTotal{font-size:1.02rem;font-weight:800;letter-spacing:.01em;padding:7px 15px;}
+#btnPanel{display:inline-block;}
 }
 @media (max-width:640px){ .cc{width:calc(50% - 6px);} }
 </style>
@@ -257,10 +283,10 @@ body.how-open #howBack{display:flex;}
 
     <div class="actions">
       <div class="chiprow" id="chips"></div>
-      <button class="abtn gold wide" id="btnDeal">Deal</button>
-      <button class="abtn counter" id="btnHit" disabled>Grow the quote<small>more seats, term, scope</small></button>
-      <button class="abtn give" id="btnCounter" disabled>Discount<small>one each, costs you monthly</small></button>
-      <button class="abtn sign" id="btnStand" disabled>Send the quote<small>bank it if they sign</small></button>
+      <button class="abtn gold wide" id="btnDeal">Deal<small>next customer <kbd>Enter</kbd></small></button>
+      <button class="abtn counter" id="btnHit" disabled>Add to the quote<small>hit. worth more, asks more <kbd>G</kbd></small></button>
+      <button class="abtn give" id="btnCounter" disabled>Give a discount<small>lowers what they need, costs you <kbd>D</kbd></small></button>
+      <button class="abtn sign" id="btnStand" disabled>Send the quote<small>stand. lock it in and find out <kbd>X</kbd></small></button>
     </div>
   </div>
 
@@ -294,6 +320,9 @@ body.how-open #howBack{display:flex;}
         <div class="stat"><span>Deals lost</span><span id="stBust">0</span></div>
         <div class="stat"><span>Discounts given</span><span id="stAvg">nothing yet</span></div>
         <div class="stat"><span>Close rate</span><span id="stLeft">$0</span></div>
+            <div class="stat"><span>Best streak</span><span id="stStreak">$0</span></div>
+            <div class="stat"><span>MRR closed</span><span id="stMrr">$0</span></div>
+            <div class="stat"><span>Net revenue retention</span><span id="stNrr">$0</span></div>
       </div>
     </div>
 
@@ -691,7 +720,7 @@ var RULES = {
 
 var S = {
   bank:0, deal:null, them:[], offer:[], mode:'grow',
-  live:false, accept:13, relief:0, hands:0, won:0, lost:0, discounts:0,
+  live:false, accept:13, relief:0, streak:0, best:0, mrr:0, baseMrr:0, keptMrr:0, hands:0, won:0, lost:0, discounts:0,
   unlocked:{}, log:[], name:''
 };
 
@@ -721,6 +750,38 @@ function freshObjection(list, cap){
 /* The wager is the room you walk into. A bigger chip puts you in front of a
    bigger customer: more seats, more likely to need Custom and Odoo.sh, worth
    more if it lands, and a longer buying committee to talk round. */
+/* Three quotes a rep actually writes. New business opens at one year with
+   nothing on it. A renewal is an existing customer already inside a term, so
+   the multi year schedule is live from the first move and the discount lever
+   means something straight away. An expansion is a customer who already bought
+   and is adding a department, so there is usually a pack on it. */
+var DEAL_TYPES = [
+  { k:'new',       label:'New business', note:'Has never bought from Odoo before',        w:5 },
+  { k:'renewal',   label:'Renewal',      note:'Coming to the end of their current term',  w:3 },
+  { k:'expansion', label:'Expansion',    note:'Already running Odoo, adding a department', w:2 }
+];
+function pickDealType(){
+  var pool = [];
+  for (var i = 0; i < DEAL_TYPES.length; i++)
+    for (var j = 0; j < DEAL_TYPES[i].w; j++) pool.push(DEAL_TYPES[i]);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function applyDealType(d){
+  var t = pickDealType();
+  d.type = t.k;
+  d.typeLabel = t.label;
+  d.typeNote = t.note;
+  if (t.k === 'renewal' || t.k === 'expansion') {
+    d.term = pick([2, 3, 3, 4, 5]);
+    d.sh = Math.random() < 0.45;
+  }
+  if (t.k === 'expansion') {
+    d.packIdx = pick([1, 2, 2, 3]);
+    d.users = Math.max(5, Math.round(d.users * 1.5));
+  }
+  return d;
+}
+
 function stakeTier(){
   var v = S.stake || 250;
   return v >= 2500 ? 3 : v >= 1000 ? 2 : v >= 500 ? 1 : 0;
@@ -740,6 +801,7 @@ function diffShift(){
 
 function rollAccept(d){
   var base = BAR_BASE + between(0, BAR_SPREAD) + stakeTier() + diffShift();
+  if (d.type === 'renewal' || d.type === 'expansion') base += 1;
   if (d.conduct.k === 'straight') base -= 2;   // easy to satisfy
   if (d.conduct.k === 'fair') base -= 1;
   if (d.conduct.k === 'bully') base += 2;      // never satisfied
@@ -754,7 +816,9 @@ function resistance(){
 function deal(){
   if (S.live) return;
   S.deal = newDeal();
+  applyDealType(S.deal);
   applyStake(S.deal);
+  S.deal.startMrr = quote(S.deal).mrr;
   S.deal.baseContract = quote(S.deal).contract;
   S.deal.asked = openingAsk(S.deal);
   S.accept = rollAccept(S.deal);
@@ -803,37 +867,28 @@ function hostingCards(d){
 /* The growth deck plus whatever hosting conversation this deal has earned.
    Three are dealt from the union, so hosting competes for a slot rather than
    always showing or never showing. */
+/* Every concession this deal actually allows, all on the table at once. A rep
+   picking a quote is not dealt three options, they can see the whole schedule
+   and choose what fits the customer in front of them. */
 function growthPlus(d){
-  var all = growth(d).concat(hostingCards(d));
-  for (var i = all.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
-    var t = all[i]; all[i] = all[j]; all[j] = t;
-  }
-  /* One card per lever. Three versions of the same concession is not a choice,
-     and no rep ever opens a call with three different term options on the table. */
-  var seen = {}, pick = [], spare = [];
-  for (var k = 0; k < all.length; k++) {
-    var kind = all[k].kind;
-    if (seen[kind]) { spare.push(all[k]); continue; }
-    seen[kind] = 1; pick.push(all[k]);
-  }
-  while (pick.length < 3 && spare.length) pick.push(spare.shift());
-  return pick.slice(0, 3);
+  return growth(d).concat(hostingCards(d));
 }
 
 function showGrowth(){
   if (!S.live) return;
-  var g = growthPlus(S.deal);
-  var seen = {}, out = [];
-  for (var i = 0; i < 60 && out.length < 3; i++) {
-    var c = pick(g);
-    if (seen[c.head]) continue;
-    seen[c.head] = 1; out.push(c);
+  S.mode = 'grow';
+  /* Everything this deal can legally take, all at once. A rep can see the whole
+     schedule in front of them, so the game should not hide two thirds of it. */
+  var all = growthPlus(S.deal), seen = {}, out = [];
+  for (var i = 0; i < all.length; i++) {
+    if (seen[all[i].body]) continue;
+    seen[all[i].body] = 1;
+    out.push(all[i]);
   }
-  S.mode = 'grow'; S.offer = out;
-  render();
+  S.offer = out;
   setMsg('What do you add to the quote?', '');
   setWhy('Nothing here is a discount. Each one grows the deal and pushes them a little closer to walking.');
+  render();
 }
 
 /* Only ever put a legal concession on the table. A card that announces it
@@ -985,6 +1040,26 @@ function sendQuote(){
   return settle(S.outcome);
 }
 
+/* The one line a rep should take away from the hand. Said after the fact, so it
+   never removes the decision, only explains it. */
+function readOut(kind, asked, bar){
+  if (kind === 'signed') {
+    var over = asked - bar;
+    if (asked >= 20) return 'You cleared it by ' + over + ' with ' + (21 - asked) +
+      ' to spare before they walked. That was close.';
+    if (over <= 2) return 'You cleared it by ' + over + '. Any less and they would have gone elsewhere.';
+    return 'You cleared it by ' + over + '.';
+  }
+  if (kind === 'short') {
+    var need = (bar - asked) + 1;
+    return need <= 3
+      ? 'You were ' + need + ' short. One more concession would very likely have signed it.'
+      : 'You were ' + need + ' short. This one needed real scoping, not a quick send.';
+  }
+  var past = asked - 21;
+  return 'You went ' + past + ' past the line. Standing one card earlier would have kept it alive.';
+}
+
 function settle(kind){
   S.live = false; S.offer = [];
   var q = quote(S.deal), d = S.deal;
@@ -1003,6 +1078,14 @@ function settle(kind){
   var caved = gave && keep < 1;
   if (caved) delta = Math.round(delta * keep);
     cls = 'win'; S.won++;
+    /* MRR is the number a rep carries. On an existing customer, what you walk
+       away with against what they were already paying is net revenue retention. */
+    S.mrr += q.mrr;
+    if (d.type === 'renewal' || d.type === 'expansion') {
+      S.baseMrr += (d.startMrr || q.mrr);
+      S.keptMrr += q.mrr;
+    }
+    S.streak++; if (S.streak > S.best) S.best = S.streak;
     msg = 'Signed. ' + fmt(q.mrr) + ' a month, ' + fmt(q.contract) + ' over the term.';
     why0 = 'Your quote reached ' + d.asked + ' against objections worth ' + resistance() + '. ';
     why = why0 + d.users + ' seats on ' + LIC[d.plan].name + ' for ' + d.term + ' year' + (d.term === 1 ? '' : 's') +
@@ -1018,6 +1101,8 @@ function settle(kind){
   } else if (kind === 'short') {
     delta = 0;
     cls = 'lose'; S.lost++;
+    if (d.type === 'renewal' || d.type === 'expansion') S.baseMrr += (d.startMrr || 0);
+    S.streak = 0;
     msg = 'Not enough. They went with somebody who scoped it properly.';
     why = 'Their objections came to ' + resistance() + ' and your quote only reached ' + d.asked +
       '. A quote that does not cover what they actually need does not win on being cheap. ' +
@@ -1025,6 +1110,8 @@ function settle(kind){
   } else {
     delta = 0;
     cls = 'lose'; S.lost++;
+    if (d.type === 'renewal' || d.type === 'expansion') S.baseMrr += (d.startMrr || 0);
+    S.streak = 0;
     msg = 'You asked for more than they could carry. They walked.';
     why = 'You went to ' + d.asked + ', past the 21 they could bear. Everything you built is gone, ' +
       'and so is the ' + fmt(q.mrr) + ' a month it was worth.' +
@@ -1034,7 +1121,8 @@ function settle(kind){
   S.bank += delta; S.hands++;
   S.log.unshift({ who:d.a.n, kind:kind, delta:delta, why:why,
     line: d.users + ' seats, ' + d.term + ' yr' + (d.licDisc ? ', ' + d.licDisc + '% off' : '') });
-  setMsg(msg, cls); setWhy(why);
+  var read = readOut(kind, d.asked, kind === 'walked' ? 21 : resistance());
+  setMsg(msg, cls); setWhy(why + ' ' + read);
   render(); renderStats(); renderLog(); save(); postScore();
 }
 
@@ -1057,10 +1145,14 @@ function offerCard(c, i){
   if (!isDisc) {
     var before = quote(S.deal).contract;
     var probe = JSON.parse(JSON.stringify(S.deal)); c.apply(probe);
-    money = '+' + fmt(quote(probe).contract - before) + ' on the deal';
+    /* The two numbers a rep is judged on: what it adds every month, and what the
+       whole commitment comes to. */
+    var dMrr = quote(probe).mrr - quote(S.deal).mrr;
+    var dTcv = quote(probe).contract - before;
+    money = (dMrr > 0 ? '+' + fmt(dMrr) + ' MRR' : 'same MRR') +
+      '<span class="tcv">' + (dTcv >= 0 ? '+' : '') + fmt(dTcv) + ' contract value</span>';
   }
   d.innerHTML =
-    '<div class="num">' + (i + 1) + '</div>' +
     '<div class="kind">' + esc(c.tag) + '</div>' +
     '<div class="head">' + esc(c.head) + '</div>' +
     '<div class="body">' + esc(c.body) + '</div>' +
@@ -1080,6 +1172,8 @@ function render(){
   askEl.innerHTML = d ? (
     '<div class="who">' + esc(d.a.n) + '</div>' +
     '<div class="desc">' + esc(d.a.t) + '</div>' +
+    '<div class="dealtype">' + esc(d.typeLabel || 'New business') + ' &middot; ' +
+      esc(d.typeNote || '') + '</div>' +
     '<div class="want">' + esc(d.conduct.label) + '</div>' +
     '<div class="conduct-hint">' + esc(d.conduct.hint) + '</div>' +
     '<div class="facts">' +
@@ -1091,8 +1185,8 @@ function render(){
       '<div class="fact"><span class="k">Discounts</span><span class="v">' +
         ((d.licDisc || d.packDisc) ? (d.licDisc ? d.licDisc + '% lic' : '') +
           (d.licDisc && d.packDisc ? ', ' : '') + (d.packDisc ? d.packDisc + '% pack' : '') : 'None') + '</span></div>' +
-      '<div class="fact big"><span class="k">Monthly</span><span class="v">' + fmt(q.mrr) + '</span></div>' +
-      '<div class="fact big"><span class="k">Whole term</span><span class="v">' + fmt(q.contract) + '</span></div>' +
+      '<div class="fact big"><span class="k">MRR</span><span class="v">' + fmt(q.mrr) + '</span></div>' +
+      '<div class="fact big"><span class="k">Contract value</span><span class="v">' + fmt(q.contract) + '</span></div>' +
     '</div>'
   ) : '<div class="want">Press Deal for your first customer.</div>';
 
@@ -1211,6 +1305,14 @@ function renderStats(){
   document.getElementById('stWon').textContent = S.won;
   document.getElementById('stBust').textContent = S.lost;
   document.getElementById('stAvg').textContent = S.hands ? S.discounts + ' given' : 'none yet';
+  var me = document.getElementById('stMrr');
+  if (me) me.textContent = fmt(S.mrr || 0) + ' a month';
+  var ne = document.getElementById('stNrr');
+  if (ne) ne.textContent = S.baseMrr > 0
+    ? Math.round((S.keptMrr / S.baseMrr) * 100) + '%'
+    : 'no renewals yet';
+  var se = document.getElementById('stStreak');
+  if (se) se.textContent = S.best + (S.streak > 1 ? ' (on ' + S.streak + ' now)' : '');
   document.getElementById('stLeft').textContent = S.hands ? Math.round(S.won / S.hands * 100) + '%' : '0%';
 }
 
@@ -1230,7 +1332,10 @@ function renderLog(){
   if (!S.log.length) { host.innerHTML = '<p class="mini">Nothing yet.</p>'; return; }
   host.innerHTML = S.log.slice(0, 40).map(function(l){
     var up = l.delta > 0;
-    return '<div class="logrow"><div class="top"><span>' + esc(l.who) + '</span>' +
+    return '<div class="logrow"><div class="top"><span>' + esc(l.who) +
+      ' <em class="tag ' + esc(l.kind) + '">' +
+      (l.kind === 'signed' ? 'signed' : l.kind === 'short' ? 'under scoped' : 'over reached') +
+      '</em></span>' +
       '<span class="amt ' + (up ? 'up' : l.delta < 0 ? 'down' : '') + '">' +
       (up ? '+' : '') + fmt(l.delta) + '/mo</span></div>' +
       '<div class="note">' + esc(l.why) + '</div></div>';
