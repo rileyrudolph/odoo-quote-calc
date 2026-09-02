@@ -137,7 +137,7 @@ body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b1319;color:#e
 .abtn.wide{padding-left:30px;padding-right:30px;}
 .abtn small{display:block;font-size:.55rem;font-weight:600;letter-spacing:.02em;
   opacity:.75;margin-top:2px;text-transform:none;}
-/* Give in costs the most, so it reads as the expensive door. */
+/* The discount door. Costs you every month, so it reads that way. */
 .abtn.give{background:#5a2724;border-color:#8e3b36;color:#ffd9d4;}
 .abtn.give:hover:not(:disabled){border-color:#e0715f;}
 /* Countering is the working move. */
@@ -261,7 +261,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
 
     <div class="pane on" id="pane-board">
       <h3>Leaderboard</h3>
-      <p>Ranked by monthly recurring revenue banked. Your name is saved on this device only.</p>
+      <p>Ranked by the total contract value you have closed. Your name is saved on this device only.</p>
       <div class="fld">
         <label>Your name<div class="hint">Shown on the board</div></label>
         <input type="text" id="playerName" maxlength="18" placeholder="Add your name" style="min-width:132px">
@@ -566,14 +566,16 @@ function discounts(d){
     });
   }
   if (!d.packDisc && PACKS[d.packIdx].hours > 0) {
-    [10, 20, 30].forEach(function(p){
+    [10, 20, 30, 40].forEach(function(p){
       out.push({
         kind:'pack', tag:'Success Pack discount', head:p + '% off',
         body:'Take ' + p + '% off the ' + PACKS[d.packIdx].name.toLowerCase(),
-        pct:p, over:false,
-        note: PACKS[d.packIdx].hours > IMPL_CAP_HOURS
-          ? 'Only the first ' + IMPL_CAP_HOURS + ' hours are reached'
-          : 'Thirty percent is the most the desk signs off',
+        pct:p, over: p > IMPL_MAX_PCT,
+        note: p > IMPL_MAX_PCT
+          ? 'Thirty percent is the most the desk signs off'
+          : (PACKS[d.packIdx].hours > IMPL_CAP_HOURS
+            ? 'Only the first ' + IMPL_CAP_HOURS + ' hours are reached'
+            : 'Within what the desk approves'),
         apply:function(x){ x.packDisc = p; }
       });
     });
@@ -678,7 +680,7 @@ function takeOffer(i){
     S.deal.asked = Math.max(0, S.deal.asked - room);
     S.discounts++;
     c.apply(S.deal);
-    if (c.over) unlock(S.deal.term === 1 ? 'oneYear' : 'ceiling');
+    if (c.over) unlock(c.kind === 'pack' ? 'implMax' : (S.deal.term === 1 ? 'oneYear' : 'ceiling'));
     if (c.kind === 'lic') unlock('recurring');
     S.offer = [];
     render();
@@ -993,13 +995,13 @@ document.getElementById('btnStand').onclick = sendQuote;
 document.getElementById('btnPanel').onclick = function(){ document.body.classList.toggle('panel-open'); };
 document.getElementById('btnHow').onclick = function(){
   setMsg('How it works', '');
-  setWhy('You are selling Odoo. Every customer is worth a monthly amount, shown as Worth. ' +
-    'They open by asking for something. Give in and they get it, which moves them a long way and costs you the most. ' +
-    'Counter and you offer three cheaper things instead, each of which moves them less. ' +
-    'Sign the deal when you think you are ahead, and you keep whatever you did not give away. ' +
-    'Go past 21 and you have given away too much: the deal dies and everything you conceded dies with it. ' +
-    'Small concessions alone will not get you there, so sooner or later you have to give them something real. ' +
-    'Signing early pays a bonus, but only when you beat them outright.');
+  setWhy('You are building a quote. Grow the quote adds seats, term, a Success Pack or Odoo.sh, and every one of ' +
+    'those is worth real money. Every one also asks a bit more of the customer, and the number to watch is how much ' +
+    'you have asked out of 21. Ask more than they will carry and they walk, and everything you built goes with them. ' +
+    'Send the quote when you think they will still sign. A discount is not an upgrade: it buys you room with somebody ' +
+    'who has run out of patience, it costs you every month for the length of the term, and you get one on licence and ' +
+    'one on the Success Pack. What it buys depends on how they have behaved. Somebody who dealt straight with you gives ' +
+    'you real room. Somebody who has ground you on price all week gives you almost none, and takes it back at renewal.');
 };
 
 document.getElementById('btnWipe').onclick = function(){
