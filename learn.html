@@ -1382,11 +1382,17 @@ function renderLog(){
 }
 
 var KEY = 'odooTableSave';
+/* Everything a rep would be annoyed to lose on a refresh: the book, the record,
+   and the two numbers they are actually measured on. */
 function save(){
   try {
     localStorage.setItem(KEY, JSON.stringify({
-      bank:S.bank, hands:S.hands, won:S.won, bust:S.bust,
-      given:S.given, left:S.left, unlocked:S.unlocked, name:S.name
+      bank: S.bank, hands: S.hands, won: S.won, lost: S.lost,
+      streak: S.streak, best: S.best,
+      mrr: S.mrr, baseMrr: S.baseMrr, keptMrr: S.keptMrr,
+      discounts: S.discounts, given: S.given, left: S.left,
+      unlocked: S.unlocked, name: S.name,
+      diff: (document.getElementById('setDiff') || {}).value
     }));
   } catch (e) {}
 }
@@ -1394,9 +1400,23 @@ function load(){
   try {
     var v = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (!v) return;
-    S.bank = v.bank || 0; S.hands = v.hands || 0; S.won = v.won || 0;
-    S.bust = v.bust || 0; S.given = v.given || 0; S.left = v.left || 0;
-    S.unlocked = v.unlocked || {}; S.name = v.name || '';
+    S.bank = v.bank || 0;
+    S.hands = v.hands || 0;
+    S.won = v.won || 0;
+    /* older saves called this bust */
+    S.lost = (v.lost != null ? v.lost : v.bust) || 0;
+    S.streak = v.streak || 0;
+    S.best = v.best || 0;
+    S.mrr = v.mrr || 0;
+    S.baseMrr = v.baseMrr || 0;
+    S.keptMrr = v.keptMrr || 0;
+    S.discounts = v.discounts || 0;
+    S.given = v.given || 0;
+    S.left = v.left || 0;
+    S.unlocked = v.unlocked || {};
+    S.name = v.name || '';
+    var dd = document.getElementById('setDiff');
+    if (dd && v.diff) dd.value = v.diff;
   } catch (e) {}
 }
 
