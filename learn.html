@@ -340,8 +340,7 @@ body.how-open #howBack{display:flex;}
             <option value="normal" selected>Mixed</option>
             <option value="hard">Tough</option>
           </select></div>
-        <div class="fld"><label>Punish breaking the rules<div class="hint">Off schedule concessions count double against you</div></label>
-          <input type="checkbox" id="setStrict" checked></div>
+        
         <div class="fld"><label>Flag off schedule cards<div class="hint">Training wheels. Leave this off and you have to know the schedule yourself. It is in Pricing rules.</div></label>
           <input type="checkbox" id="setWarn"></div>
       </div>
@@ -719,8 +718,28 @@ function freshObjection(list, cap){
   return null;
 }
 
+/* The wager is the room you walk into. A bigger chip puts you in front of a
+   bigger customer: more seats, more likely to need Custom and Odoo.sh, worth
+   more if it lands, and a longer buying committee to talk round. */
+function stakeTier(){
+  var v = S.stake || 250;
+  return v >= 2500 ? 3 : v >= 1000 ? 2 : v >= 500 ? 1 : 0;
+}
+function applyStake(d){
+  var tier = stakeTier();
+  d.users = Math.max(1, Math.min(3000, Math.round(d.users * [1, 2, 4, 9][tier])));
+  if (tier >= 2 && Math.random() < 0.5) d.plan = 'custom';
+  if (tier >= 3 && Math.random() < 0.7) d.sh = true;
+  return d;
+}
+function diffShift(){
+  var el = document.getElementById('setDiff');
+  var v = el ? el.value : 'normal';
+  return v === 'easy' ? -2 : v === 'hard' ? 2 : 0;
+}
+
 function rollAccept(d){
-  var base = BAR_BASE + between(0, BAR_SPREAD);
+  var base = BAR_BASE + between(0, BAR_SPREAD) + stakeTier() + diffShift();
   if (d.conduct.k === 'straight') base -= 2;   // easy to satisfy
   if (d.conduct.k === 'fair') base -= 1;
   if (d.conduct.k === 'bully') base += 2;      // never satisfied
@@ -735,6 +754,7 @@ function resistance(){
 function deal(){
   if (S.live) return;
   S.deal = newDeal();
+  applyStake(S.deal);
   S.deal.baseContract = quote(S.deal).contract;
   S.deal.asked = openingAsk(S.deal);
   S.accept = rollAccept(S.deal);
@@ -742,6 +762,7 @@ function deal(){
   for (var oi = 0; oi < 2; oi++) { var o0 = freshObjection(S.them, null); if (o0) S.them.push(o0); }
   S.offer = [];
   S.relief = 0;
+  S.outcome = '';
   S.mode = 'grow';
   S.live = true;
   render();
@@ -815,9 +836,41 @@ function showGrowth(){
   setWhy('Nothing here is a discount. Each one grows the deal and pushes them a little closer to walking.');
 }
 
+/* Only ever put a legal concession on the table. A card that announces it
+   breaks the rules and then applies anyway teaches the wrong thing, and no rep
+   can quote one in real life. */
+function discountsLegal(d){
+  var all = discounts(d), out = [];
+  for (var i = 0; i < all.length; i++) if (!all[i].over) out.push(all[i]);
+  /* Training wheels: also lay out the concessions that are off the schedule,
+     greyed and labelled with the rule, so a new rep learns where the line is.
+     They still cannot be quoted. */
+  var warn = document.getElementById('setWarn');
+  if (warn && warn.checked) {
+    for (var j = 0; j < all.length; j++) if (all[j].over) out.push(all[j]);
+  }
+  return out;
+}
+
+/* Why the discount table can be empty, in the words a rep would use. */
+function noDiscountReason(d){
+  if (d.term === 1) return 'There is no licence discount to give on a one year deal. ' +
+    'The multi year schedule starts at two years. Extend the term first and it opens up.';
+  if (d.licDisc && d.packDisc) return 'You have already used your licence and implementation discount on this deal.';
+  if (d.licDisc) return 'You have already given the licence discount. Add a Success Pack if you want implementation room.';
+  return 'Nothing on the discount schedule applies to this deal yet.';
+}
+
 function showDiscounts(){
+  /* If the schedule has nothing to give on this deal, say which rule closes it
+     off rather than opening an empty table. */
+  if (S.live && !discountsLegal(S.deal).length) {
+    setMsg('No discount is available on this deal.', '');
+    setWhy(noDiscountReason(S.deal));
+    return;
+  }
   if (!S.live) return;
-  var ds = discounts(S.deal);
+  var ds = discountsLegal(S.deal);
   if (!ds.length) {
     setMsg('You have already used your discount lines on this quote.', '');
     setWhy('One licence discount and one Success Pack discount. That is the quote.');
@@ -863,6 +916,16 @@ function takeOffer(i){
   if (!S.live) return;
   var c = S.offer[i];
   if (!c) return;
+  /* An off schedule concession cannot be quoted. Say which rule stops it,
+     because that is the part worth learning. */
+  if (c.over) {
+    setMsg('You cannot quote that one.', 'lose');
+    setWhy(S.deal.term === 1
+      ? 'A one year deal gets no multi year licence discount. The schedule starts at two years.'
+      : 'That is past the discount you are allowed to give on this deal. ' +
+        'Licence discounts have a ceiling by term and implementation stops at ' + IMPL_MAX_PCT + ' percent.');
+    return;
+  }
   var askNow = (S.mode === 'grow') ? askFor(S.deal, c) : 0;
   if (S.mode === 'disc') {
     var room = roomBought(S.deal, c.pct);
@@ -881,7 +944,10 @@ function takeOffer(i){
   c.apply(S.deal);
   S.deal.asked += askNow;
   S.offer = [];
-  if (S.deal.asked > 21) return settle('walked');
+  if (S.deal.asked > 21) {
+    S.outcome = 'walked';
+    return settle('walked');
+  }
   render();
   setMsg('Added: ' + c.body.toLowerCase() + '.', '');
   setWhy(growthLine(c));
@@ -911,8 +977,12 @@ function sendQuote(){
     S.them.push(o);
   }
   var bar = resistance();
-  if (S.deal.asked > 21) return settle('walked');
-  return settle(S.deal.asked > bar ? 'signed' : 'short');
+  if (S.deal.asked > 21) {
+    S.outcome = 'walked';
+    return settle('walked');
+  }
+  S.outcome = S.deal.asked > bar ? 'signed' : 'short';
+  return settle(S.outcome);
 }
 
 function settle(kind){
@@ -924,8 +994,14 @@ function settle(kind){
     delta = q.contract;
     // A discount given to somebody who ground you for it is not a one off.
     // It is the number they open the renewal on, and they will push again.
-    var caved = (d.licDisc || d.packDisc) && d.conduct.room <= 1;
-    if (caved) delta = Math.round(delta * 0.7);
+    /* What the discount costs you at renewal, by who you gave it to. Somebody who
+     ground you for it opens the renewal on that number and pushes again. Somebody
+     who never earned it barely renews at all. A customer who was straight with you
+     the whole way costs you nothing. */
+  var gave = (d.licDisc || d.packDisc);
+  var keep = !gave ? 1 : d.conduct.room >= 5 ? 1 : d.conduct.room >= 1 ? 0.6 : 0.4;
+  var caved = gave && keep < 1;
+  if (caved) delta = Math.round(delta * keep);
     cls = 'win'; S.won++;
     msg = 'Signed. ' + fmt(q.mrr) + ' a month, ' + fmt(q.contract) + ' over the term.';
     why0 = 'Your quote reached ' + d.asked + ' against objections worth ' + resistance() + '. ';
@@ -1026,6 +1102,7 @@ function render(){
   if (!S.them.length) tt.textContent = 'nothing yet';
   else if (S.live) tt.textContent = 'showing ' + S.them[0].pts + ', and there is more you cannot see'
     + ((S.relief || 0) ? ', less ' + S.relief + ' from your discount' : '');
+  else if (S.outcome === 'walked') tt.textContent = 'you never found out what they needed';
   else tt.textContent = 'their objections came to ' + resistance();
 
   var yh = document.getElementById('youHand'); yh.innerHTML = '';
@@ -1224,7 +1301,10 @@ document.getElementById('btnWipe').onclick = function(){
   try { localStorage.removeItem(KEY); } catch (e) {}
   location.reload();
 };
-document.getElementById('setDiff').onchange = function(){};
+document.getElementById('setDiff').onchange = function(){
+  setMsg('Difficulty set. It changes how hard the next customer is to satisfy.', '');
+  save();
+};
 document.getElementById('playerName').oninput = function(e){
   S.name = e.target.value; save(); renderBoard();
 };
@@ -1250,6 +1330,11 @@ for (var i2 = 0; i2 < lbt.length; i2++) (function(t){
 })(lbt[i2]);
 
 document.addEventListener('keydown', function(e){
+  /* Never act on a keystroke aimed at a text field. Typing a name with a digit
+     in it used to take a card, and Enter used to deal a whole new hand. */
+  var el = e.target;
+  if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ||
+             el.tagName === 'SELECT' || el.isContentEditable)) return;
   if (e.key === '1') takeOffer(0);
   if (e.key === '2') takeOffer(1);
   if (e.key === '3') takeOffer(2);
