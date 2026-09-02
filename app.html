@@ -686,6 +686,21 @@ footer{
 .pw-submit:hover{background:var(--accent-deep);border-color:var(--accent-deep);}
 .pw-submit:active{transform:translateY(1px);}
 .pw-foot{margin-top:22px;font-size:.72rem;color:var(--faint);}
+
+/* Gmail compose chrome. Dark grey header, blue pill Send, quiet field
+   labels, so a rep is looking at something they already recognise. */
+.compose-panel{width:500px;}
+.compose-head{background:#404040 !important;padding:10px 8px 10px 16px;}
+.compose-head span,.compose-head strong{font-size:.86rem;font-weight:500;letter-spacing:.1px;}
+.compose-row{border-bottom:1px solid #f1f3f4;padding:9px 0;}
+.compose-label{font-size:.82rem;color:#5f6368;text-transform:none;letter-spacing:0;font-weight:400;}
+.compose-panel input[type=text],.compose-panel input[type=email],.compose-panel textarea{
+  font-size:.87rem;color:#202124;}
+.compose-panel textarea{line-height:1.55;}
+.compose-send{background:#0b57d0 !important;border:none !important;color:#fff !important;
+  border-radius:18px !important;padding:9px 26px !important;font-weight:500;font-size:.88rem;}
+.compose-send:hover{background:#0b4fbd !important;}
+.compose-foot{padding:10px 16px 14px;}
 </style>
 
 <!-- ═══ PASSWORD GATE ═══ -->
@@ -3202,8 +3217,8 @@ restoreState();
 render();
 
 // ---------------------------------------------------------------
-// A starting signature for Buffalo reps. The office details are the
-// same for everyone; the name on top is theirs to fill in.
+// A starting signature for Buffalo reps. The office line is the same
+// for everyone; the name on top is theirs to fill in.
 // ---------------------------------------------------------------
 (function(){
   var sig = document.getElementById("emailSignature");
@@ -3213,7 +3228,7 @@ render();
       "Account Executive",
       "",
       "Odoo Inc.",
-      "40 Fountain Plaza, Suite 1200",
+      "40 Fountain Plaza",
       "Buffalo, NY 14202",
       "odoo.com"
     ].join("\n");
@@ -3221,58 +3236,95 @@ render();
 })();
 
 // ---------------------------------------------------------------
-// Preview shows exactly what lands in their inbox: the message as they
-// will read it, signature and attachment included, rather than the raw
-// PDF on its own.
+// Preview renders the message the way Gmail will actually show it to
+// the customer, down to the header row, the attachment card and the
+// reply buttons, so there are no surprises after you press send.
 // ---------------------------------------------------------------
 (function(){
   var btn = document.getElementById("emailPreview");
   var overlay = document.getElementById("emailPreviewOverlay");
   var frame = document.getElementById("emailPreviewFrame");
   if (!btn || !overlay || !frame) return;
-  var esc = function(t){ return String(t == null ? "" : t)
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); };
+
+  function esc(t){
+    return String(t == null ? "" : t)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
   btn.onclick = function(){
     var val = function(id){ var e = document.getElementById(id); return e ? (e.value || "") : ""; };
     var to = val("emailTo") || "your customer";
-    var subject = val("emailSubject") || "(no subject)";
+    var subject = val("emailSubject");
     var body = val("emailMessage");
     var sigEl = document.getElementById("emailSigOn");
     var sig = (sigEl && sigEl.checked) ? val("emailSignature") : "";
     var fromEl = document.getElementById("composeFromEmail");
-    var from = fromEl ? (fromEl.textContent || fromEl.value || "") : "";
-    var when = new Date().toLocaleString("en-US",
-      { weekday:"short", month:"short", day:"numeric", hour:"numeric", minute:"2-digit" });
+    var from = fromEl ? String(fromEl.textContent || fromEl.value || "").trim() : "";
+    var name = from.split("@")[0].replace(/[._]/g, " ");
+    name = name.charAt(0).toUpperCase() + name.slice(1);
+    var initial = (name || "O").charAt(0).toUpperCase();
+    var time = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+    var css = [
+      "*{box-sizing:border-box}",
+      "body{margin:0;background:#fff;color:#202124;",
+      "font-family:Roboto,\"Helvetica Neue\",Arial,sans-serif;font-size:14px;}",
+      ".gm{max-width:860px;margin:0 auto;padding:20px 28px 40px;}",
+      ".subject{display:flex;align-items:center;gap:10px;margin:0 0 22px;}",
+      ".subject h1{font-size:22px;font-weight:400;margin:0;color:#202124;}",
+      ".chip{font-size:11px;color:#5f6368;background:#f1f3f4;border-radius:4px;padding:2px 6px;}",
+      ".row{display:flex;gap:14px;align-items:flex-start;}",
+      ".av{width:40px;height:40px;border-radius:50%;background:#7b3f61;color:#fff;flex:none;",
+      "display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:500;}",
+      ".main{flex:1;min-width:0;}",
+      ".top{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;}",
+      ".nm{font-weight:700;font-size:14px;}",
+      ".addr{color:#5f6368;font-size:12px;}",
+      ".when{margin-left:auto;color:#5f6368;font-size:12px;white-space:nowrap;}",
+      ".ico{color:#5f6368;font-size:15px;margin-left:14px;}",
+      ".to{color:#5f6368;font-size:12px;margin-top:2px;}",
+      ".body{margin-top:18px;font-size:14px;line-height:1.58;white-space:pre-wrap;}",
+      ".sig{margin-top:16px;font-size:13px;line-height:1.5;color:#202124;white-space:pre-wrap;}",
+      ".attwrap{margin-top:28px;border-top:1px solid #e8eaed;padding-top:12px;}",
+      ".atthead{font-size:12px;color:#5f6368;margin-bottom:10px;}",
+      ".att{width:260px;border:1px solid #dadce0;border-radius:6px;overflow:hidden;}",
+      ".att .thumb{height:118px;background:#f8f9fa;display:flex;align-items:center;",
+      "justify-content:center;color:#d93025;font-size:34px;font-weight:700;letter-spacing:1px;}",
+      ".att .meta{border-top:1px solid #dadce0;padding:8px 10px;display:flex;align-items:center;gap:8px;}",
+      ".att .fn{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}",
+      ".att .sz{font-size:11px;color:#5f6368;margin-left:auto;}",
+      ".acts{margin-top:26px;display:flex;gap:10px;}",
+      ".acts button{font:inherit;font-size:14px;color:#3c4043;background:#fff;",
+      "border:1px solid #dadce0;border-radius:18px;padding:8px 22px;cursor:default;}",
+      ".note{margin-top:26px;font-size:11px;color:#80868b;}"
+    ].join("");
+
     var html = [
-      "<!doctype html><meta charset=utf-8>",
-      "<style>",
-      "body{margin:0;background:#fff;font-family:Roboto,Arial,sans-serif;color:#202124;}",
-      ".wrap{max-width:700px;margin:0 auto;padding:22px 26px;}",
-      ".subj{font-size:1.35rem;font-weight:400;margin:0 0 18px;}",
-      ".hdr{display:flex;gap:12px;align-items:flex-start;}",
-      ".av{width:40px;height:40px;border-radius:50%;background:#7b3f61;color:#fff;",
-      "display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;}",
-      ".who{font-size:.87rem;font-weight:700;}",
-      ".meta{font-size:.78rem;color:#5f6368;}",
-      ".body{margin:20px 0 0 52px;font-size:.9rem;line-height:1.62;white-space:pre-wrap;}",
-      ".sig{margin:18px 0 0 52px;font-size:.86rem;line-height:1.5;color:#202124;white-space:pre-wrap;}",
-      ".rule{margin:16px 0 0 52px;border-top:1px solid #e0e0e0;width:120px;}",
-      ".att{margin:22px 0 0 52px;display:inline-flex;align-items:center;gap:10px;",
-      "border:1px solid #dadce0;border-radius:8px;padding:10px 14px;font-size:.82rem;}",
-      ".att b{font-weight:600;} .att span{color:#5f6368;}",
-      "</style>",
-      "<div class=wrap>",
-      "<p class=subj>" + esc(subject) + "</p>",
-      "<div class=hdr><div class=av>O</div><div>",
-      "<div class=who>" + esc(from) + "</div>",
-      "<div class=meta>to " + esc(to) + "</div>",
-      "<div class=meta>" + esc(when) + "</div>",
-      "</div></div>",
-      "<div class=body>" + esc(body) + "</div>",
-      sig ? "<div class=rule></div><div class=sig>" + esc(sig) + "</div>" : "",
-      "<div class=att><b>Odoo pricing.pdf</b><span>PDF</span></div>",
+      "<!doctype html><meta charset=utf-8><sty" + "le>", css, "</sty" + "le>",
+      "<div class=gm>",
+        "<div class=subject><h1>", esc(subject || "(no subject)"), "</h1>",
+        "<span class=chip>Inbox</span></div>",
+        "<div class=row>",
+          "<div class=av>", esc(initial), "</div>",
+          "<div class=main>",
+            "<div class=top><span class=nm>", esc(name), "</span>",
+            "<span class=addr>&lt;", esc(from), "&gt;</span>",
+            "<span class=when>", esc(time), " (0 minutes ago)</span>",
+            "<span class=ico>&#9734;</span><span class=ico>&#8617;</span></div>",
+            "<div class=to>to ", esc(to), " &#9662;</div>",
+            "<div class=body>", esc(body), "</div>",
+            sig ? "<div class=sig>" + esc(sig) + "</div>" : "",
+            "<div class=attwrap><div class=atthead>One attachment</div>",
+              "<div class=att><div class=thumb>PDF</div>",
+              "<div class=meta><span class=fn>Odoo pricing.pdf</span>",
+              "<span class=sz>PDF</span></div></div></div>",
+            "<div class=acts><button>Reply</button><button>Forward</button></div>",
+            "<div class=note>This is how the message will look in their inbox.</div>",
+          "</div>",
+        "</div>",
       "</div>"
     ].join("");
+
     frame.removeAttribute("src");
     frame.setAttribute("srcdoc", html);
     overlay.style.display = "flex";
