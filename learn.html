@@ -19,7 +19,7 @@
   --rail:#4a2f1c; --rail-2:#7a5133;
   --gold:#d9a441; --gold-2:#f0c775; --gold-soft:rgba(217,164,65,.16);
   --card:#fdfbf6; --ink:#16202b; --sub:#5d6b7a; --faint:#8b98a6;
-  --red:#c0392b; --win:#2ecc71; --lose:#e74c3c; --pushWorkers: 1, shDedicated: false, sh:#95a5a6;
+  --red:#c0392b; --win:#2ecc71; --lose:#e74c3c; --push:#95a5a6;
   --panel:#101a22; --panel-2:#16232d; --line:rgba(255,255,255,.09);
   --r:10px;
 }
@@ -528,6 +528,8 @@ function newDeal(){
     plan: rng() < 0.4 ? 'custom' : 'standard',
     packIdx: 0,
     sh: false,
+    shWorkers: 1,
+    shDedicated: false,
     licDisc: 0,
     packDisc: 0,
     asked: 0            // how much you have asked of them so far
