@@ -1442,7 +1442,8 @@ function compute(s){
   if (!isMo) {
     const licMonthlyEquiv = (LIC.noCommitY1 * 12 + LIC.noCommit * 12 * (years - 1)) * users;
     const shMonthlyEquiv = isPaidHosting(s.sh) ? shMonthlyCost(s.sh, false) * months : 0;
-    savings = (licMonthlyEquiv - (licTotal + licDiscAmt)) + (shMonthlyEquiv - shTotal);
+    savings = (licMonthlyEquiv - (licTotal + licDiscAmt))
+            + (shMonthlyEquiv - (shTotal + shDiscAmt));
   }
 
   // Financed monthly payment band (standard amortization), same APRs vepat quotes.
@@ -1474,7 +1475,7 @@ function compute(s){
 
   return { isMo, years, months, y1Total, y2PlusTotal, licDiscAmt, licTotal,
            implList, implDiscAmt, implTotal, implNewCustAmt, shList, shDiscAmt, shTotal, shYear1,
-           grand, perMonth, savings, discountGiven: (licDiscAmt + implDiscAmt), licDiscAmt, implDiscAmt, finLow, finHigh, schedule };
+           grand, perMonth, savings, discountGiven: (licDiscAmt + implDiscAmt + shDiscAmt), licDiscAmt, implDiscAmt, finLow, finHigh, schedule };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
