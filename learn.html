@@ -430,11 +430,23 @@ select:focus-visible, button:focus-visible{
 <ul>
 <li><b>Signed.</b> Your quote beat their objections and stayed at or under 21. The contract goes on your book.</li>
 <li><b>Not enough.</b> Your quote did not cover what they needed, so they went with someone who scoped it properly. You carry what the pursuit cost. Sending straight away almost always ends here.</li>
-<li><b>They walked.</b> You went past 21. You asked for more than this customer could carry, you lose everything you built, and you still carry what the pursuit cost.</li>
+<li><b>They walked.</b> You went past 21. You asked for more than this customer
+          could carry, you lose everything you built, and you still carry what the
+          pursuit cost. Every card prints what it will cost you before you take it,
+          so this one is always avoidable.</li>
 </ul>
 <h3>About discounts</h3>
-<p>Two things have to be true before a discount is worth giving. Price has to be what is actually holding them back, and the customer has to have earned it. Discount somebody who was never going to be reasonable and you give up margin, it still may not close, and if it does it churns at renewal. Discount somebody whose problem was never the price and you have paid for nothing.</p>
-<p>The strongest hands here are the ones that close at full price.</p>
+<p>A discount closes more deals. Give one on every hand and your close rate
+        goes up several points and your book value goes down. That is not a quirk
+        of this table, it is what discounting does, and it is why the board ranks
+        you on what you banked rather than on how many you closed.</p>
+      <p>Two things have to be true before it is worth giving. Price has to be
+        what is actually holding them back, and the customer has to have earned it.
+        The card tells you how much it buys back before you spend anything: a
+        customer who has dealt straight with you returns three points, one who has
+        threatened to walk since day one returns nothing at all. Give it to that
+        second one and you have paid full price for no ground.</p>
+      <p>The strongest hands here are the ones that close at full price.</p>
 <h3>The rules you cannot break</h3>
 <p>The quote can only do what an Odoo rep can actually do. Multi-year licence discounts have a ceiling by term, one-year deals get none of it, implementation discounts stop at 30 percent, hosting stops at eight workers before it needs a dedicated server, and you cannot take the same concession twice. The Rules tab in the Menu lists all of them.</p>
 </div></div>
@@ -466,7 +478,7 @@ var PACKS = [
    you pulled in. Close it and that cost is covered by the contract. Lose it and
    you carry it, and the bigger the deal you chased the more it hurts. */
 var CHASE_COST_PCT = 0.28;
-var BAR_BASE = 13, BAR_SPREAD = 4, BAR_MIN = 9, BAR_MAX = 19, BAR_CAP = 21;
+var BAR_BASE = 16, BAR_SPREAD = 5, BAR_MIN = 14, BAR_MAX = 21, BAR_CAP = 21;
 var ASK_SPAN = 13, ASK_GAIN = 0.35, ASK_MIN = 2, ASK_MAX = 11, ASK_JITTER = 2;
 var OPEN_BASE = 4, OPEN_MIN = 4, OPEN_MAX = 13, OPEN_JITTER = 3;
 var IMPL_MAX_PCT   = 30;   // the most the desk will sign off
@@ -544,10 +556,10 @@ var ACCOUNTS = [
 var CONDUCT = [
   { k:'straight', label:'Straight with you all the way',
     hint:'Took every meeting, answered honestly, has not once asked for a discount',
-    room:8, weight:2 },
+    room:3, weight:2 },
   { k:'fair', label:'Fair to deal with',
     hint:'Reasonable, a little slow, no games',
-    room:5, weight:3 },
+    room:2, weight:3 },
   { k:'grinder', label:'Grinds on price every call',
     hint:'Opens every conversation with the number, never moves on anything else',
     room:1, weight:3 },
@@ -734,7 +746,7 @@ function discounts(d){
 // discount is worth three times as much on somebody who dealt straight
 // with you as it is on somebody who has ground you all week.
 function roomBought(d, pct){
-  var base = d.conduct.room;           // 9 straight, 6 fair, 3 grinder, 1 bully
+  var base = d.conduct.room;           // 3 straight, 2 fair, 1 grinder, 0 bully
   // Somebody who ground you on price all week gets almost nothing back for it.
   return Math.max(0, Math.round(base * (pct / 10)));
 }
@@ -1237,6 +1249,15 @@ function revealDeck() {
   setTimeout(pull, 160);
   setTimeout(pull, 420);
 }
+/* What a discount actually buys, in the same points the objection bar uses.
+   A rep should see that a bully gives nothing back before spending margin on
+   them, the same way they can see what a growth card costs. */
+function discRoomLabel(c) {
+  if (!S.deal) { return 'buys you room'; }
+  var room = roomBought(S.deal, c.pct);
+  if (!room) { return 'buys you nothing'; }
+  return 'buys back ' + room + (room === 1 ? ' point' : ' points');
+}
 function askBand(c) {
   if (typeof c.askLo !== 'number') { return 'asks more of them'; }
   return c.askLo === c.askHi
@@ -1264,7 +1285,7 @@ function offerCard(c, i){
     '<div class="body">' + esc(c.body) + '</div>' +
     (isDisc
       ? '<div class="tenor">costs you every month, and you only get one</div>' +
-        '<div class="split"><span class="pts">buys you room</span>' +
+        '<div class="split"><span class="pts">' + discRoomLabel(c) + '</span>' +
         '<span class="mo">' + esc(c.note) + '</span></div>'
       : '<div class="split"><span class="pts">' + money + '</span>' +
         '<span class="mo grow">' + askBand(c) + '</span></div>');
