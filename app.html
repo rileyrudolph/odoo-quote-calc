@@ -404,7 +404,7 @@ select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb).55);box-sh
 .bd-yr-sub .yr-amt{font-variant-numeric:tabular-nums;color:var(--sub);font-weight:600;text-align:right;}
 .bd-yr-sub + .bd-yr{border-top:1px dotted var(--line);}
 
-.month-roll{margin-top:18px;padding:16px 18px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-lg);}
+.month-roll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:18px;padding:16px 18px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-lg);}
 .mr-top{margin-bottom:12px;}
 .mr-pick{font-size:.72rem;font-weight:500;text-transform:none;letter-spacing:0;color:var(--faint);margin-top:3px;}
 .mr-h{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--sub);}
@@ -710,7 +710,7 @@ footer{
     <p class="pw-sub">Enter the password to continue</p>
     <form id="pwForm" autocomplete="off">
       <div class="pw-field">
-        <input type="password" id="pwInput" name="pwInput" placeholder="Password" autocomplete="new-password" spellcheck="false">
+        <input type="password" id="pwInput" aria-label="Password" name="pwInput" placeholder="Password" autocomplete="new-password" spellcheck="false">
       </div>
       <p class="pw-error" id="pwError">Incorrect password, try again.</p>
       <button type="submit" class="pw-submit">Unlock</button>
@@ -1030,7 +1030,7 @@ footer{
       <span id="composeFromEmail" class="compose-from-email"></span>
     </div>
     <div class="compose-row">
-      <input type="email" id="emailTo" class="compose-field" placeholder="Recipient" autocomplete="off">
+      <input type="email" id="emailTo" aria-label="Recipient email address" class="compose-field" placeholder="Recipient" autocomplete="off">
     </div>
     
     <!-- Fields the compose form no longer shows. Kept as empty stubs so the
@@ -1045,10 +1045,10 @@ footer{
           <div id="composeScenarioRow"><select id="emailScenario"><option value="all" selected>All scenarios</option></select></div>
         </div>
         <div class="compose-row">
-      <input type="text" id="emailSubject" class="compose-field" placeholder="Subject">
+      <input type="text" id="emailSubject" aria-label="Email subject" class="compose-field" placeholder="Subject">
     </div>
     <div class="compose-row compose-message-row">
-      <textarea id="emailMessage" class="compose-field compose-message" placeholder="Write a message..."></textarea>
+      <textarea id="emailMessage" aria-label="Email message" class="compose-field compose-message" placeholder="Write a message..."></textarea>
     </div>
     <label class="compose-check"><input type="checkbox" id="emailSigOn"> Include signature</label>
     
