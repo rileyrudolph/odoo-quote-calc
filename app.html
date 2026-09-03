@@ -197,11 +197,7 @@ body{
 .hl-text{position:relative;z-index:1;}
 .handwritten{font-family:"Caveat",cursive;}
 /* Section headings get the same device with a single drawn stroke. */
-.mark-ul{
-  position:relative;display:inline-block;
-  background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/blue_highlight_03.svg");
-    background-size:108% auto;background-repeat:no-repeat;background-position:50% 100%;padding-bottom:.24em;
-}
+
 
 /* ── Masthead ── */
 .masthead{
@@ -701,6 +697,8 @@ footer{
   border-radius:18px !important;padding:9px 26px !important;font-weight:500;font-size:.88rem;}
 .compose-send:hover{background:#0b4fbd !important;}
 .compose-foot{padding:10px 16px 14px;}
+.sh-note{margin:6px 0 0 2px;font-size:12px;line-height:1.5;color:#5d6b7a;max-width:52ch;}
+.sh-note strong{color:#16202b;font-weight:600;}
 </style>
 
 <!-- ═══ PASSWORD GATE ═══ -->
@@ -852,6 +850,8 @@ footer{
 
           <div class="sh-sub">
             <label class="side-check" id="shDedicatedRow"><input type="checkbox" id="shDedicated"> Dedicated server</label>
+            <div class="sh-note">A server of your own rather than a shared one. Flat <strong>$480.00 a month</strong> on top of the workers, storage and staging above, and it is the only way past 8 workers: dedicated runs <strong>4 to 256 workers</strong> and up to <strong>4096GB</strong>. Shared hosting stops at 8 workers and 512GB.</div>
+            <div class="sh-note">This Odoo.sh sizing is applied to <strong>every scenario</strong> below. If a larger scenario would genuinely need more workers, quote it separately.</div>
             <div class="side-hint sh-note" id="shDedicatedHint"></div>
           </div>
         </div>
@@ -867,10 +867,11 @@ footer{
         <div class="card-head">
           <div>
             <h2><span class="hl-wrap"><span class="hl-bar hl-yellow hl-sm" aria-hidden="true"></span><span class="hl-text">Scenarios</span></span></h2>
+            <button type="button" class="btn btn-sm" id="toggleScenarios">Collapse scenarios</button>
             <div class="sub-note">Every row is its own deal. Change the term, plan, implementation, either discount, or hosting on one row without touching the others.</div>
           </div>
         </div>
-        <div class="scroll-x">
+        <div id="scenariosBody"><div class="scroll-x">
           <table class="sctable">
             <thead>
               <tr>
@@ -893,7 +894,7 @@ footer{
             </thead>
             <tbody id="scBody"></tbody>
           </table>
-        </div>
+        </div></div>
         <div class="warnbox" id="scWarns"></div>
       </div>
 
@@ -911,7 +912,7 @@ footer{
       <div class="card" id="breakdownCard">
         <div class="card-head">
           <div>
-            <h2><span class="mark-ul">Breakdown</span></h2>
+            <h2><span class="hl-wrap"><span class="hl-bar hl-sm" aria-hidden="true"></span><span class="hl-text">Breakdown</span></span></h2>
             <div class="sub-note">Every scenario, side by side and line by line.</div>
           </div>
           <div class="head-btns no-print">
@@ -1911,7 +1912,18 @@ let detailOpen = true;
 let yearsOpen = false;   // off by default: only some customers ask for the year-by-year
 function applyDetailVisibility(){
   document.querySelectorAll('.bd-detail').forEach(d => { d.style.display = detailOpen ? '' : 'none'; });
-  const btn = document.getElementById('toggleDetail');
+  const btn = (function(){
+    /* Let a rep fold the scenario table away once they have picked a row, so the
+       breakdown and the email are not pushed off the screen. */
+    var tb = document.getElementById('toggleScenarios');
+    var body = document.getElementById('scenariosBody');
+    if (tb && body) tb.onclick = function(){
+      var hidden = body.style.display === 'none';
+      body.style.display = hidden ? '' : 'none';
+      tb.textContent = hidden ? 'Collapse scenarios' : 'Show scenarios';
+    };
+  })();
+  document.getElementById('toggleDetail');
   if (btn) btn.textContent = detailOpen ? 'Collapse line items' : 'Expand line items';
 
   document.querySelectorAll('.bd-years').forEach(d => { d.style.display = yearsOpen ? '' : 'none'; });
