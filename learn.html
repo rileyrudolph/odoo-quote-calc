@@ -1,6 +1,8 @@
 <!doctype html>
+<html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A practice table for Odoo reps: build a quote, read the customer, and learn when a discount is worth giving.">
 <title>The Deal Table</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -252,6 +254,17 @@ body.how-open #howBack{display:flex;}
 #btnPanel{display:inline-block;}
 }
 @media (max-width:640px){ .cc{width:calc(50% - 6px);} }
+/* The table is played on the keyboard as much as the mouse, so every control has
+   to show where focus is. */
+.abtn:focus-visible, .tab:focus-visible, .panel-x:focus-visible, #howClose:focus-visible,
+.chip:focus-visible, .lbtab:focus-visible, .card:focus-visible, input:focus-visible,
+select:focus-visible, button:focus-visible{
+  outline:2px solid var(--gold); outline-offset:2px; border-radius:6px;
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;scroll-behavior:auto !important;}
+}
 </style>
 
 <div class="shell">
