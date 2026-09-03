@@ -147,6 +147,7 @@ body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b1319;color:#e
 .abtn.counter:hover:not(:disabled){border-color:#5fa8d8;}
 /* Signing is where the money actually lands. */
 .abtn.sign{background:#1d4a34;border-color:#2f6b46;color:#c9f2dc;font-weight:800;}
+    .abtn.double{background:#3a2f14;border-color:#7d6420;color:#f2e0a8;}
 .abtn.sign:hover:not(:disabled){border-color:#4ecb8b;}
 
 .panel{width:392px;flex:none;background:var(--panel);border-left:1px solid var(--line);
@@ -314,6 +315,7 @@ select:focus-visible, button:focus-visible{
       <div class="chiprow" id="chips"></div>
       <button class="abtn gold wide" id="btnDeal">Deal<small>next customer <kbd>Enter</kbd></small></button>
       <button class="abtn counter" id="btnHit" disabled>Add to the quote<small>worth more, asks more <kbd>G</kbd></small></button>
+        <button class="abtn double" id="btnDouble" disabled>Double down<small>twice the deal, one card <kbd>B</kbd></small></button>
       <button class="abtn give" id="btnCounter" disabled>Give a discount<small>only helps on price <kbd>D</kbd></small></button>
       <button class="abtn sign" id="btnStand" disabled>Send the quote<small>stand and find out <kbd>X</kbd></small></button>
     </div>
@@ -427,6 +429,11 @@ select:focus-visible, button:focus-visible{
 <li><b>Grow the quote.</b> Add seats, extend the term, add a Success Pack, add Odoo.sh. Real money, and your number goes up.</li>
 <li><b>Give a discount.</b> This does not raise your quote, and it does not make a requirement go away. It only moves the part of their resistance that was about money. If what is stopping them is a migration question or a signature from upstairs, a discount buys you nothing and still costs you every month.</li>
 <li><b>Send the quote.</b> You stop building and find out.</li>
+      <li><b>Double down.</b> Once a hand, at any point. You commit to twice the deal,
+        take exactly one more piece of scope, and the quote sends itself. Twice the
+        contract if they sign, twice the pursuit if they do not. Because you only get
+        the one card it closes fewer deals than playing the hand out, so it is wrong
+        early and right once you are near 21 and one good card finishes the job.</li>
 </ul>
 <h3>The chip you pick</h3>
 <p>The chip is the room you walk into. A bigger chip puts you in front of a bigger customer: more seats, more likely to need Custom and Odoo.sh, worth far more if it lands, and a longer committee to talk round. It also costs more to chase. A deal you lose takes the pursuit with it, and on a big deal that is a large number.</p>
@@ -781,7 +788,7 @@ var RULES = {
 
 var S = {
   bank:0, deal:null, them:[], offer:[], mode:'grow',
-  live:false, accept:13, relief:0, streak:0, best:0, mrr:0, baseMrr:0, keptMrr:0, hands:0, won:0, lost:0, discounts:0, cleanWon:0,
+  live:false, accept:13, relief:0, streak:0, best:0, mrr:0, baseMrr:0, keptMrr:0, hands:0, won:0, lost:0, discounts:0, cleanWon:0, doubled:false, cardsTaken:0,
   unlocked:{}, log:[], name:''
 };
 
@@ -893,6 +900,8 @@ function deal(){
   for (var oi = 0; oi < 2; oi++) { var o0 = freshObjection(S.them, null); if (o0) S.them.push(o0); }
   S.offer = [];
   S.relief = 0;
+  S.doubled = false;
+  S.cardsTaken = 0;
   S.outcome = '';
   S.mode = 'grow';
   S.live = true;
@@ -1095,6 +1104,11 @@ function takeOffer(i){
     S.outcome = 'walked';
     return settle('walked');
   }
+  S.cardsTaken++;
+  if (S.doubled) {
+    render();
+    return sendQuote();
+  }
   render();
   setMsg('Added: ' + c.body.toLowerCase() + '.', '');
   setWhy(growthLine(c));
@@ -1115,6 +1129,18 @@ function discountLine(c, room){
   return t + 'The quote is now ' + fmt(q.mrr) + ' a month.';
 }
 
+/* Double down. You commit to twice the deal for exactly one more piece of scope,
+   then it goes whether it was enough or not. It closes fewer deals than playing it
+   out, because you only get the one card, but the ones that land pay twice. Worth
+   it once you are already near 21, the same read as doubling on eleven. */
+function doubleDown(){
+  if (!S.live || S.doubled) { return; }
+  S.doubled = true;
+  showGrowth();
+  setMsg('Doubled. One more piece of scope, then it goes.', '');
+  setWhy('Twice the contract if they sign, twice the pursuit if they do not. '
+    + 'You get one card and the quote sends itself.');
+}
 function sendQuote(){
   if (!S.live) return;
   var guard = 0;
@@ -1165,7 +1191,7 @@ function settle(kind){
   var delta = 0, cls = '', msg = '', why = '', why0 = '';
 
   if (kind === 'signed') {
-    delta = q.contract;
+    delta = q.contract * (S.doubled ? 2 : 1);
     // A discount given to somebody who ground you for it is not a one off.
     // It is the number they open the renewal on, and they will push again.
     /* What the discount costs you at renewal, by who you gave it to. Somebody who
@@ -1208,7 +1234,7 @@ function settle(kind){
       (caved ? ' They ground you for it all week and you gave it, so thirty percent of this comes straight back off at renewal. They will open there and push again.' : '') +
       ((d.licDisc || d.packDisc) && d.conduct.room >= 5 ? ' They earned that one, and it will not come back to bite you.' : '');
   } else if (kind === 'short') {
-    delta = -Math.round(q.contract * CHASE_COST_PCT);
+    delta = -Math.round(q.contract * CHASE_COST_PCT * (S.doubled ? 2 : 1));
     cls = 'lose'; S.lost++;
     if (d.type === 'renewal' || d.type === 'expansion') S.baseMrr += (d.startMrr || 0);
     S.streak = 0;
@@ -1226,7 +1252,7 @@ function settle(kind){
     why = 'Your quote reached ' + d.asked + ' against objections worth the same. '
         + 'It rolls into next quarter with ' + fmt(q.mrr) + ' a month still on the table.';
   } else {
-    delta = -Math.round(q.contract * CHASE_COST_PCT);
+    delta = -Math.round(q.contract * CHASE_COST_PCT * (S.doubled ? 2 : 1));
     cls = 'lose'; S.lost++;
     if (d.type === 'renewal' || d.type === 'expansion') S.baseMrr += (d.startMrr || 0);
     S.streak = 0;
@@ -1370,6 +1396,9 @@ function render(){
   document.getElementById('btnHit').disabled = !S.live;
   document.getElementById('btnCounter').disabled = !S.live;
   document.getElementById('btnStand').disabled = !S.live;
+  /* Once per hand, at any point. The read is the same one you make doubling on
+     eleven: commit when one more card lands you strong, not when you are miles off. */
+  document.getElementById('btnDouble').disabled = !S.live || S.doubled;
 }
 
 // ===================================================================
@@ -1562,6 +1591,7 @@ document.getElementById('btnDeal').onclick = deal;
 document.getElementById('btnHit').onclick = showGrowth;
 document.getElementById('btnCounter').onclick = showDiscounts;
 document.getElementById('btnStand').onclick = sendQuote;
+  document.getElementById('btnDouble').onclick = doubleDown;
 document.getElementById('btnPanel').onclick = function(){
   document.body.classList.remove('panel-hidden');
   document.body.classList.toggle('panel-open');
@@ -1626,6 +1656,7 @@ document.addEventListener('keydown', function(e){
   if (e.key === 'g' || e.key === 'G') showGrowth();
   if (e.key === 'd' || e.key === 'D') showDiscounts();
   if (e.key === 'x' || e.key === 'X') sendQuote();
+  if (e.key === 'b' || e.key === 'B') doubleDown();
   if (e.key === 'Enter') { if (!S.live) deal(); }
 });
 
