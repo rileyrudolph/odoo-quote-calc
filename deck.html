@@ -1,15 +1,17 @@
 <!doctype html>
+<html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Slide deck for walking a customer through their Odoo quote.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='23' fill='none' stroke='%23714B67' stroke-width='11'/%3E%3Ctext x='32' y='43' font-family='Helvetica,Arial,sans-serif' font-size='30' font-weight='700' fill='%23714B67' text-anchor='middle'%3E$%3C/text%3E%3C/svg%3E">
-<title>Slide Deck — Odoo Quote Calculator</title>
+<title>Slide Deck: Odoo Quote Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
-   DESIGN TOKENS — identical to the calculator (odoo-quote-calc.html) so the
+   DESIGN TOKENS - identical to the calculator (odoo-quote-calc.html) so the
    deck reads as the same product, not a bolted-on tool.
    ═══════════════════════════════════════════════════════════════════════════ */
 :root{
@@ -99,7 +101,7 @@ body{
 .btn-sm{padding:7px 14px;font-size:.78rem;}
 .btn-icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:50%;}
 
-/* ── Marker highlight — Odoo's own highlight SVGs, same as odoo.com ── */
+/* ── Marker highlight - Odoo's own highlight SVGs, same as odoo.com ── */
 .hl-wrap{
   position:relative;display:inline-block;padding:0 .1em;
   background-image:url("https://odoocdn.com/openerp_website/static/src/img/highlights/blue_highlight_01.svg");
@@ -112,8 +114,8 @@ body{
 .hl-text{position:relative;z-index:1;}
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PASSWORD GATE — one shared unlock for the whole site. Enter it once per
-   browser session (sessionStorage — cleared when the tab/browser closes) and
+   PASSWORD GATE - one shared unlock for the whole site. Enter it once per
+   browser session (sessionStorage - cleared when the tab/browser closes) and
    moving between the calculator and the deck won't ask again. A fresh visit
    still requires the password.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -165,7 +167,7 @@ body{
 .pw-foot{margin-top:22px;font-size:.72rem;color:var(--faint);}
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   DECK SHELL — left panel (slide picker + data controls) + main stage.
+   DECK SHELL - left panel (slide picker + data controls) + main stage.
    ═══════════════════════════════════════════════════════════════════════════ */
 .deck-shell{display:grid;grid-template-columns:284px minmax(0,1fr);height:calc(100vh - 59px);}
 @media(max-width:860px){.deck-shell{grid-template-columns:1fr;height:auto;overflow:auto;}}
@@ -236,7 +238,7 @@ body{
 .upload-status{font-size:.72rem;color:var(--sub);margin-top:8px;line-height:1.5;}
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   STAGE — the slide canvas. A fixed 960×540 (16:9) design is scaled to fit via
+   STAGE - the slide canvas. A fixed 960×540 (16:9) design is scaled to fit via
    CSS transform, so typography stays pixel-identical in the panel preview, the
    presenter view, and the print/export output.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -257,7 +259,7 @@ body{
   border-radius:10px;box-shadow:var(--sh-3);transform-origin:top left;flex:none;
 }
 
-/* ── Slide vocabulary — matches the source reference deck: Caveat handwritten
+/* ── Slide vocabulary - matches the source reference deck: Caveat handwritten
    headline with a marker underline, Inter for numbers/body, the Odoo brand
    palette (purple / teal / amber / coral / blue) pulled from its own theme. ── */
 .sl-pad{position:absolute;inset:0;padding:46px 56px;display:flex;flex-direction:column;}
@@ -267,7 +269,7 @@ body{
 .sl-body{flex:1;min-height:0;}
 .sl-cap{font-family:"Inter",sans-serif;font-size:.72rem;color:#9aa0ab;margin-top:10px;}
 
-/* live-data badge — marks the slides whose numbers come straight out of the
+/* live-data badge - marks the slides whose numbers come straight out of the
    calculator's own compute(), so a presenter (or their customer) can tell at
    a glance which slides are the generic reference deck vs. this quote. */
 .sl-badge{
@@ -299,7 +301,7 @@ body{
 .sl-cardbox li{display:flex;gap:10px;align-items:flex-start;font-family:"Inter",sans-serif;font-size:.98rem;color:#21272B;line-height:1.4;}
 .sl-cardbox li::before{content:"";width:7px;height:7px;border-radius:50%;background:#21272B;margin-top:8px;flex:none;}
 
-/* Pricing by Year — Monthly vs. Multi-Year (illustrative, matches source) */
+/* Pricing by Year - Monthly vs. Multi-Year (illustrative, matches source) */
 .sl-py-grid{display:grid;grid-template-columns:108px 1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:14px 16px;height:100%;align-items:center;padding-top:4px;}
 .sl-py-colh{font-family:"Caveat",cursive;font-weight:600;font-size:1.3rem;text-align:center;color:#21272B;}
 .sl-py-rowh{font-family:"Caveat",cursive;font-weight:600;font-size:1.02rem;color:#21272B;text-align:right;padding-right:4px;}
@@ -330,7 +332,7 @@ body{
 .sl-diff-d{font-family:"Caveat",cursive;font-weight:500;font-size:1.06rem;color:#21272B;line-height:1.3;}
 .sl-diff-caption{text-align:center;margin-top:14px;font-family:"Caveat",cursive;font-size:1rem;color:#714B67;font-weight:600;}
 
-/* Implementation Rates + Odoo.sh Hosting — 3-col rate cards, matches source */
+/* Implementation Rates + Odoo.sh Hosting - 3-col rate cards, matches source */
 .sl-rate3{background:#fff;border:1px solid #eceef1;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:grid;grid-template-columns:repeat(3,1fr);height:100%;}
 .sl-rate3 .rcell{padding:0 18px;text-align:center;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
 .sl-rate3 .rcell:not(:first-child)::before{content:"";position:absolute;left:0;top:18%;bottom:18%;width:1px;background:#e5e0e6;}
@@ -353,8 +355,8 @@ body{
 
 /* ── Source-deck vocabulary ──────────────────────────────────────────────
    The quote slides are drawn from exactly the same parts as the reference
-   deck — Caveat labels, soft grey capsules, a hand-drawn amber ring on the
-   number that matters, thin teal arrows and the coral flourish — so a live
+   deck - Caveat labels, soft grey capsules, a hand-drawn amber ring on the
+   number that matters, thin teal arrows and the coral flourish - so a live
    slide is indistinguishable from a slide that came out of the .pptx.     */
 .sl-colh{font-family:"Caveat",cursive;font-weight:600;font-size:1.55rem;color:#21272B;text-align:center;line-height:1;}
 .sl-rowl{font-family:"Caveat",cursive;font-weight:600;font-size:1.15rem;color:#21272B;text-align:right;line-height:1.1;}
@@ -376,20 +378,20 @@ body{
 .sl-arrow svg{width:100%;max-width:74px;height:15px;}
 .sl-flourish{position:absolute;right:40px;bottom:30px;width:52px;height:52px;pointer-events:none;}
 
-/* Year-by-year schedule — a run of capsules joined by teal arrows. */
+/* Year-by-year schedule - a run of capsules joined by teal arrows. */
 .sl-yr-flow{display:grid;align-items:center;gap:0 6px;padding-bottom:6px;}
 .sl-yr-col{display:flex;flex-direction:column;gap:14px;min-width:0;}
 .sl-arrow-cell{display:flex;align-items:center;justify-content:center;padding-top:34px;}
 
-/* Your quote — line items on the left, the all-in capsule on the right. */
+/* Your quote - line items on the left, the all-in capsule on the right. */
 .sl-qs-grid{display:grid;grid-template-columns:132px 1fr 86px 1.15fr;gap:14px 16px;align-items:center;}
 .sl-qs-arrow{display:flex;align-items:center;justify-content:center;}
 .sl-qs-total{display:flex;flex-direction:column;justify-content:center;}
 
-/* Scenario comparison — one capsule row per scenario. */
+/* Scenario comparison - one capsule row per scenario. */
 .sl-cmp-grid{display:grid;grid-template-columns:132px 1fr 86px 1fr;gap:12px 16px;align-items:center;}
 
-/* Your Quote Summary (live) — this customer's actual computed numbers */
+/* Your Quote Summary (live) - this customer's actual computed numbers */
 .sl-bd-wrap{display:flex;gap:26px;height:100%;}
 .sl-bd-lines{flex:1;display:flex;flex-direction:column;justify-content:center;gap:13px;}
 .sl-bd-line{display:flex;justify-content:space-between;font-family:"Inter",sans-serif;font-size:.95rem;color:#374151;padding-bottom:11px;border-bottom:1px dashed #e5e7eb;}
@@ -409,7 +411,7 @@ body{
 .sl-cmp-table tr:last-child td{border-bottom:none;}
 .sl-cmp-table td.grand{font-weight:800;color:#21272B;}
 
-/* Payment Options — static 2-column, matches source */
+/* Payment Options - static 2-column, matches source */
 .sl-pay2{display:grid;grid-template-columns:1fr 1fr;gap:28px;height:100%;align-content:center;}
 .sl-pay2-card{background:#F3F4F6;border-radius:16px;padding:26px 24px;display:flex;gap:16px;align-items:flex-start;}
 .sl-pay2-icon{width:52px;height:52px;flex:none;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;}
@@ -435,7 +437,7 @@ body{
 .sample-banner a{color:inherit;font-weight:700;text-decoration:underline;}
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PRESENT MODE — a large windowed overlay by default so the browser's own
+   PRESENT MODE - a large windowed overlay by default so the browser's own
    tab/address bar stays visible; true fullscreen is an opt-in toggle.
    ═══════════════════════════════════════════════════════════════════════════ */
 /* ── Presentation page (deck.html?present=1) ─────────────────────────────
@@ -469,7 +471,7 @@ body.present-page #appRoot{display:none;}
 .present-hint{position:absolute;top:20px;left:20px;color:rgba(255,255,255,.55);font-family:"Inter",sans-serif;font-size:.72rem;}
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PRINT / EXPORT — one included slide per landscape page.
+   PRINT / EXPORT - one included slide per landscape page.
    ═══════════════════════════════════════════════════════════════════════════ */
 @media print{
   @page{margin:0;size:landscape;}
@@ -500,7 +502,7 @@ body.present-page #appRoot{display:none;}
       <div class="pw-field">
         <input type="password" id="pwInput" name="pwInput" placeholder="Password" autocomplete="new-password" spellcheck="false">
       </div>
-      <p class="pw-error" id="pwError">Incorrect password — try again.</p>
+      <p class="pw-error" id="pwError">Incorrect password - try again.</p>
       <button type="submit" class="pw-submit">Unlock</button>
     </form>
     <p class="pw-foot">Access is restricted to authorized users.</p>
@@ -522,7 +524,7 @@ body.present-page #appRoot{display:none;}
     }
 
     // One password for the whole site: if it was already entered earlier in
-    // this browser tab/session, skip the gate — no re-prompt when navigating
+    // this browser tab/session, skip the gate - no re-prompt when navigating
     // between the calculator and the deck. A brand-new tab or browser restart
     // clears this and asks again.
     if (alreadyUnlocked()) {
@@ -587,7 +589,7 @@ body.present-page #appRoot{display:none;}
   </header>
 
   <div id="sampleBanner" class="sample-banner no-print" style="display:none;">
-    Showing example numbers — this deck isn't connected to a saved scenario yet.
+    Showing example numbers - this deck isn't connected to a saved scenario yet.
     <a href="app.html">Build scenarios in the calculator</a>, then click <strong>Deck</strong> to pull in your real pricing.
   </div>
 
@@ -620,7 +622,7 @@ body.present-page #appRoot{display:none;}
       </div>
 
       <div class="panel-sec" style="flex:1;min-height:120px;display:flex;flex-direction:column;">
-        <div class="panel-label">Slides <span style="font-weight:500;text-transform:none;letter-spacing:0;">— <span class="sr-live" style="display:inline-block;position:relative;top:-1px;"></span> = your numbers</span></div>
+        <div class="panel-label">Slides <span style="font-weight:500;text-transform:none;letter-spacing:0;">- <span class="sr-live" style="display:inline-block;position:relative;top:-1px;"></span> = your numbers</span></div>
         <div class="slide-list" id="slideList" style="overflow-y:auto;"></div>
       </div>
 
@@ -669,7 +671,7 @@ body.present-page #appRoot{display:none;}
 
 <script>
 // ═════════════════════════════════════════════════════════════════════════
-// DATA — read the calculator's hand-off (compute() output, customer-facing
+// DATA - read the calculator's hand-off (compute() output, customer-facing
 // only) if present; otherwise fall back to an example scenario so the deck
 // is still a useful, honestly-labeled preview on its own.
 // ═════════════════════════════════════════════════════════════════════════
@@ -730,16 +732,15 @@ const state = {
 };
 
 function emptyState(msg){
-  return `<div class="sl-pad"><div class="sl-empty"><div style="font-size:2rem;">—</div><div>${escapeHtml(msg)}</div><a href="app.html">Open the calculator →</a></div></div>`;
+  return `<div class="sl-pad"><div class="sl-empty"><div style="font-size:2rem;">-</div><div>${escapeHtml(msg)}</div><a href="app.html">Open the calculator →</a></div></div>`;
 }
 
 // ═════════════════════════════════════════════════════════════════════════
 // SLIDE TEMPLATES
 // Two kinds of slides here, and each one says which it is:
-//   • Reference slides — copied from the source Odoo pricing deck (same
+//   • Reference slides - copied from the source Odoo pricing deck (same
 //     copy, layout, fonts and colors). These never touch the calculator.
-//   • Live slides (marked with the teal "● from your calculator" badge) —
-//     every figure comes straight from the calculator's own compute()
+//   • Live slides (marked with the teal "● from your calculator" badge) - //     every figure comes straight from the calculator's own compute()
 //     output (DATA.scenarios[i].q), so they can never disagree with it.
 // ═════════════════════════════════════════════════════════════════════════
 function featured(){ return DATA.scenarios[state.featuredIdx] || null; }
@@ -822,7 +823,7 @@ function renderYearPricing(){
         <div class="sl-py-cell circled"><span class="amt">$49</span></div>
         <div class="sl-py-cell"><span class="amt">$61.10</span></div>
       </div>
-      <div class="sl-cap">*Illustrative example pricing — not this customer's quote. Your numbers are on the Year-by-Year Schedule slide.</div>
+      <div class="sl-cap">*Illustrative example pricing - not this customer's quote. Your numbers are on the Year-by-Year Schedule slide.</div>
     </div>`;
 }
 
@@ -1022,7 +1023,7 @@ function renderPayment(){
 }
 
 // ═════════════════════════════════════════════════════════════════════════
-// REFERENCE SLIDES — rendered verbatim from the source PowerPoint, so they are
+// REFERENCE SLIDES - rendered verbatim from the source PowerPoint, so they are
 // pixel-identical to the deck as authored: same fonts, artwork, spacing and
 // hand-drawn marks, with nothing re-interpreted. The only thing drawn over the
 // image is the presenter's name, which replaces the deck's own "[NAME]"
@@ -1041,11 +1042,11 @@ const REF = [
   {file:'deckimg/slide-10-payment.webp',         label:'Payment Options'}
 ];
 // Flipped to true once the slide images are confirmed present. Until then the HTML
-// rebuilds above stand in, so the deck is never broken — just not yet verbatim.
+// rebuilds above stand in, so the deck is never broken - just not yet verbatim.
 let HAS_REF = false;
 
 function refImg(i){
-  // 1440x811 source on a 960x540 stage — the same 16:9 to within 0.1%, so this fills
+  // 1440x811 source on a 960x540 stage - the same 16:9 to within 0.1%, so this fills
   // edge to edge with no crop and no visible distortion.
   return `<img src="${REF[i].file}" alt="${escapeHtml(REF[i].label)}" draggable="false"
     style="position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block;">`;
@@ -1061,7 +1062,7 @@ function refImg(i){
 
 function renderRefTitle(){
   const presenter = state.presenterName.trim();
-  // The deck's own byline sits at 2% / 88% of the page — cover just that line.
+  // The deck's own byline sits at 2% / 88% of the page - cover just that line.
   const overlay = presenter ? `
     <div style="position:absolute;left:1.9%;top:87.2%;width:52%;height:9%;background:#fff;
                 display:flex;align-items:center;">
@@ -1103,7 +1104,7 @@ const DEFAULT_SLIDE_DEFS = [
 ];
 
 // ═════════════════════════════════════════════════════════════════════════
-// DECK STATE — the ordered, checkable list backing the left panel. Default
+// DECK STATE - the ordered, checkable list backing the left panel. Default
 // template slides plus anything the user uploads.
 // ═════════════════════════════════════════════════════════════════════════
 let deckSlides = DEFAULT_SLIDE_DEFS.map(def => ({
@@ -1123,14 +1124,14 @@ function slideHtml(s){
     <div class="sl-pad"><div class="sl-file-card">
       <div class="sl-file-icon">${escapeHtml(s.ext.toUpperCase())}</div>
       <div class="sl-file-name">${escapeHtml(s.name)}</div>
-      <div class="sl-file-sub">Can't preview in-browser — open it to present.</div>
+      <div class="sl-file-sub">Can't preview in-browser - open it to present.</div>
       <button type="button" class="btn btn-sm" onclick="window.open('${s.url}', '_blank')">Open file</button>
     </div></div>`;
   return '';
 }
 
 // ═════════════════════════════════════════════════════════════════════════
-// SCALING — a fixed 960×540 design, transform-scaled to fit its container.
+// SCALING - a fixed 960×540 design, transform-scaled to fit its container.
 // ═════════════════════════════════════════════════════════════════════════
 function fitSlide(outerEl, scaleWrapEl, slideEl){
   const cw = outerEl.clientWidth, ch = outerEl.clientHeight;
@@ -1266,7 +1267,7 @@ document.getElementById('nextBtn').addEventListener('click', () => { if (focused
 window.addEventListener('resize', () => { fitSlide(stageFrame, stageScaleWrap, stageSlide); if (presentOn) fitSlide(presentFrame, presentScaleWrap, presentSlideEl); });
 
 // ═════════════════════════════════════════════════════════════════════════
-// PRESENT MODE — opens as a large in-page overlay so the browser's own tab
+// PRESENT MODE - opens as a large in-page overlay so the browser's own tab
 // and address bar stay visible by default. True fullscreen is an explicit,
 // separate toggle (⛶) rather than something forced on entry.
 // ═════════════════════════════════════════════════════════════════════════
@@ -1294,7 +1295,7 @@ function renderPresent(){
 }
 function enterPresent(){
   const list = presentList();
-  if (list.length === 0) { alert('No slides are included in the deck yet — tick at least one in the panel.'); return; }
+  if (list.length === 0) { alert('No slides are included in the deck yet - tick at least one in the panel.'); return; }
   const focusedKey = deckSlides[focusedIndex];
   const startAt = list.indexOf(focusedKey);
   presentIdx = startAt >= 0 ? startAt : 0;
@@ -1337,11 +1338,11 @@ document.addEventListener('fullscreenchange', () => {
 });
 
 // ═════════════════════════════════════════════════════════════════════════
-// EXPORT / PRINT — build one .slide per printed page, then print.
+// EXPORT / PRINT - build one .slide per printed page, then print.
 // ═════════════════════════════════════════════════════════════════════════
 document.getElementById('exportPdfBtn').addEventListener('click', () => {
   const list = activeSlides();
-  if (list.length === 0) { alert('No slides are included in the deck yet — tick at least one in the panel.'); return; }
+  if (list.length === 0) { alert('No slides are included in the deck yet - tick at least one in the panel.'); return; }
   const host = document.getElementById('printSlides');
   host.innerHTML = list.map(s => `<div class="print-slide"><div class="slide">${slideHtml(s)}</div></div>`).join('');
   window.print();
@@ -1349,7 +1350,7 @@ document.getElementById('exportPdfBtn').addEventListener('click', () => {
 
 // ═════════════════════════════════════════════════════════════════════════
 // ═════════════════════════════════════════════════════════════════════════
-// DECK PREFS — the slide selection and running order are written to
+// DECK PREFS - the slide selection and running order are written to
 // localStorage the moment a presentation starts, so the presentation page
 // can rebuild exactly the deck that was set up here.
 // ═════════════════════════════════════════════════════════════════════════
@@ -1389,7 +1390,7 @@ function applyPrefs(){
 }
 
 // ═════════════════════════════════════════════════════════════════════════
-// PRESENTATION PAGE — deck.html?present=1 is a page in its own right. It
+// PRESENTATION PAGE - deck.html?present=1 is a page in its own right. It
 // shows the chosen slides and nothing else: no panel, no checkboxes, no
 // trace of anything that was left out. Setting a deck up and showing it to
 // a customer never share a window.
@@ -1398,7 +1399,7 @@ const PRESENT_PAGE = new URLSearchParams(location.search).has('present');
 
 function openPresentPage(){
   const list = presentList();
-  if (list.length === 0) { alert('No slides are included yet — tick at least one in the panel.'); return; }
+  if (list.length === 0) { alert('No slides are included yet - tick at least one in the panel.'); return; }
   savePrefs();
   const w = window.open('deck.html?present=1', 'odooDeckPresentation');
   if (!w) alert('Your browser blocked the presentation window. Allow pop-ups for this site and try again.');
