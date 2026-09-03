@@ -494,7 +494,7 @@ var PACKS = [
    you pulled in. Close it and that cost is covered by the contract. Lose it and
    you carry it, and the bigger the deal you chased the more it hurts. */
 var CHASE_COST_PCT = 0.28;
-var BAR_BASE = 16, BAR_SPREAD = 5, BAR_MIN = 14, BAR_MAX = 21, BAR_CAP = 21;
+var BAR_BASE = 18, BAR_SPREAD = 5, BAR_MIN = 14, BAR_MAX = 21, BAR_CAP = 21;
 var ASK_SPAN = 13, ASK_GAIN = 0.35, ASK_MIN = 2, ASK_MAX = 11, ASK_JITTER = 2;
 var OPEN_BASE = 4, OPEN_MIN = 4, OPEN_MAX = 13, OPEN_JITTER = 3;
 var IMPL_MAX_PCT   = 30;   // the most the desk will sign off
@@ -572,10 +572,10 @@ var ACCOUNTS = [
 var CONDUCT = [
   { k:'straight', label:'Straight with you all the way',
     hint:'Took every meeting, answered honestly, has not once asked for a discount',
-    room:3, weight:2 },
+    room:2, weight:2 },
   { k:'fair', label:'Fair to deal with',
     hint:'Reasonable, a little slow, no games',
-    room:2, weight:3 },
+    room:1, weight:3 },
   { k:'grinder', label:'Grinds on price every call',
     hint:'Opens every conversation with the number, never moves on anything else',
     room:1, weight:3 },
@@ -762,7 +762,7 @@ function discounts(d){
 // discount is worth three times as much on somebody who dealt straight
 // with you as it is on somebody who has ground you all week.
 function roomBought(d, pct){
-  var base = d.conduct.room;           // 3 straight, 2 fair, 1 grinder, 0 bully
+  var base = d.conduct.room;           // 2 straight, 1 fair, 1 grinder, 0 bully
   // Somebody who ground you on price all week gets almost nothing back for it.
   return Math.max(0, Math.round(base * (pct / 10)));
 }
@@ -782,7 +782,7 @@ var RULES = {
   },
   bar: {
     t:'What the customer will carry, and how to read it',
-    d:'Their objections land somewhere between 14 and 21, and you have to beat that number without going past 21 yourself. Two objections are face up, the rest are not. Somebody who has dealt straight with you settles two points lower and somebody fair one point lower. Somebody who has threatened to walk since day one sits two points higher, though the 21 ceiling clips some of that back. An expansion runs a point higher than new business, and the bigger the room you picked, the higher it starts.'
+    d:'Their objections land somewhere between 16 and 21, and you have to beat that number without going past 21 yourself. One objection is face up, the rest are not. Somebody who has dealt straight with you settles two points lower and somebody fair one point lower. Somebody who has threatened to walk since day one sits two points higher, though the 21 ceiling clips some of that back. An expansion runs a point higher than new business, and the bigger the room you picked, the higher it starts.'
   },
   conduct: { t:'A discount is a reward, not a rescue',
     d:'The card prints what it buys before you spend it. Somebody who has dealt straight with you gives a few points back, somebody who has ground you on price all week gives one, and somebody who has threatened to walk gives nothing at all. Discounting every hand lifts your close rate and lowers your book.' },
@@ -792,7 +792,7 @@ var RULES = {
 
 var S = {
   bank:0, deal:null, them:[], offer:[], mode:'grow',
-  live:false, accept:13, relief:0, streak:0, best:0, mrr:0, baseMrr:0, keptMrr:0, hands:0, won:0, lost:0, discounts:0, cleanWon:0, doubled:false, cardsTaken:0,
+  live:false, accept:13, relief:0, streak:0, best:0, mrr:0, baseMrr:0, keptMrr:0, hands:0, won:0, lost:0, discounts:0, cleanWon:0, doubled:false, cardsTaken:0, doubledAt:-1,
   unlocked:{}, log:[], name:''
 };
 
@@ -906,6 +906,7 @@ function deal(){
   S.relief = 0;
   S.doubled = false;
   S.cardsTaken = 0;
+  S.doubledAt = -1;
   S.outcome = '';
   S.mode = 'grow';
   S.live = true;
@@ -1032,7 +1033,12 @@ function showDiscounts(){
     setWhy('One licence discount and one Success Pack discount. That is the quote.');
     unlock('onePer'); return;
   }
-  S.mode = 'disc'; S.offer = ds.slice(0, 3);
+  S.mode = 'disc'; /* Three licence lines used to fill the table and hide a legal Success Pack
+     discount in most hands. Show one of each kind first. */
+  var licOnes = ds.filter(function(x){ return x.kind === 'lic'; });
+  var packOnes = ds.filter(function(x){ return x.kind === 'pack'; });
+  S.offer = licOnes.slice(0, 2).concat(packOnes.slice(0, 1));
+  if (S.offer.length < 3) { S.offer = ds.slice(0, 3); }
   render();
   revealDeck();
   setMsg('A discount buys room. What it buys depends on them.', '');
@@ -1127,7 +1133,7 @@ function growthLine(c){
 function discountLine(c, room){
   var q = quote(S.deal);
   var t = 'They have dealt with you like this: ' + S.deal.conduct.label.toLowerCase() + '. ';
-  if (S.deal.conduct.room >= 6) t += 'That is why it bought you ' + room + '. A discount lands when somebody has earned it. ';
+  if (S.deal.conduct.room >= 2) t += 'That is why it bought you ' + room + '. A discount lands when somebody has earned it. ';
   else t += 'That is why it only bought you ' + room + '. They were always going to ask again, so you spent it for very little. ';
   if (c.over) t += 'It was also outside what the desk approves. ';
   return t + 'The quote is now ' + fmt(q.mrr) + ' a month.';
@@ -1140,6 +1146,7 @@ function discountLine(c, room){
 function doubleDown(){
   if (!S.live || S.doubled) { return; }
   S.doubled = true;
+  S.doubledAt = S.cardsTaken;
   showGrowth();
   setMsg('Doubled. One more piece of scope, then it goes.', '');
   setWhy('Twice the contract if they sign, twice the pursuit if they do not. '
@@ -1147,11 +1154,23 @@ function doubleDown(){
 }
 function sendQuote(){
   if (!S.live) return;
+  /* Same gate as the button, so the keyboard cannot take a free double either. */
+  if (S.doubled && S.cardsTaken === S.doubledAt) { return; }
   var guard = 0;
   while (totalObj(S.them) < S.accept && guard++ < 30) {
     var o = freshObjection(S.them, BAR_CAP);
     if (!o) break;
     S.them.push(o);
+  }
+  /* The loop stops on the first draw that reaches or passes their threshold, so
+     without this it lands above the number they were actually willing to carry and
+     the hand becomes unwinnable through no fault of the rep. Trim the last one back
+     to the line. */
+  var over = totalObj(S.them) - S.accept;
+  if (over > 0 && S.them.length) {
+    var last = S.them[S.them.length - 1];
+    if (last.pts - over >= 1) { last.pts -= over; }
+    else { S.them.pop(); }
   }
   var bar = resistance();
   if (S.deal.asked > 21) {
@@ -1210,7 +1229,7 @@ function settle(kind){
     : priceHeld === 0
       ? ' Nothing they raised was about price, so the discount bought you nothing and still costs you every month.'
       : ' Your discount came off the ' + priceHeld + ' they were holding out on price.';
-  var keep = !gave ? 1 : d.conduct.room >= 5 ? 1 : d.conduct.room >= 1 ? 0.6 : 0.4;
+  var keep = !gave ? 1 : d.conduct.room >= 2 ? 1 : d.conduct.room >= 1 ? 0.6 : 0.4;
   var caved = gave && keep < 1;
   if (caved) delta = Math.round(delta * keep);
     cls = 'win'; S.won++;
@@ -1415,6 +1434,11 @@ function render(){
   /* Once per hand, at any point. The read is the same one you make doubling on
      eleven: commit when one more card lands you strong, not when you are miles off. */
   document.getElementById('btnDouble').disabled = !S.live || S.doubled;
+  /* Once you have doubled you owe the table a card. Sending without taking one
+     was a free double with no risk attached. */
+  if (S.doubled && S.cardsTaken === S.doubledAt) {
+    document.getElementById('btnStand').disabled = true;
+  }
 }
 
 // ===================================================================
