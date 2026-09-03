@@ -454,6 +454,7 @@ var CEILING = { 1:0, 2:5, 3:10, 4:12.5, 5:15 };
 // Success Packs are bought in blocks of hours. Longer blocks are cheaper.
 var PACKS = [
   { hours:0,   rate:0,   name:'None' },
+  { hours:4,   rate:145, name:'4 hour Starter pack' },
   { hours:25,  rate:144, name:'25 hour pack'  },
   { hours:50,  rate:140, name:'50 hour pack'  },
   { hours:100, rate:125, name:'100 hour pack' },
@@ -627,10 +628,13 @@ function quote(d){
 // Seats compound: the bigger the account already is, the bigger the next
 // step, so the last card you dare take is worth far more than the first.
 // That is what makes pushing tempting, and pushing is the whole game.
+/* Seats compound: each step is a share of the seats they already have. Left
+   unbounded that runs away, so the ladder stops at USERS_MAX. */
+var USERS_MAX = 10000;
 function growth(d){
   var r = LIC[d.plan], out = [];
 
-  var steps = [
+  var steps = d.users >= USERS_MAX ? [] : [
     { n: Math.max(2, Math.round(d.users * 0.25)), ask: 1 },
     { n: Math.max(4, Math.round(d.users * 0.6)),  ask: 2 },
     { n: Math.max(8, Math.round(d.users * 1.2)),  ask: 4 }
@@ -785,14 +789,11 @@ function freshObjection(list, cap){
 /* The wager is the room you walk into. A bigger chip puts you in front of a
    bigger customer: more seats, more likely to need Custom and Odoo.sh, worth
    more if it lands, and a longer buying committee to talk round. */
-/* Three quotes a rep actually writes. New business opens at one year with
-   nothing on it. A renewal is an existing customer already inside a term, so
-   the multi year schedule is live from the first move and the discount lever
-   means something straight away. An expansion is a customer who already bought
+/* The two quotes this desk actually writes. New business opens at one year with
+   nothing on it. An expansion is a customer who already bought
    and is adding a department, so there is usually a pack on it. */
 var DEAL_TYPES = [
   { k:'new',       label:'New business', note:'Has never bought from Odoo before',        w:5 },
-  { k:'renewal',   label:'Renewal',      note:'Coming to the end of their current term',  w:3 },
   { k:'expansion', label:'Expansion',    note:'Already running Odoo, adding a department', w:2 }
 ];
 function pickDealType(){
@@ -806,7 +807,7 @@ function applyDealType(d){
   d.type = t.k;
   d.typeLabel = t.label;
   d.typeNote = t.note;
-  if (t.k === 'renewal' || t.k === 'expansion') {
+  if (t.k === 'expansion') {
     d.term = pick([2, 3, 3, 4, 5]);
     d.sh = Math.random() < 0.45;
   }
@@ -836,7 +837,7 @@ function diffShift(){
 
 function rollAccept(d){
   var base = BAR_BASE + between(0, BAR_SPREAD) + stakeTier() + diffShift();
-  if (d.type === 'renewal' || d.type === 'expansion') base += 1;
+  if (d.type === 'expansion') base += 1;
   if (d.conduct.k === 'straight') base -= 2;   // easy to satisfy
   if (d.conduct.k === 'fair') base -= 1;
   if (d.conduct.k === 'bully') base += 2;      // never satisfied
@@ -882,27 +883,38 @@ function deal(){
    workers, and anything beyond that has to move to a dedicated server, which is
    a flat fee with workers included up to 256. These are the two real hosting
    conversations a rep has, so they belong in the deck alongside seats and term. */
-function hostingCards(d){
+function hostingCards(d) {
+  /* Odoo.sh sizing, straight off odoo.sh/pricing. Shared tops out at 8 workers.
+     Dedicated is a flat $480 a month on top of the metered workers and is the
+     only way past 8, and it runs to 256. Every card carries an ask so hosting
+     gets pushed back on the same way seats do. */
   var out = [];
-  if (!d.sh) return out;
-  var w = d.shWorkers || 1;
-  if (!d.shDedicated && w < SH_SHARED_MAX_WORKERS) {
+  if (!d.sh) { return out; }
+  var max = d.shDedicated ? SH_DEDICATED_MAX_WORKERS : SH_SHARED_MAX_WORKERS;
+  if (d.shWorkers < max) {
+    var step = d.shWorkers < 8 ? 1 : (d.shWorkers < 32 ? 4 : 16);
+    var to = Math.min(max, d.shWorkers + step);
+    var addWorkers = to - d.shWorkers;
     out.push({
-      kind: 'worker', tag: 'Hosting',
-      head: (w + 1) + ' workers',
-      body: 'Add a worker so the database keeps up at their volume',
-      mrr: SH_WORKER,
-      apply: function(x){ x.shWorkers = (x.shWorkers || 1) + 1; }
+      kind: 'sh',
+      tag: 'Odoo.sh',
+      head: to + ' workers',
+      body: addWorkers === 1
+        ? 'Add a worker so the database keeps up at their volume'
+        : 'Size them up to ' + to + ' workers so the database keeps up at their volume',
+      mrr: addWorkers * SH_WORKER,
+      apply: function (x) { x.shWorkers = to; }
     });
   }
   if (!d.shDedicated) {
     out.push({
-      kind: 'dedicated', tag: 'Hosting',
+      kind: 'sh',
+      tag: 'Odoo.sh',
       head: 'Dedicated server',
-      body: 'Put them on a dedicated server, which adds a flat ' + fmt(SH_DEDICATED) +
-            ' a month on top of the workers and is the only way past ' + SH_SHARED_MAX_WORKERS + ' workers',
+      body: 'Put them on a dedicated server, a flat $480 a month on top of the '
+          + 'workers and the only way past ' + SH_SHARED_MAX_WORKERS + ' workers',
       mrr: SH_DEDICATED,
-      apply: function(x){ x.shDedicated = true; x.shWorkers = Math.max(4, x.shWorkers || 1); }
+      apply: function (x) { x.shDedicated = true; }
     });
   }
   return out;
@@ -915,7 +927,16 @@ function hostingCards(d){
    picking a quote is not dealt three options, they can see the whole schedule
    and choose what fits the customer in front of them. */
 function growthPlus(d){
-  return growth(d).concat(hostingCards(d));
+  /* A concession has a size you can see and a price that moves a little, the
+     same way a real customer's patience moves. Show the band, charge inside it.
+     If the card showed one exact number there would be no reason ever to stand:
+     you would walk every quote up to 21 and never lose one. */
+  var deck = growth(d).concat(hostingCards(d));
+  deck.forEach(function (card) {
+    card.askLo = askFor(d, card, 0);
+    card.askHi = askFor(d, card, ASK_JITTER);
+  });
+  return deck;
 }
 
 function showGrowth(){
@@ -987,7 +1008,7 @@ function showDiscounts(){
    card is a small ask on a big deal and a large one on a small deal. The
    curve saturates: doubling the commitment costs a lot, quadrupling it
    costs somewhat more, never proportionally more. */
-function askFor(d, c){
+function askFor(d, c, jitter){
   var before = quote(d).contract;
   var probe = JSON.parse(JSON.stringify(d));
   try { c.apply(probe); } catch (e) { return 4; }
@@ -998,7 +1019,8 @@ function askFor(d, c){
   var lift = anchor > 0 ? (after - before) / anchor : 1;
   if (lift < 0) lift = 0;
   var pts = Math.round(ASK_SPAN * (1 - 1 / (1 + lift * ASK_GAIN)));
-  return Math.max(ASK_MIN, Math.min(ASK_MAX, pts + between(0, ASK_JITTER)));
+    var j = (jitter == null) ? between(0, ASK_JITTER) : jitter;
+  return Math.max(ASK_MIN, Math.min(ASK_MAX, pts + j));
 }
 
 /* What the deal as scoped already asks of them, before you add anything.
@@ -1025,7 +1047,9 @@ function takeOffer(i){
         'Licence discounts have a ceiling by term and implementation stops at ' + IMPL_MAX_PCT + ' percent.');
     return;
   }
-  var askNow = (S.mode === 'grow') ? askFor(S.deal, c) : 0;
+  var askNow = (S.mode === 'grow')
+      ? (typeof c.askLo === 'number' ? between(c.askLo, c.askHi) : askFor(S.deal, c))
+      : 0;
   if (S.mode === 'disc') {
     var room = roomBought(S.deal, c.pct);
     S.relief = (S.relief || 0) + room;
@@ -1188,6 +1212,13 @@ function objCard(o, hidden){
   return d;
 }
 
+/* What this concession will cost you, in the customer's own patience. */
+function askBand(c) {
+  if (typeof c.askLo !== 'number') { return 'asks more of them'; }
+  return c.askLo === c.askHi
+    ? 'asks ' + c.askLo + ' more'
+    : 'asks ' + c.askLo + ' to ' + c.askHi + ' more';
+}
 function offerCard(c, i){
   var d = document.createElement('div');
   var isDisc = S.mode === 'disc';
@@ -1212,7 +1243,7 @@ function offerCard(c, i){
         '<div class="split"><span class="pts">buys you room</span>' +
         '<span class="mo">' + esc(c.note) + '</span></div>'
       : '<div class="split"><span class="pts">' + money + '</span>' +
-        '<span class="mo grow">asks more of them</span></div>');
+        '<span class="mo grow">' + askBand(c) + '</span></div>');
   d.onclick = function(){ takeOffer(i); };
   return d;
 }
@@ -1526,3 +1557,5 @@ load();
 document.getElementById('playerName').value = S.name || '';
 render(); renderStats(); renderRules(); renderLog(); renderBoard();
 </script>
+</body>
+</html>
