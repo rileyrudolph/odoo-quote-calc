@@ -870,6 +870,8 @@ footer{
             <h2><span class="hl-wrap"><span class="hl-bar hl-yellow hl-sm" aria-hidden="true"></span><span class="hl-text">Scenarios</span></span></h2>
             <div class="sub-note">Every row is its own deal. Change the term, plan, implementation, either discount, or hosting on one row without touching the others.</div>
           </div>
+        
+          <div class="head-actions"><button type="button" class="btn btn-sm" id="toggleScenarios">Collapse scenarios</button></div>
         </div>
         <div id="scenariosBody"><div class="scroll-x">
           <table class="sctable">
@@ -2832,8 +2834,7 @@ function buildProposalHtml(f){
 
   const sigName = f.senderName || (gmailUserEmail || '').split('@')[0];
   const sigLines = [
-    `<div style="font-size:14px;color:${INK};font-weight:700;">${escEmail(sigName)}</div>
-          <div class="head-actions"><button type="button" class="btn btn-sm" id="toggleScenarios">Collapse scenarios</button></div>`,
+    `<div style="font-size:14px;color:${INK};font-weight:700;">${escEmail(sigName)}</div>`,
     `<div style="font-size:13px;color:${SUB};padding-top:2px;">Business Advisor · Odoo</div>`,
     gmailUserEmail ? `<div style="font-size:13px;color:${SUB};padding-top:6px;">${escEmail(gmailUserEmail)}</div>` : '',
     f.senderPhone ? `<div style="font-size:13px;color:${SUB};">${escEmail(f.senderPhone)}</div>` : ''
