@@ -1914,18 +1914,7 @@ let detailOpen = true;
 let yearsOpen = false;   // off by default: only some customers ask for the year-by-year
 function applyDetailVisibility(){
   document.querySelectorAll('.bd-detail').forEach(d => { d.style.display = detailOpen ? '' : 'none'; });
-  const btn = (function(){
-    /* Let a rep fold the scenario table away once they have picked a row, so the
-       breakdown and the email are not pushed off the screen. */
-    var tb = document.getElementById('toggleScenarios');
-    var body = document.getElementById('scenariosBody');
-    if (tb && body) tb.onclick = function(){
-      var hidden = body.style.display === 'none';
-      body.style.display = hidden ? '' : 'none';
-      tb.textContent = hidden ? 'Collapse scenarios' : 'Show scenarios';
-    };
-  })();
-  document.getElementById('toggleDetail');
+  const btn = document.getElementById('toggleDetail');
   if (btn) btn.textContent = detailOpen ? 'Collapse line items' : 'Expand line items';
 
   document.querySelectorAll('.bd-years').forEach(d => { d.style.display = yearsOpen ? '' : 'none'; });
@@ -3349,4 +3338,18 @@ render();
     overlay.style.display = "flex";
   };
 })();
+
+
+/* Fold the scenario table away once a rep has picked their row, so the breakdown
+   and the email are not pushed off screen. Delegated from document so it does not
+   depend on when this runs relative to the markup. */
+document.addEventListener("click", function (e) {
+  var btn = e.target && e.target.closest && e.target.closest("#toggleScenarios");
+  if (!btn) return;
+  var body = document.getElementById("scenariosBody");
+  if (!body) return;
+  var hidden = body.style.display === "none";
+  body.style.display = hidden ? "" : "none";
+  btn.textContent = hidden ? "Collapse scenarios" : "Show scenarios";
+});
 </script>
