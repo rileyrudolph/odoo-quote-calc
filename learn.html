@@ -624,14 +624,25 @@ var OBJECTIONS = [
 // longer term, the Success Pack, hosting. Each one is worth real MRR and
 // each one asks more of the customer than the last.
 // ===================================================================
+/* What a rep actually walks into. A two partner legal practice is not a forty
+   store retailer, and a regulated biotech needs Studio and the API where a timber
+   merchant does not. Seat count and plan follow the industry rather than a die. */
+var BIG_INDUSTRY = /depots|forty stores|group|six sites|distribution|forwarding|trust|Refrigerated/i;
+var SMALL_INDUSTRY = /Legal|Accountancy|Optical|Design and fit|Security|Solar|Marine|printing/i;
+var COMPLEX_INDUSTRY = /Biotech|Pharma|Precision|moulding|Aviation|Healthcare|trust|Refrigerated|forwarding|depots|Mining|Distilling|exporting|regulated/i;
+function seatBand(t){
+  if (BIG_INDUSTRY.test(t)) { return [40, 60, 90, 140]; }
+  if (SMALL_INDUSTRY.test(t)) { return [3, 5, 8, 12]; }
+  return [12, 18, 25, 40];
+}
 function newDeal(){
   var a = pick(ACCOUNTS);
   var c = pickConduct();
   return {
     a:a, conduct:c,
-    users: pick([3, 5, 8, 12, 18, 25, 40]),
+    users: pick(seatBand(a.t)),
     term: 1,
-    plan: rng() < 0.4 ? 'custom' : 'standard',
+    plan: (COMPLEX_INDUSTRY.test(a.t) ? rng() < 0.75 : rng() < 0.2) ? 'custom' : 'standard',
     packIdx: 0,
     sh: false,
     shWorkers: 1,
