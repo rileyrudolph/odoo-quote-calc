@@ -211,6 +211,7 @@ body.how-open #howBack{display:flex;}
 .logrow .tag.signed{background:rgba(46,204,113,.16);color:var(--win);}
 .logrow .tag.short{background:rgba(217,164,65,.16);color:var(--gold);}
 .logrow .tag.walked{background:rgba(231,76,60,.16);color:var(--lose);}
+    .tag.push{background:rgba(201,211,220,.16);color:#c9d3dc;}
 .card .tcv{display:block;font-weight:600;opacity:.72;font-size:.86em;margin-top:2px;}
 .dealtype{margin:6px 0 2px;font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
   color:var(--gold);opacity:.85;}
@@ -236,6 +237,7 @@ body.how-open #howBack{display:flex;}
 .logrow .tag.signed{background:rgba(46,204,113,.16);color:var(--win);}
 .logrow .tag.short{background:rgba(217,164,65,.16);color:var(--gold);}
 .logrow .tag.walked{background:rgba(231,76,60,.16);color:var(--lose);}
+    .tag.push{background:rgba(201,211,220,.16);color:#c9d3dc;}
 .card .tcv{display:block;font-weight:600;opacity:.72;font-size:.86em;margin-top:2px;}
 .dealtype{margin:6px 0 2px;font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
   color:var(--gold);opacity:.85;}
@@ -433,7 +435,11 @@ select:focus-visible, button:focus-visible{
 <ul>
 <li><b>Signed.</b> Your quote beat their objections and stayed at or under 21. The contract goes on your book.</li>
 <li><b>Not enough.</b> Your quote did not cover what they needed, so they went with someone who scoped it properly. You carry what the pursuit cost. Sending straight away almost always ends here.</li>
-<li><b>They walked.</b> You went past 21. You asked for more than this customer
+<li><b>They stalled.</b> Your quote and their objections landed on the same
+          number. Nobody wins a tie: no commission this quarter, but you did not burn
+          the pursuit either and the deal rolls forward. About a quarter of hands end
+          here, the same way a push works at a blackjack table.</li>
+        <li><b>They walked.</b> You went past 21. You asked for more than this customer
           could carry, you lose everything you built, and you still carry what the
           pursuit cost. Every card prints what it will cost you before you take it,
           so this one is always avoidable.</li>
@@ -1122,13 +1128,20 @@ function sendQuote(){
     S.outcome = 'walked';
     return settle('walked');
   }
-  S.outcome = S.deal.asked > bar ? 'signed' : 'short';
+  /* Matching the bar exactly is a push, the same as blackjack. In a pipeline
+     that is a stalled deal, not a dead one. */
+  S.outcome = S.deal.asked > bar ? 'signed'
+    : (S.deal.asked === bar ? 'push' : 'short');
   return settle(S.outcome);
 }
 
 /* The one line a rep should take away from the hand. Said after the fact, so it
    never removes the decision, only explains it. */
 function readOut(kind, asked, bar){
+  if (kind === 'push') {
+    return 'You landed on ' + asked + ' and so did they. One more point of value '
+      + 'anywhere in the quote and it was signed.';
+  }
   if (kind === 'signed') {
     var over = asked - bar;
     if (asked >= 20) return 'You cleared it by ' + over + ' with ' + (21 - asked) +
@@ -1203,6 +1216,15 @@ function settle(kind){
     why = 'Their objections came to ' + resistance() + ' and your quote only reached ' + d.asked +
       '. A quote that does not cover what they actually need does not win on being cheap. ' +
       'You left ' + fmt(q.mrr) + ' a month on the table.';
+  } else if (kind === 'push') {
+    /* They matched the ask to the point. No commission this quarter, but the
+       pursuit is not burned and the relationship is intact, so the book does
+       not move either way. It rolls forward. */
+    delta = 0;
+    cls = 'push';
+    msg = 'They matched you exactly. The deal stalls, nothing banked and nothing lost.';
+    why = 'Your quote reached ' + d.asked + ' against objections worth the same. '
+        + 'It rolls into next quarter with ' + fmt(q.mrr) + ' a month still on the table.';
   } else {
     delta = -Math.round(q.contract * CHASE_COST_PCT);
     cls = 'lose'; S.lost++;
@@ -1470,7 +1492,8 @@ function renderLog(){
     var up = l.delta > 0;
     return '<div class="logrow"><div class="top"><span>' + esc(l.who) +
       ' <em class="tag ' + esc(l.kind) + '">' +
-      (l.kind === 'signed' ? 'signed' : l.kind === 'short' ? 'under scoped' : 'over reached') +
+      (l.kind === 'signed' ? 'signed' : l.kind === 'short' ? 'under scoped'
+        : l.kind === 'push' ? 'stalled' : 'over reached') +
       '</em></span>' +
       '<span class="amt ' + (up ? 'up' : l.delta < 0 ? 'down' : '') + '">' +
       (up ? '+' : '') + fmt(l.delta) + '</span></div>' +
