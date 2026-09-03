@@ -276,6 +276,9 @@ select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb).55);box-sh
   transition:border-color .16s,color .16s,background .16s,box-shadow .16s,transform .06s;
   box-shadow:var(--sh-1);
 }
+/* Nav items are real links so they can be middle clicked or opened in a new
+   tab. Scoped to a.btn so no existing button changes. */
+a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center;}
 .btn:hover{border-color:rgba(var(--accent-rgb).5);color:var(--accent);box-shadow:var(--sh-2);}
 .btn:active{transform:translateY(1px);}
 .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:none;}
@@ -798,8 +801,8 @@ footer{
         <button id="gmailSignOut" type="button" class="btn btn-sm" style="display:none;color:var(--sub);">Sign out</button>
       </div>
       <button id="sendEmail" type="button" class="btn btn-sm" style="display:none;">Send Email</button>
-                  <button id="openLearn" type="button" class="btn btn-sm" title="Practise discount strategy" onclick="location.href='learn.html'">Learn</button>
-<button id="openDeck" type="button" class="btn btn-sm"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:13px;height:13px;margin:0 5px -2px 0;"><rect x="1.5" y="2.5" width="13" height="9" rx="1.2"/><path d="M5.5 14h5M8 11.5V14"/></svg>Deck</button>
+                  <a id="openLearn" class="btn btn-sm" title="Practise discount strategy" href="learn.html">Learn</a>
+<a id="openDeck" class="btn btn-sm" href="deck.html"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:13px;height:13px;margin:0 5px -2px 0;"><rect x="1.5" y="2.5" width="13" height="9" rx="1.2"/><path d="M5.5 14h5M8 11.5V14"/></svg>Deck</a>
       <button id="resetAll" type="button" class="btn btn-sm" title="Clear every scenario and start again">Reset</button>
 <button id="exportPdf" type="button" class="btn btn-sm btn-primary">Export PDF</button>
     </div>
@@ -2487,11 +2490,10 @@ function buildDeckHandoff(){
     discountSchedule: DISCOUNT_SCHEDULE
   };
 }
-document.getElementById('openDeck').addEventListener('click', () => {
+['click', 'auxclick'].forEach((evt) => document.getElementById('openDeck').addEventListener(evt, () => {
   try { localStorage.setItem('odooDeckHandoff', JSON.stringify(buildDeckHandoff())); }
   catch(e) { /* storage unavailable, deck.html falls back to sample numbers */ }
-  window.location.href = 'deck.html';
-});
+}));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GMAIL OAUTH, Send quotes via Gmail API (memory-only token, cleared on logout)
