@@ -350,6 +350,7 @@ select:focus-visible, button:focus-visible{
             <div class="stat"><span>Best streak</span><span id="stStreak">$0</span></div>
             <div class="stat"><span>MRR closed</span><span id="stMrr">$0</span></div>
             <div class="stat"><span>Net revenue retention</span><span id="stNrr">$0</span></div>
+            <div class="stat"><span>Closed at full price</span><span id="stClean">nothing yet</span></div>
       </div>
     </div>
 
@@ -759,7 +760,7 @@ var RULES = {
 
 var S = {
   bank:0, deal:null, them:[], offer:[], mode:'grow',
-  live:false, accept:13, relief:0, streak:0, best:0, mrr:0, baseMrr:0, keptMrr:0, hands:0, won:0, lost:0, discounts:0,
+  live:false, accept:13, relief:0, streak:0, best:0, mrr:0, baseMrr:0, keptMrr:0, hands:0, won:0, lost:0, discounts:0, cleanWon:0,
   unlocked:{}, log:[], name:''
 };
 
@@ -1158,11 +1159,14 @@ function settle(kind){
     /* MRR is the number a rep carries. On an existing customer, what you walk
        away with against what they were already paying is net revenue retention. */
     S.mrr += q.mrr;
-    if (d.type === 'renewal' || d.type === 'expansion') {
+    if (d.type === 'expansion') {
       S.baseMrr += (d.startMrr || q.mrr);
       S.keptMrr += q.mrr;
     }
-    S.streak++; if (S.streak > S.best) S.best = S.streak;
+    /* A signed deal with nothing given away. That is the number this table is
+         built to move, so it belongs next to the money. */
+      if (!d.licDisc && !d.packDisc) { S.cleanWon++; }
+      S.streak++; if (S.streak > S.best) S.best = S.streak;
     msg = 'Signed. ' + fmt(q.mrr) + ' a month, ' + fmt(q.contract) + ' over the term.';
     why0 = 'Your quote reached ' + d.asked + ' against objections worth ' + resistance() + '. ';
     why = why0 + d.users + ' seats on ' + LIC[d.plan].name + ' for ' + d.term + ' year' + (d.term === 1 ? '' : 's') +
@@ -1414,7 +1418,11 @@ function renderStats(){
   var ne = document.getElementById('stNrr');
   if (ne) ne.textContent = S.baseMrr > 0
     ? Math.round((S.keptMrr / S.baseMrr) * 100) + '%'
-    : 'no renewals yet';
+    : 'no expansions yet';
+  var ce = document.getElementById('stClean');
+  if (ce) ce.textContent = S.won
+    ? Math.round((S.cleanWon || 0) / S.won * 100) + '% of your wins'
+    : 'nothing yet';
   var se = document.getElementById('stStreak');
   if (se) se.textContent = S.best + (S.streak > 1 ? ' (on ' + S.streak + ' now)' : '');
   document.getElementById('stLeft').textContent = S.hands ? Math.round(S.won / S.hands * 100) + '%' : '0%';
@@ -1455,7 +1463,7 @@ function save(){
       bank: S.bank, hands: S.hands, won: S.won, lost: S.lost,
       streak: S.streak, best: S.best,
       mrr: S.mrr, baseMrr: S.baseMrr, keptMrr: S.keptMrr,
-      discounts: S.discounts, given: S.given, left: S.left,
+      discounts: S.discounts, cleanWon: S.cleanWon, given: S.given, left: S.left,
       unlocked: S.unlocked, name: S.name,
       diff: (document.getElementById('setDiff') || {}).value
     }));
@@ -1470,6 +1478,7 @@ function load(){
     S.won = v.won || 0;
     /* older saves called this bust */
     S.lost = (v.lost != null ? v.lost : v.bust) || 0;
+    S.cleanWon = v.cleanWon || 0;
     S.streak = v.streak || 0;
     S.best = v.best || 0;
     S.mrr = v.mrr || 0;
