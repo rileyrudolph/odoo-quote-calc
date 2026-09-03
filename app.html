@@ -131,7 +131,8 @@ body{
 
 /* ── Two-column shell ── */
 .layout{display:grid;grid-template-columns:232px minmax(0,1fr);gap:18px;align-items:start;}
-@media(max-width:1000px){.layout{grid-template-columns:1fr;}}
+@media(max-width:1000px){.layout{grid-template-columns:minmax(0,1fr);}
+      .layout > *{min-width:0;}}
 .sidebar{position:sticky;top:76px;}
 @media(max-width:1000px){.sidebar{position:static;}}
 .sidebar-card{padding:20px 20px 18px;margin-bottom:0;}
