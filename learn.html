@@ -832,7 +832,24 @@ function unlock(id){ if (!id || S.unlocked[id]) return; S.unlocked[id] = true; r
 
 var totalObj = function(h){ var n=0; for (var i=0;i<h.length;i++) n += h[i].pts; return n; };
 
-function objection(){ var o = pick(OBJECTIONS); return { pts:o.pts, body:o.body, price:o.price || 0 }; }
+/* Weight the draw by how this customer has behaved, so the conduct line and the
+   objections on the table tell the same story. A grinder raises money objections
+   because that is what grinding on price means; somebody straight with you raises
+   the practical ones instead, which is also why a discount does nothing for them. */
+function objection(){
+  var k = (S.deal && S.deal.conduct) ? S.deal.conduct.k : 'fair';
+  var leansPrice = (k === 'grinder' || k === 'bully');
+  var bag = [];
+  for (var oi = 0; oi < OBJECTIONS.length; oi++) {
+    var ob = OBJECTIONS[oi];
+    var w = ob.price
+      ? (leansPrice ? 5 : (k === 'straight' ? 1 : 2))
+      : (leansPrice ? 1 : 3);
+    for (var wj = 0; wj < w; wj++) { bag.push(ob); }
+  }
+  var o = pick(bag);
+  return { pts:o.pts, body:o.body, price:o.price || 0 };
+}
 
 // How big a quote this customer will actually sign. Never shown.
 // How far they keep pushing back before they settle. Their objections are
