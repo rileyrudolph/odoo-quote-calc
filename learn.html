@@ -780,6 +780,10 @@ var RULES = {
     t: 'Odoo.sh workers',
     d: 'Odoo.sh bills $57.60 a worker plus $14.40 for staging. Shared hosting stops at 8 workers. Past that the database needs a dedicated server, which adds a flat $480 a month on top of the metered lines and lifts the ceiling to 256 workers and 4096GB.'
   },
+  bar: {
+    t:'What the customer will carry, and how to read it',
+    d:'Their objections land somewhere between 14 and 21, and you have to beat that number without going past 21 yourself. Two objections are face up, the rest are not. Somebody who has dealt straight with you settles two points lower and somebody fair one point lower. Somebody who has threatened to walk since day one sits two points higher, though the 21 ceiling clips some of that back. An expansion runs a point higher than new business, and the bigger the room you picked, the higher it starts.'
+  },
   conduct: { t:'A discount is a reward, not a rescue',
     d:'The card prints what it buys before you spend it. Somebody who has dealt straight with you gives a few points back, somebody who has ground you on price all week gives one, and somebody who has threatened to walk gives nothing at all. Discounting every hand lifts your close rate and lowers your book.' },
   recurring: { t:'Licence money comes back every month, hours do not',
@@ -1303,6 +1307,17 @@ function revealDeck() {
 /* What a discount actually buys, in the same points the objection bar uses.
    A rep should see that a bully gives nothing back before spending margin on
    them, the same way they can see what a growth card costs. */
+/* A blackjack table posts the dealer's rule on the felt. Without the equivalent
+   there is no basic strategy to learn here, only guessing, so say plainly what
+   this customer's behaviour does to the number you have to beat. */
+function conductEffect(cd) {
+  if (cd.k === 'straight') { return 'two points easier to satisfy'; }
+  if (cd.k === 'fair') { return 'one point easier to satisfy'; }
+  /* Nominally +2, but the bar is capped at 21 so the effect measures nearer +1.4.
+     Say it the honest way rather than quoting a number they will not see. */
+  if (cd.k === 'bully') { return 'the hardest there is to satisfy'; }
+  return 'no help either way';
+}
 function discRoomLabel(c) {
   if (!S.deal) { return 'buys you room'; }
   var room = roomBought(S.deal, c.pct);
@@ -1353,7 +1368,8 @@ function render(){
     '<div class="dealtype">' + esc(d.typeLabel || 'New business') + ' &middot; ' +
       esc(d.typeNote || '') + '</div>' +
     '<div class="want">' + esc(d.conduct.label) + '</div>' +
-    '<div class="conduct-hint">' + esc(d.conduct.hint) + '</div>' +
+    '<div class="conduct-hint">' + esc(d.conduct.hint)
+        + ' &middot; ' + esc(conductEffect(d.conduct)) + '</div>' +
     '<div class="facts">' +
       '<div class="fact"><span class="k">Seats</span><span class="v">' + d.users + '</span></div>' +
       '<div class="fact"><span class="k">Plan</span><span class="v">' + LIC[d.plan].name + '</span></div>' +
