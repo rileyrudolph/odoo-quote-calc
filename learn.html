@@ -1222,11 +1222,16 @@ function revealDeck() {
   var felt = document.querySelector('.felt');
   var row = document.getElementById('counter');
   if (!felt || !row) { return; }
-  requestAnimationFrame(function () {
+  /* The cards animate in, so on the first frame the row is still the wrong
+     height and the scroll comes out as a no-op. Nudge again once it settles. */
+  var pull = function () {
     var f = felt.getBoundingClientRect(), r = row.getBoundingClientRect();
     var need = felt.scrollTop + (r.bottom - f.bottom) + 8;
     if (need > felt.scrollTop) { felt.scrollTop = need; }
-  });
+  };
+  requestAnimationFrame(pull);
+  setTimeout(pull, 160);
+  setTimeout(pull, 420);
 }
 function askBand(c) {
   if (typeof c.askLo !== 'number') { return 'asks more of them'; }
