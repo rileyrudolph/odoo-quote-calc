@@ -435,7 +435,7 @@ select:focus-visible, button:focus-visible{
 <p>Two things have to be true before a discount is worth giving. Price has to be what is actually holding them back, and the customer has to have earned it. Discount somebody who was never going to be reasonable and you give up margin, it still may not close, and if it does it churns at renewal. Discount somebody whose problem was never the price and you have paid for nothing.</p>
 <p>The strongest hands here are the ones that close at full price.</p>
 <h3>The rules you cannot break</h3>
-<p>The quote can only do what an Odoo rep can actually do. Multi-year licence discounts have a ceiling by term, one-year deals get none of it, implementation discounts stop at 30 percent, hosting stops at three workers before it has to move to a dedicated server, and you cannot take the same concession twice. The Rules tab in the Menu lists all of them.</p>
+<p>The quote can only do what an Odoo rep can actually do. Multi-year licence discounts have a ceiling by term, one-year deals get none of it, implementation discounts stop at 30 percent, hosting stops at eight workers before it needs a dedicated server, and you cannot take the same concession twice. The Rules tab in the Menu lists all of them.</p>
 </div></div>
 
 <script>
@@ -475,7 +475,7 @@ var SH_STAGING = 14.40;
    and lifts the ceiling to 256 workers and 4096GB. Anything above 3 workers is
    dedicated only, which is the whole reason a deal moves onto one. */
 var SH_DEDICATED = 480;
-var SH_SHARED_MAX_WORKERS = 3;
+var SH_SHARED_MAX_WORKERS = 8;
 var SH_DEDICATED_MAX_WORKERS = 256;    // Odoo.sh, one staging branch, per month
 
 function mulberry32(a){
@@ -605,9 +605,10 @@ function quote(d){
   var licMo = r.y1 * d.users * (1 - d.licDisc / 100);
   var shMo = 0;
   if (d.sh) {
-    shMo = d.shDedicated
-      ? SH_DEDICATED
-      : (d.shWorkers || 1) * SH_WORKER + SH_STAGING;
+    /* Dedicated is a flat fee ON TOP of the metered workers and staging, not a
+       replacement for them. Same as the calculator bills it. */
+    shMo = (d.shWorkers || 1) * SH_WORKER + SH_STAGING
+         + (d.shDedicated ? SH_DEDICATED : 0);
   }
   var reached = Math.min(pack.hours, IMPL_CAP_HOURS);
   var packTotal = pack.hours * pack.rate - reached * pack.rate * (d.packDisc / 100);
@@ -744,7 +745,7 @@ var RULES = {
     d:'A quote carries a single discount line of each kind. You do not get to stack them, so the one you pick is the one you live with.' },
   hosting: {
     t: 'Odoo.sh workers',
-    d: 'A shared Odoo.sh server bills $57.60 a worker plus   4.40 for staging and stops at three workers. Past that the database has to move to a dedicated server, which is a flat $480 a month with workers included up to 256. You cannot quote a fourth worker on shared hosting.'
+    d: 'Odoo.sh bills $57.60 a worker plus $14.40 for staging. Shared hosting stops at 8 workers. Past that the database needs a dedicated server, which adds a flat $480 a month on top of the metered lines and lifts the ceiling to 256 workers and 4096GB.'
   },
   conduct: { t:'A discount is a reward, not a rescue',
     d:'Given to somebody who has dealt straight with you it buys real room. Given to somebody who has ground you on price all week it buys almost nothing, because they were always going to ask again.' },
@@ -898,9 +899,9 @@ function hostingCards(d){
     out.push({
       kind: 'dedicated', tag: 'Hosting',
       head: 'Dedicated server',
-      body: 'Move them onto a dedicated server, which is a flat ' + fmt(SH_DEDICATED) +
-            ' a month and is the only way past ' + SH_SHARED_MAX_WORKERS + ' workers',
-      mrr: SH_DEDICATED - (w * SH_WORKER + SH_STAGING),
+      body: 'Put them on a dedicated server, which adds a flat ' + fmt(SH_DEDICATED) +
+            ' a month on top of the workers and is the only way past ' + SH_SHARED_MAX_WORKERS + ' workers',
+      mrr: SH_DEDICATED,
       apply: function(x){ x.shDedicated = true; x.shWorkers = Math.max(4, x.shWorkers || 1); }
     });
   }
