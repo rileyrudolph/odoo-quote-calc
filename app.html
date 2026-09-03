@@ -855,6 +855,11 @@ footer{
           </div>
           <div class="side-hint sh-note">These three are billed per month. Auto-sized from Users as a starting point: about 1 worker per 15&nbsp;users, about 2&nbsp;GB per user, 1 staging branch. Sizing is up to the rep and the business.</div>
 
+          
+          <div class="fieldrow">
+            <label><input type="checkbox" id="newCustomer"> New customer, first Success Pack</label>
+            <div class="sh-note">odoo.com/pricing-packs lists two columns. A new customer gets <strong>15% off automatically</strong>, for their first pack only. A 100 hour pack is <strong>$12,500.00</strong> for a returning customer and <strong>$10,625.00</strong> for a new one.</div>
+          </div>
           <div class="sh-sub">
             <label class="side-check" id="shDedicatedRow"><input type="checkbox" id="shDedicated"> Dedicated server</label>
             <div class="sh-note">A server of your own rather than a shared one. Flat <strong>$480.00 a month</strong> on top of the workers, storage and staging above, and it is the only way past 8 workers: dedicated runs <strong>4 to 256 workers</strong> and up to <strong>4096GB</strong>. Shared hosting stops at 8 workers and 512GB.</div>
@@ -1174,7 +1179,10 @@ const PACKS_BY_COUNTRY = {
   ]
 };
 function PACKS_() { return PACKS_BY_COUNTRY[country]; }
-const DISCOUNT_ELIGIBLE_HOURS = 200; // initial invoice only, per Josh's Aug 27 training call
+/* odoo.com/pricing-packs lists two columns: Returning Customers and New Customers.
+   A new customer gets 15% off automatically, for their first pack only. */
+  const NEW_CUSTOMER_PACK_PCT = 0.15;
+  const DISCOUNT_ELIGIBLE_HOURS = 200; // initial invoice only, per Josh's Aug 27 training call
 
 // Odoo.sh rates. odoo.sh/pricing is entirely client-rendered, no numeric pricing is present in
 // the static page, so these could not be independently re-confirmed the way the license and
@@ -1220,6 +1228,10 @@ const SH_LIMITS          = { workersMin: 1, workersMax: 8,   storageMax: 512  };
 const SH_LIMITS_DEDICATED = { workersMin: 4, workersMax: 256, storageMax: 4096 };
 const SH_STAGING_MAX = 20;
 function shLimits(){ return isDedicated() ? SH_LIMITS_DEDICATED : SH_LIMITS; }
+function isNewCustomer(){
+  const el = document.getElementById('newCustomer');
+  return !!(el && el.checked);
+}
 function isDedicated(){
   const el = document.getElementById('shDedicated');
   return !!(el && el.checked);
@@ -1386,9 +1398,11 @@ function compute(s){
   // Implementation, rounds up to the nearest real pack; the discount only reaches the first
   // 200 hours, on the initial invoice.
   const implList = packCost(s.hours);
+  const newCustPct = isNewCustomer() ? NEW_CUSTOMER_PACK_PCT : 0;
+  const implNewCustAmt = implList * newCustPct;
   const implDiscPct = Math.max(0, s.implDisc) / 100;
-  const implDiscAmt = packCost(Math.min(s.hours, DISCOUNT_ELIGIBLE_HOURS)) * implDiscPct;
-  const implTotal = implList - implDiscAmt;
+  const implDiscAmt = packCost(Math.min(s.hours, DISCOUNT_ELIGIBLE_HOURS)) * (1 - newCustPct) * implDiscPct;
+  const implTotal = implList - implNewCustAmt - implDiscAmt;
 
   // Hosting. Mirrors the license mechanic: multi-year discount on the Year-2+ portion, at this
   // scenario's own license discount.
@@ -1459,7 +1473,7 @@ function compute(s){
   }
 
   return { isMo, years, months, y1Total, y2PlusTotal, licDiscAmt, licTotal,
-           implList, implDiscAmt, implTotal, shList, shDiscAmt, shTotal, shYear1,
+           implList, implDiscAmt, implTotal, implNewCustAmt, shList, shDiscAmt, shTotal, shYear1,
            grand, perMonth, savings, discountGiven: (licDiscAmt + implDiscAmt), licDiscAmt, implDiscAmt, finLow, finHigh, schedule };
 }
 
@@ -1914,6 +1928,8 @@ function renderDetail(){
         ? `<div class="bd-save"><span>Saving vs month to month</span><span id="bdSave_${s.id}">${fmt(q.savings)}</span></div>` : '') +
       (q.discountGiven > 0
         ? `<div class="bd-save"><span>Discount you gave</span><span id="bdDisc_${s.id}">${fmt(q.discountGiven)}</span></div>` : '') +
+      (q.implNewCustAmt > 0
+        ? `<div class="bd-save"><span>New customer, first pack</span><span>${fmt(q.implNewCustAmt)}</span></div>` : '') +
       fin +
       yearsBlock +
       `<div class="bd-detail">` +
@@ -2437,6 +2453,8 @@ document.getElementById('toggleYears').addEventListener('click', () => {
 });
 document.getElementById('usersLinked').addEventListener('change', render);
 document.getElementById('shDedicated').addEventListener('change', render);
+  var nc = document.getElementById('newCustomer');
+  if (nc) nc.addEventListener('change', render);
 document.getElementById('useMtd').addEventListener('change', render);
 
 const payUSDBtn = document.getElementById('payUSD');
