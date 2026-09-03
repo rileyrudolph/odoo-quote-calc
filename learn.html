@@ -33,7 +33,11 @@ body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b1319;color:#e
 .shell{flex:1;display:flex;min-height:0;}
 .table-wrap{flex:1;min-width:0;position:relative;display:flex;flex-direction:column;}
 
-.topbar{display:flex;align-items:center;gap:14px;padding:10px 18px;background:#0b1319;
+/* Named for a screen reader, invisible on screen. The page had no h1 at all,
+   so there was nothing announcing what it is. */
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+      overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+    .topbar{display:flex;align-items:center;gap:14px;padding:10px 18px;background:#0b1319;
   border-bottom:1px solid var(--line);}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;}
 .brand-mark{width:30px;height:30px;border-radius:8px;background:var(--gold);color:#16202b;
@@ -271,6 +275,7 @@ select:focus-visible, button:focus-visible{
 }
 </style>
 
+<h1 class="sr-only">The Deal Table, an Odoo quoting practice game</h1>
 <div class="shell">
   <div class="table-wrap">
     <div class="topbar">
@@ -336,7 +341,8 @@ select:focus-visible, button:focus-visible{
       <p>Ranked by book value: everything you closed, less what the deals you lost cost you to chase. Your name is saved on this device only.</p>
       <div class="fld">
         <label>Your name<div class="hint">Shown on the board</div></label>
-        <input type="text" id="playerName" maxlength="18" placeholder="Add your name" style="min-width:132px">
+        <input type="text" id="playerName" maxlength="18" placeholder="Add your name"
+            aria-label="Your name on the leaderboard" style="min-width:132px">
       </div>
       <div class="lbtabs">
         <button class="lbtab on" data-period="day">Today</button>
@@ -398,14 +404,14 @@ select:focus-visible, button:focus-visible{
       <h3 style="margin-top:22px">Settings</h3>
       <div class="sec">
         <div class="fld"><label>How tough customers are<div class="hint">Applies to everyone</div></label>
-          <select id="setDiff">
+          <select id="setDiff" aria-label="How tough customers are">
             <option value="easy">Easy going</option>
             <option value="normal" selected>Mixed</option>
             <option value="hard">Tough</option>
           </select></div>
         
         <div class="fld"><label>Flag off schedule cards<div class="hint">Training wheels. Leave this off and you have to know the schedule yourself. It is in Pricing rules.</div></label>
-          <input type="checkbox" id="setWarn"></div>
+          <input type="checkbox" id="setWarn" aria-label="Flag discount cards that are off schedule"></div>
       </div>
       <div class="sec">
         <div class="sec-h">Start over</div>
