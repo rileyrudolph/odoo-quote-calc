@@ -2677,7 +2677,8 @@ function openCompose() {
   emailSenderNameInput.value = prof.name || '';
   emailSenderPhoneInput.value = prof.phone || '';
   emailMessageInput.value = 'Hi,\n\nHere is the Odoo pricing we went through, laid out the same way you saw it.\n\nThis is pricing for your reference, not a formal quote. The official quotation comes from Odoo once we agree the shape of it.\n\nHappy to walk back through any line of it.'; composeSigRow.style.display = emailSigOn.checked ? '' : 'none'; applySig();
-  syncSubject();
+  /* Subject stays blank. The rep writes it, the same as Gmail. */
+  emailSubjectInput.value = '';
   refreshScenarioPicker();
   composeStatus.textContent = '';
   composePanel.classList.remove('collapsed');
@@ -2685,7 +2686,6 @@ function openCompose() {
   emailToInput.focus();
 }
 
-emailCompanyInput.addEventListener('input', syncSubject);
 emailSenderNameInput.addEventListener('change', saveSender);
 emailSenderPhoneInput.addEventListener('change', saveSender);
 // ─────────────────────────────────────────────────────────────────────────────
