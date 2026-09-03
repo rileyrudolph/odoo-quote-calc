@@ -363,6 +363,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
   background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-lg);
   padding:16px 18px;min-width:0;
 }
+.bd-clash{margin:6px 0 2px;padding:6px 9px;border-radius:4px;font-size:.72rem;font-weight:650;background:rgba(217,164,65,.14);color:#8a6516;border:1px solid rgba(217,164,65,.5);}
 .bd-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
 .bd-num{
   width:19px;height:19px;border-radius:50%;background:var(--accent);color:#fff;flex:none;
@@ -1904,6 +1905,12 @@ function renderDetail(){
       `<span class="bd-title">${termLabel(s.term)} · ${planLabel(s.plan)}</span>` +
       `<span class="bd-seats">${users} ${users === 1 ? 'seat' : 'seats'}</span></div>` +
       `<div class="bd-total" id="bdTotal_${s.id}">${fmt(q.grand)}</div>` +
+      /* odoo.com: the Standard plan is hosted on Odoo Online only, so Odoo.sh and
+         on-premise both need Custom. Flag it rather than silently pricing a quote
+         that cannot be sold. */
+      (s.plan === 'standard' && (s.sh === 'sh' || s.sh === 'self')
+        ? `<div class="bd-clash">Standard is Odoo Online only. ${HOSTING[s.sh].label} needs the Custom plan.</div>`
+        : '') +
       `<div class="bd-sub">${q.isMo ? 'Billed monthly, no commitment · 12-month equivalent' : q.years + '-year term · ' + q.months + ' months'}</div>` +
       `<div class="bd-permo"><span>Amortized per month</span><span id="bdPer_${s.id}">${fmt(q.perMonth)}</span></div>` +
       (!q.isMo && q.savings > 0
