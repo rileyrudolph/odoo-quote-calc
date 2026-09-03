@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="google-site-verification" content="3CjePo9x7Vy6232tWVOHWV2YkCLaoXl33aEjPKDHXgs" />
 <title>Odoo Quote Calculator</title>
-<meta name="description" content="Odoo Quote Calculator — build an Odoo quote covering licence, implementation and hosting, then email it from your own Google account. An independent tool; not affiliated with Odoo S.A.">
+<meta name="description" content="Odoo Quote Calculator: build an Odoo quote covering licence, implementation and hosting, then email it from your own Google account. An independent tool; not affiliated with Odoo S.A.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23714B67'/%3E%3Ccircle cx='32' cy='32' r='13' fill='none' stroke='white' stroke-width='6.5'/%3E%3Cline x1='32' y1='12' x2='32' y2='52' stroke='white' stroke-width='5.5' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -72,7 +72,7 @@ h1{font-size:clamp(2.3rem,5.4vw,3.7rem);line-height:1.05;letter-spacing:-.035em;
 .tagline{font-size:clamp(1.15rem,2.2vw,1.5rem);color:var(--purple);font-weight:650;letter-spacing:-.02em;margin:0 0 18px}
 .lede{font-size:1.06rem;color:var(--sub);max-width:52ch;margin:0 0 32px}
 
-/* App strip — Odoo's own app icons, served from their CDN */
+/* App strip. Odoo's own app icons, served from their CDN */
 .apps{display:flex;flex-wrap:wrap;gap:14px 20px;margin:0 0 36px}
 .app{display:flex;flex-direction:column;align-items:center;gap:9px;width:76px;text-decoration:none}
 .app img{width:48px;height:48px;display:block;border-radius:12px;box-shadow:var(--sh-1);background:var(--surface)}
@@ -196,7 +196,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;background:var(--surface-
           <span class="dot" style="background:var(--teal)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
           <div>
             <h3>Priced to actually fit</h3>
-            <p>One price per user with every app included — no per-module surprises, and no enterprise
+            <p>One price per user with every app included, with no per-module surprises, and no enterprise
                licence that dwarfs the problem you're solving.</p>
           </div>
         </div>
@@ -214,7 +214,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;background:var(--surface-
           <span class="dot" style="background:var(--amber)" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg></span>
           <div>
             <h3>It grows with you</h3>
-            <p>Start with one app. Add users, add modules, add companies — the system scales without a
+            <p>Start with one app. Add users, add modules, add companies, and the system scales without a
                replatform every few years.</p>
           </div>
         </div>
@@ -246,7 +246,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;background:var(--surface-
 
       <div class="contact-copy">
         <h2>Let's talk about your business</h2>
-        <p>Tell me a bit about what you're running today and I'll come back with something useful —
+        <p>Tell me a bit about what you're running today and I'll come back with something useful.
            not a generic brochure.</p>
         <ul class="contact-list">
           <li><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>A walkthrough of the apps that fit what you actually do</li>
@@ -269,7 +269,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;background:var(--surface-
             <input name="company" type="text" autocomplete="organization" placeholder="Company name"></label>
           <label class="field"><span class="lbl">Team size</span>
             <select name="size">
-              <option>1–10</option><option>11–50</option><option>51–250</option><option>250+</option>
+              <option>1-10</option><option>11-50</option><option>51-250</option><option>250+</option>
             </select></label>
         </div>
         <label class="field"><span class="lbl">What's prompting the look?</span>
@@ -309,7 +309,7 @@ footer{border-top:1px solid var(--line);padding:30px 0;background:var(--surface-
 
 <script>
 // No backend here, so the form composes a properly formatted message and hands it
-// to the visitor's own mail client — nothing is posted or stored anywhere.
+// to the visitor's own mail client. Nothing is posted or stored anywhere.
 document.getElementById('contactForm').addEventListener('submit', function(e){
   e.preventDefault();
   var f = e.target;
@@ -332,7 +332,7 @@ document.getElementById('contactForm').addEventListener('submit', function(e){
   lines.push('Prompting the look: ' + v('reason'));
   lines.push('', v('message') || '(no additional notes)');
 
-  var subject = 'Odoo enquiry' + (v('company') ? ' — ' + v('company') : ' — ' + v('name'));
+  var subject = 'Odoo enquiry' + (v('company') ? ' - ' + v('company') : ' - ' + v('name'));
   window.location.href = 'mailto:rifei@odoo.com'
     + '?subject=' + encodeURIComponent(subject)
     + '&body=' + encodeURIComponent(lines.join('\n'));
