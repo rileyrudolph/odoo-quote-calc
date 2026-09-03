@@ -507,6 +507,7 @@ var SH_STAGING = 14.40;
    dedicated only, which is the whole reason a deal moves onto one. */
 var SH_DEDICATED = 480;
 var SH_SHARED_MAX_WORKERS = 8;
+var SH_DEDICATED_MIN_WORKERS = 4;
 var SH_DEDICATED_MAX_WORKERS = 256;    // Odoo.sh, one staging branch, per month
 
 function mulberry32(a){
@@ -700,10 +701,17 @@ function growth(d){
   }
 
   if (!d.sh) {
+    /* odoo.com: Standard is Odoo Online only, Odoo.sh needs the Custom plan. So
+       selling the hosting means selling the plan that allows it, and the card has
+       to carry both or it quotes something Odoo cannot fulfil. */
+    var planUplift = d.plan === 'standard'
+      ? (LIC.custom.y1 - LIC.standard.y1) * d.users : 0;
     out.push({ kind:'sh', tag:'Hosting', head:'Odoo.sh',
-      body:'Put them on Odoo.sh rather than leaving hosting to them',
-      mrr: SH_WORKER + SH_STAGING, ask: 2,
-      apply:function(x){ x.sh = true; } });
+      body: d.plan === 'standard'
+        ? 'Put them on Odoo.sh, which moves them onto Custom because Standard is Odoo Online only'
+        : 'Put them on Odoo.sh rather than leaving hosting to them',
+      mrr: SH_WORKER + SH_STAGING + planUplift, ask: 2,
+      apply:function(x){ x.sh = true; x.plan = 'custom'; } });
   }
 
   if (d.plan === 'standard') {
@@ -843,7 +851,9 @@ function applyDealType(d){
   d.typeNote = t.note;
   if (t.k === 'expansion') {
     d.term = pick([2, 3, 3, 4, 5]);
-    d.sh = Math.random() < 0.45;
+    /* An existing customer already on Odoo.sh is on Custom by definition, since
+       Standard is Odoo Online only. */
+    if (Math.random() < 0.45) { d.sh = true; d.plan = 'custom'; }
   }
   if (t.k === 'expansion') {
     d.packIdx = pick([1, 2, 2, 3]);
@@ -860,7 +870,9 @@ function applyStake(d){
   var tier = stakeTier();
   d.users = Math.max(1, Math.min(3000, Math.round(d.users * [1, 2, 4, 9][tier])));
   if (tier >= 2 && Math.random() < 0.5) d.plan = 'custom';
-  if (tier >= 3 && Math.random() < 0.7) d.sh = true;
+  /* A customer already on Odoo.sh is on Custom by definition, since Standard is
+     Odoo Online only. */
+  if (tier >= 3 && Math.random() < 0.7) { d.sh = true; d.plan = 'custom'; }
   return d;
 }
 function diffShift(){
@@ -944,14 +956,23 @@ function hostingCards(d) {
     });
   }
   if (!d.shDedicated) {
+    /* Dedicated starts at 4 workers on odoo.sh, so a customer sitting on 1 or 2
+       comes up to the floor and pays for those workers as part of the move. */
+    var floor = Math.max(d.shWorkers, SH_DEDICATED_MIN_WORKERS);
+    var lift = floor - d.shWorkers;
     out.push({
       kind: 'sh',
       tag: 'Odoo.sh',
       head: 'Dedicated server',
       body: 'Put them on a dedicated server, a flat $480 a month on top of the '
-          + 'workers and the only way past ' + SH_SHARED_MAX_WORKERS + ' workers',
-      mrr: SH_DEDICATED,
-      apply: function (x) { x.shDedicated = true; }
+          + 'workers and the only way past ' + SH_SHARED_MAX_WORKERS + ' workers'
+          + (lift > 0 ? ', and it starts at ' + SH_DEDICATED_MIN_WORKERS + ' workers'
+                        + ' so they move up from ' + d.shWorkers : ''),
+      mrr: SH_DEDICATED + lift * SH_WORKER,
+      apply: function (x) {
+        x.shDedicated = true;
+        if (x.shWorkers < SH_DEDICATED_MIN_WORKERS) { x.shWorkers = SH_DEDICATED_MIN_WORKERS; }
+      }
     });
   }
   return out;
