@@ -1078,6 +1078,20 @@ footer{
   </div>
 </div>
 <script>
+
+/* Fold the scenario table away once a rep has picked their row, so the breakdown
+   and the email are not pushed off screen. Delegated from document so it does not
+   depend on when this runs relative to the markup. */
+document.addEventListener("click", function (e) {
+  var btn = e.target && e.target.closest && e.target.closest("#toggleScenarios");
+  if (!btn) return;
+  var body = document.getElementById("scenariosBody");
+  if (!body) return;
+  var hidden = body.style.display === "none";
+  body.style.display = hidden ? "" : "none";
+  btn.textContent = hidden ? "Collapse scenarios" : "Show scenarios";
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PRICING DATA
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3338,18 +3352,4 @@ render();
     overlay.style.display = "flex";
   };
 })();
-
-
-/* Fold the scenario table away once a rep has picked their row, so the breakdown
-   and the email are not pushed off screen. Delegated from document so it does not
-   depend on when this runs relative to the markup. */
-document.addEventListener("click", function (e) {
-  var btn = e.target && e.target.closest && e.target.closest("#toggleScenarios");
-  if (!btn) return;
-  var body = document.getElementById("scenariosBody");
-  if (!body) return;
-  var hidden = body.style.display === "none";
-  body.style.display = hidden ? "" : "none";
-  btn.textContent = hidden ? "Collapse scenarios" : "Show scenarios";
-});
 </script>
