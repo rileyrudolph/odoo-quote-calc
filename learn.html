@@ -316,8 +316,8 @@ select:focus-visible, button:focus-visible{
       <div class="chiprow" id="chips"></div>
       <button class="abtn gold wide" id="btnDeal">Deal<small>next customer <kbd>Enter</kbd></small></button>
       <button class="abtn counter" id="btnHit" disabled>Add to the quote<small>worth more, asks more <kbd>G</kbd></small></button>
-        <button class="abtn double" id="btnDouble" disabled>Double down<small>twice the deal, one card <kbd>B</kbd></small></button>
-      <button class="abtn give" id="btnCounter" disabled>Give a discount<small>only helps on price <kbd>D</kbd></small></button>
+        <button class="abtn double" id="btnDouble" disabled>Double down<small>one more card, double stakes <kbd>B</kbd></small></button>
+      <button class="abtn give" id="btnCounter" disabled>Give a discount<small>lowers their total, costs margin <kbd>D</kbd></small></button>
       <button class="abtn sign" id="btnStand" disabled>Send the quote<small>stand and find out <kbd>X</kbd></small></button>
     </div>
   </div>
@@ -423,48 +423,60 @@ select:focus-visible, button:focus-visible{
 <h2>How to play</h2>
 <p>You are the rep. Every hand is one live deal, and your job is the same as it is at work: build a quote that actually covers what the customer needs, then send it.</p>
 <h3>The two sides</h3>
-<p>On their side of the table are the reasons they have not signed yet. You only ever see one of them. The rest are face down, and together they add up to a number you are trying to beat.</p>
-<p>On your side is your quote. Every piece you add is worth points, and points are the value of what you sold.</p>
-<h3>Your three moves</h3>
-<ul>
-<li><b>Grow the quote.</b> Add seats, extend the term, add a Success Pack, add Odoo.sh. Real money, and your number goes up.</li>
-<li><b>Give a discount.</b> This does not raise your quote, and it does not make a requirement go away. It only moves the part of their resistance that was about money. If what is stopping them is a migration question or a signature from upstairs, a discount buys you nothing and still costs you every month.</li>
-<li><b>Send the quote.</b> You stop building and find out.</li>
-      <li><b>Double down.</b> Once a hand, at any point. You commit to twice the deal,
-        take exactly one more piece of scope, and the quote sends itself. Twice the
-        contract if they sign, twice the pursuit if they do not. Because you only get
-        the one card it closes fewer deals than playing the hand out, so it is wrong
-        early and right once you are near 21 and one good card finishes the job.</li>
-</ul>
-<h3>The chip you pick</h3>
-<p>The chip is the room you walk into. A bigger chip puts you in front of a bigger customer: more seats, more likely to need Custom and Odoo.sh, worth far more if it lands, and a longer committee to talk round. It also costs more to chase. A deal you lose takes the pursuit with it, and on a big deal that is a large number.</p>
-<p>So the right moment to send is not the same at every chip. On small deals you can send earlier. On enterprise you have to scope further before it is worth sending, because their bar is higher and losing costs more. Playing a big room with a small room instinct is how a book goes backwards.</p>
-<h3>How a hand ends</h3>
-<ul>
-<li><b>Signed.</b> Your quote beat their objections and stayed at or under 21. The contract goes on your book.</li>
-<li><b>Not enough.</b> Your quote did not cover what they needed, so they went with someone who scoped it properly. You carry what the pursuit cost. Sending straight away almost always ends here.</li>
-<li><b>They stalled.</b> Your quote and their objections landed on the same
-          number. Nobody wins a tie: no commission this quarter, but you did not burn
-          the pursuit either and the deal rolls forward. About a quarter of hands end
-          here, the same way a push works at a blackjack table.</li>
-        <li><b>They walked.</b> You went past 21. You asked for more than this customer
-          could carry, you lose everything you built, and you still carry what the
-          pursuit cost. Every card prints what it will cost you before you take it,
-          so this one is always avoidable.</li>
-</ul>
-<h3>About discounts</h3>
-<p>A discount closes more deals. Give one on every hand and your close rate
-        goes up several points and your book value goes down. That is not a quirk
-        of this table, it is what discounting does, and it is why the board ranks
-        you on what you banked rather than on how many you closed.</p>
-      <p>Two things have to be true before it is worth giving. Price has to be
-        what is actually holding them back, and the customer has to have earned it.
-        The card tells you how much it buys back before you spend anything: a
-        customer who has dealt straight with you returns three points, one who has
-        threatened to walk since day one returns nothing at all. Give it to that
-        second one and you have paid full price for no ground.</p>
-      <p>The strongest hands here are the ones that close at full price.</p>
-<h3>The rules you cannot break</h3>
+      <p>Their side is a stack of objections. One is face up, the rest are not, and
+        together they add up to a number between 16 and 21. Your side is your quote,
+        and what it asks of them is the number on the table. Beat their number without
+        going past 21 and they sign.</p>
+
+      <h3>The buttons</h3>
+      <ul>
+        <li><b>Deal.</b> Next customer.</li>
+        <li><b>Add to the quote.</b> Deal yourself the growth cards. Every one is worth
+          real money and pushes your number up.</li>
+        <li><b>Give a discount.</b> Every objection on their side is worth points. A
+          discount subtracts points from the ones about money and nothing from the
+          rest, so their total drops and yours stays put. Costs you margin every month
+          of the term.</li>
+        <li><b>Double down.</b> One more card, double stakes. The quote sends itself
+          straight after, win or lose.</li>
+        <li><b>Send the quote.</b> Stop and find out.</li>
+      </ul>
+
+      <h3>The cards</h3>
+      <p>Each card prints what it adds and what it costs you: more seats, a longer
+        term, a Success Pack, Odoo.sh, the Custom plan. The money is what lands on
+        your book. The ask is how much further it pushes you toward 21, printed as a
+        band because the exact price moves a little, the way a real customer does.</p>
+
+      <h3>The chip</h3>
+      <p>The chip is the size of room you walk into. Bigger chip, bigger customer,
+        worth far more if it lands and more expensive to chase if it does not.</p>
+
+      <h3>How a hand ends</h3>
+      <ul>
+        <li><b>Signed.</b> You beat their number and stayed at or under 21.</li>
+        <li><b>Stalled.</b> You matched it exactly. Nothing banked, nothing lost, and
+          it rolls to next quarter. About a quarter of hands.</li>
+        <li><b>Not enough.</b> You came up short and they went with somebody who
+          scoped it properly. You carry the pursuit cost.</li>
+        <li><b>They walked.</b> You went past 21. Everything you built is gone and you
+          still carry the pursuit. Every card prints its cost, so this one is
+          avoidable.</li>
+      </ul>
+
+      <h3>About discounts</h3>
+      <p>A discount rescues about one deal in four that would otherwise have been
+        lost, and it costs you book value every time you give one. That trade is the
+        whole point: it lifts your close rate and lowers what you banked, which is why
+        the board ranks book value.</p>
+      <p>It only subtracts from objections that were about money. Their card says
+        &ldquo;Budget was set last quarter&rdquo; and a discount takes points off it.
+        It says &ldquo;Has questions about data migration&rdquo; and a discount takes
+        nothing off, because money was never the problem. Each discount card prints
+        how many points it buys back before you spend anything, and against somebody
+        who has threatened to walk since day one it says plainly: nothing.</p>
+
+      <h3>The rules you cannot break</h3>
 <p>The quote can only do what an Odoo rep can actually do. Multi-year licence discounts have a ceiling by term, one-year deals get none of it, implementation discounts stop at 30 percent, hosting stops at eight workers before it needs a dedicated server, and you cannot take the same concession twice. The Rules tab in the Menu lists all of them.</p>
 </div></div>
 
