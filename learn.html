@@ -389,11 +389,9 @@ select:focus-visible, button:focus-visible{
         out of patience, and it costs you every month for the length of the term.</p>
         <p class="mini">You get <b>one licence discount and one Success Pack discount</b> per quote, and the
         licence one has a ceiling that depends on the term.</p>
-        <p class="mini">Every discount card prints what it buys before you spend it. Somebody who has
-          dealt straight with you gives a few points back. Somebody who has ground you
-          on price since day one gives a single point, and somebody who has threatened
-          to walk since day one gives nothing at all, because they were always going to
-          ask again.</p>
+        <p class="mini">Every discount card prints what it buys before you spend it. Most customers give
+          a point or two back. Somebody who has threatened to walk since day one gives
+          nothing at all, because they were always going to ask again.</p>
         <p class="mini">Discounting every hand lifts your close rate and lowers your book. The board
           ranks book value, so the best scores come from quotes closed at full price.</p>
       </div>
@@ -586,7 +584,7 @@ var ACCOUNTS = [
 var CONDUCT = [
   { k:'straight', label:'Straight with you all the way',
     hint:'Took every meeting, answered honestly, has not once asked for a discount',
-    room:2, weight:2 },
+    room:1, weight:2 },
   { k:'fair', label:'Fair to deal with',
     hint:'Reasonable, a little slow, no games',
     room:1, weight:3 },
@@ -794,7 +792,7 @@ function discounts(d){
 // discount is worth three times as much on somebody who dealt straight
 // with you as it is on somebody who has ground you all week.
 function roomBought(d, pct){
-  var base = d.conduct.room;           // 2 straight, 1 fair, 1 grinder, 0 bully
+  var base = d.conduct.room;           // 1 straight, 1 fair, 1 grinder, 0 bully
   // Somebody who ground you on price all week gets almost nothing back for it.
   return Math.max(0, Math.round(base * (pct / 10)));
 }
@@ -817,7 +815,7 @@ var RULES = {
     d:'Their objections land somewhere between 16 and 21, and you have to beat that number without going past 21 yourself. One objection is face up, the rest are not. Somebody who has dealt straight with you settles two points lower and somebody fair one point lower. Somebody who has threatened to walk since day one sits two points higher, though the 21 ceiling clips some of that back. An expansion runs a point higher than new business, and the bigger the room you picked, the higher it starts.'
   },
   conduct: { t:'A discount is a reward, not a rescue',
-    d:'The card prints what it buys before you spend it. Somebody who has dealt straight with you gives a few points back, somebody who has ground you on price all week gives one, and somebody who has threatened to walk gives nothing at all. Discounting every hand lifts your close rate and lowers your book.' },
+    d:'The card prints what it buys before you spend it. Most customers give a point or two back, and somebody who has threatened to walk since day one gives nothing at all. Discounting every hand lifts your close rate about eight points and takes roughly ten thousand a hand off your book.' },
   recurring: { t:'Licence money comes back every month, hours do not',
     d:'A point off the licence costs you every month for the length of the term. A point off the Success Pack costs you once. Grow the licence, protect the licence.' }
 };
