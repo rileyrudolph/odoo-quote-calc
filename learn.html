@@ -140,6 +140,10 @@ body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b1319;color:#e
   font:inherit;font-size:.9rem;font-weight:700;cursor:pointer;}
 .abtn:hover:not(:disabled){border-color:var(--gold);}
 .abtn:disabled{opacity:.35;cursor:default;}
+/* A button holding a table open says so, otherwise clicking it again to close
+   is a thing you can only find by accident. */
+.abtn.is-open{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold);}
+.abtn.is-open small::after{content:' \2022 click again to close';opacity:.85;}
 .abtn.gold{background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#16202b;border-color:var(--gold);}
 .abtn.wide{padding-left:30px;padding-right:30px;}
 .abtn small{display:block;font-size:.55rem;font-weight:600;letter-spacing:.02em;
@@ -436,7 +440,8 @@ select:focus-visible, button:focus-visible{
       <ul>
         <li><b>Deal.</b> Next customer.</li>
         <li><b>Add to the quote.</b> Deal yourself the growth cards. Every one is worth
-          real money and pushes your number up.</li>
+          real money and pushes your number up. Looking is free: click the button again,
+          or press Esc, to close the table without taking anything.</li>
         <li><b>Give a discount.</b> Every objection on their side is worth points. A
           discount subtracts points from the ones about money and nothing from the
           rest, so their total drops and yours stays put. Costs you margin every month
@@ -693,16 +698,19 @@ function growth(d){
   var r = LIC[d.plan], out = [];
 
   var steps = d.users >= USERS_MAX ? [] : [
-    { n: Math.max(2, Math.round(d.users * 0.25)), ask: 1 },
-    { n: Math.max(4, Math.round(d.users * 0.6)),  ask: 2 },
-    { n: Math.max(8, Math.round(d.users * 1.2)),  ask: 4 }
+    /* Proportional to the account. The old floors of 2/4/8 meant a three seat
+       legal practice was offered another eight seats, nearly four times its own
+       size, which is not an expansion any rep would put in writing. */
+    { n: Math.max(1, Math.round(d.users * 0.25)), ask: 1 },
+    { n: Math.max(2, Math.round(d.users * 0.6)),  ask: 2 },
+    { n: Math.max(3, Math.round(d.users * 1.2)),  ask: 4 }
   ];
   steps.forEach(function(st){
     out.push({
-      kind:'users', tag:'Users', head:'+' + st.n + ' seats',
+      kind:'users', tag:'Users', head:'+' + st.n + (st.n === 1 ? ' seat' : ' seats'),
       body: st.n >= d.users
-        ? 'Roll it out across the business, another ' + st.n + ' people'
-        : 'Bring another ' + st.n + ' people onto the platform',
+        ? 'Roll it out across the business, another ' + st.n + (st.n === 1 ? ' person' : ' people')
+        : 'Bring another ' + st.n + (st.n === 1 ? ' person' : ' people') + ' onto the platform',
       mrr: r.y1 * st.n, ask: st.ask,
       apply:(function(n){ return function(x){ x.users += n; }; })(st.n)
     });
@@ -840,21 +848,50 @@ function unlock(id){ if (!id || S.unlocked[id]) return; S.unlocked[id] = true; r
 
 var totalObj = function(h){ var n=0; for (var i=0;i<h.length;i++) n += h[i].pts; return n; };
 
-/* Weight the draw by how this customer has behaved, so the conduct line and the
-   objections on the table tell the same story. A grinder raises money objections
-   because that is what grinding on price means; somebody straight with you raises
-   the practical ones instead, which is also why a discount does nothing for them. */
+/* The banner tells you who this customer is. The cards on the table have to be
+   that same person. Splitting objections only into price and not-price was too
+   blunt for that: a customer whose whole play is a competitor quote would raise
+   "Budget was set last quarter", which is a money objection but not his money
+   objection. So each objection carries the kind of pressure it actually applies,
+   and each conduct draws the kinds that match its own line. Somebody who has
+   never once asked for a discount does not open with the number, which is the
+   other half of why a discount buys nothing from a grinder and everything from
+   a straight dealer. */
+var OBJ_KIND = {
+  'Wants the quote in writing':          'process',
+  'Asks who else in their industry runs it': 'proof',
+  'Wants to see it working first':       'proof',
+  'Has questions about data migration':  'risk',
+  'Worried about the go live date':      'risk',
+  'Someone above them has to sign':      'process',
+  'Has a competing quote on the desk':   'competitor',
+  'Budget was set last quarter':         'number',
+  'Burned by their last rollout':        'risk',
+  'Finance wants the number lower':      'number',
+  'Still under contract elsewhere':      'competitor',
+  'Procurement runs a formal process':   'process'
+};
+/* Weights, not rules. The signature kind dominates without being the only thing
+   that can come up, so a grinder is unmistakable but not a fixed script. */
+var CONDUCT_DRAW = {
+  straight: { process:4, proof:4, risk:3, number:1, competitor:0 },
+  fair:     { process:3, proof:3, risk:3, number:1, competitor:1 },
+  grinder:  { process:1, proof:1, risk:1, number:6, competitor:2 },
+  bully:    { process:1, proof:1, risk:1, number:3, competitor:6 }
+};
 function objection(){
   var k = (S.deal && S.deal.conduct) ? S.deal.conduct.k : 'fair';
-  var leansPrice = (k === 'grinder' || k === 'bully');
+  var w = CONDUCT_DRAW[k] || CONDUCT_DRAW.fair;
   var bag = [];
   for (var oi = 0; oi < OBJECTIONS.length; oi++) {
     var ob = OBJECTIONS[oi];
-    var w = ob.price
-      ? (leansPrice ? 5 : (k === 'straight' ? 1 : 2))
-      : (leansPrice ? 1 : 3);
-    for (var wj = 0; wj < w; wj++) { bag.push(ob); }
+    var n = w[OBJ_KIND[ob.body]];
+    if (!(n > 0)) { continue; }
+    for (var wj = 0; wj < n; wj++) { bag.push(ob); }
   }
+  /* A new objection added to the list above without a kind would otherwise be
+     unreachable, and a typo in a body string would empty the bag entirely. */
+  if (!bag.length) { bag = OBJECTIONS.slice(); }
   var o = pick(bag);
   return { pts:o.pts, body:o.body, price:o.price || 0 };
 }
@@ -1092,6 +1129,11 @@ function showDiscounts(){
   /* If the schedule has nothing to give on this deal, say which rule closes it
      off rather than opening an empty table. */
   if (S.live && !discountsLegal(S.deal).length) {
+    /* Clear whatever was on the table first, or the growth cards stay up
+       underneath a headline that is talking about discounts. */
+    S.offer = [];
+    S.mode = '';
+    render();
     setMsg('No discount is available on this deal.', '');
     setWhy(noDiscountReason(S.deal));
     return;
@@ -1203,8 +1245,19 @@ function growthLine(c){
 function discountLine(c, room){
   var q = quote(S.deal);
   var t = 'They have dealt with you like this: ' + S.deal.conduct.label.toLowerCase() + '. ';
-  if (S.deal.conduct.room >= 2) t += 'That is why it bought you ' + room + '. A discount lands when somebody has earned it. ';
-  else t += 'That is why it only bought you ' + room + '. They were always going to ask again, so you spent it for very little. ';
+  /* Same dead threshold as the renewal line: room tops out at 1, so every
+     customer got told they were always going to ask again, including one the
+     banner had just called straight with you. */
+  var k = S.deal.conduct.k;
+  if (k === 'straight') {
+    t += 'That is why it bought you ' + room + '. A discount lands when somebody has earned it. ';
+  } else if (k === 'bully') {
+    t += 'That is why it bought you nothing. Somebody who has threatened to walk since day one banks it and asks again. ';
+  } else if (k === 'grinder') {
+    t += 'That is why it only bought you ' + room + '. Grinding on price is how they got here, and it is how they will open the renewal. ';
+  } else {
+    t += 'That is why it bought you ' + room + '. Fair to deal with, but they had not asked for it. ';
+  }
   if (c.over) t += 'It was also outside what the desk approves. ';
   return t + 'The quote is now ' + fmt(q.mrr) + ' a month.';
 }
@@ -1299,7 +1352,10 @@ function settle(kind){
     : priceHeld === 0
       ? ' Nothing they raised was about price, so the discount bought you nothing and still costs you every month.'
       : ' Your discount came off the ' + priceHeld + ' they were holding out on price.';
-  var keep = !gave ? 1 : d.conduct.room >= 2 ? 1 : d.conduct.room >= 1 ? 0.6 : 0.4;
+  var keep = !gave ? 1
+    : d.conduct.k === 'straight' ? 1
+    : d.conduct.k === 'bully' ? 0.4
+    : 0.6;
   var caved = gave && keep < 1;
   if (caved) delta = Math.round(delta * keep);
     cls = 'win'; S.won++;
@@ -1324,8 +1380,11 @@ function settle(kind){
           (d.licDisc && d.packDisc ? ' and ' : '') +
           (d.packDisc ? d.packDisc + '% on the pack' : '') + '.'
         : 'You closed it without a single discount.') +
-      (caved ? ' They ground you for it all week and you gave it, so thirty percent of this comes straight back off at renewal. They will open there and push again.' : '') +
-      ((d.licDisc || d.packDisc) && d.conduct.room >= 5 ? ' They earned that one, and it will not come back to bite you.' : '');
+      (caved ? ' They ground you for it all week and you gave it, so ' +
+        Math.round((1 - keep) * 100) + ' percent of this comes straight back off at ' +
+        'renewal. They will open there and push again.' : '') +
+      (gave && !caved ? ' They dealt straight with you the whole way, so that one was ' +
+        'earned and it will not come back at renewal.' : '');
   } else if (kind === 'short') {
     delta = -Math.round(q.contract * CHASE_COST_PCT * (S.doubled ? 2 : 1));
     cls = 'lose'; S.lost++;
@@ -1408,40 +1467,47 @@ function conductEffect(cd) {
   return 'no help either way';
 }
 function discRoomLabel(c) {
-  if (!S.deal) { return 'buys you room'; }
+  if (!S.deal) { return 'takes points off their price objections'; }
   var room = roomBought(S.deal, c.pct);
-  if (!room) { return 'buys you nothing'; }
-  return 'buys back ' + room + (room === 1 ? ' point' : ' points');
+  if (!room) { return 'buys nothing from this customer'; }
+  return 'takes ' + room + (room === 1 ? ' point' : ' points') +
+    ' off what they raise on price';
 }
+/* The money on the card is exact. What it costs you in patience is not, because
+   a customer's is not exact either, so the card says how big the ask is rather
+   than printing a range and then charging somewhere inside it. The lesson a rep
+   carries out of this is the one on the left of the card: this much MRR asks
+   about this much of them. */
 function askBand(c) {
   if (typeof c.askLo !== 'number') { return 'asks more of them'; }
-  return c.askLo === c.askHi
-    ? 'asks ' + c.askLo + ' more'
-    : 'asks ' + c.askLo + ' to ' + c.askHi + ' more';
+  var mid = (c.askLo + c.askHi) / 2;
+  if (mid <= 3) { return 'a small ask'; }
+  if (mid <= 5) { return 'a real ask'; }
+  return 'a big ask';
 }
 function offerCard(c, i){
   var d = document.createElement('div');
   var isDisc = S.mode === 'disc';
   d.className = 'cc' + (isDisc ? ' discount' : '');
-  var money = '';
-  if (!isDisc) {
-    var before = quote(S.deal).contract;
-    var probe = JSON.parse(JSON.stringify(S.deal)); c.apply(probe);
-    /* The two numbers a rep is judged on: what it adds every month, and what the
-       whole commitment comes to. */
-    var dMrr = quote(probe).mrr - quote(S.deal).mrr;
-    var dTcv = quote(probe).contract - before;
-    money = (dMrr > 0 ? '+' + fmt(dMrr) + ' MRR' : 'same MRR') +
-      '<span class="tcv">' + (dTcv >= 0 ? '+' : '') + fmt(dTcv) + ' contract value</span>';
-  }
+  /* The two numbers a rep is judged on: what it moves every month, and what the
+     whole commitment comes to. A discount is priced in exactly the same units as
+     a growth card, because the point of the hand is comparing the two. */
+  var beforeQ = quote(S.deal);
+  var probe = JSON.parse(JSON.stringify(S.deal)); c.apply(probe);
+  var afterQ = quote(probe);
+  var dMrr = afterQ.mrr - beforeQ.mrr;
+  var dTcv = afterQ.contract - beforeQ.contract;
+  var money = (dMrr === 0 ? 'same MRR' : (dMrr > 0 ? '+' : '') + fmt(dMrr) + ' MRR') +
+    '<span class="tcv">' + (dTcv >= 0 ? '+' : '') + fmt(dTcv) + ' contract value</span>';
   d.innerHTML =
     '<div class="kind">' + esc(c.tag) + '</div>' +
     '<div class="head">' + esc(c.head) + '</div>' +
     '<div class="body">' + esc(c.body) + '</div>' +
     (isDisc
-      ? '<div class="tenor">costs you every month, and you only get one</div>' +
-        '<div class="split"><span class="pts">' + discRoomLabel(c) + '</span>' +
-        '<span class="mo">' + esc(c.note) + '</span></div>'
+      ? '<div class="tenor">' + esc(c.note) +
+          ' &middot; one licence and one pack discount per quote</div>' +
+        '<div class="split"><span class="pts">' + money + '</span>' +
+        '<span class="mo">' + discRoomLabel(c) + '</span></div>'
       : '<div class="split"><span class="pts">' + money + '</span>' +
         '<span class="mo grow">' + askBand(c) + '</span></div>');
   d.onclick = function(){ takeOffer(i); };
@@ -1500,6 +1566,8 @@ function render(){
   document.getElementById('btnDeal').disabled = S.live;
   document.getElementById('btnHit').disabled = !S.live;
   document.getElementById('btnCounter').disabled = !S.live;
+  document.getElementById('btnHit').classList.toggle('is-open', offerOpen('grow'));
+  document.getElementById('btnCounter').classList.toggle('is-open', offerOpen('disc'));
   document.getElementById('btnStand').disabled = !S.live;
   /* Once per hand, at any point. The read is the same one you make doubling on
      eleven: commit when one more card lands you strong, not when you are miles off. */
@@ -1698,8 +1766,22 @@ function load(){
 });
 
 document.getElementById('btnDeal').onclick = deal;
-document.getElementById('btnHit').onclick = showGrowth;
-document.getElementById('btnCounter').onclick = showDiscounts;
+/* Opening a table of cards is not a commitment. A rep who clicks in to see what
+   is available has to be able to click back out without buying something. */
+function closeOffer(){
+  S.offer = [];
+  S.mode = '';
+  setMsg('Build the quote up, then send it.', '');
+  setWhy('Every card you add is worth more money and asks more of them. Send it while they will still sign.');
+  render();
+}
+function offerOpen(mode){ return S.live && S.mode === mode && S.offer.length > 0; }
+document.getElementById('btnHit').onclick = function(){
+  if (offerOpen('grow')) { closeOffer(); } else { showGrowth(); }
+};
+document.getElementById('btnCounter').onclick = function(){
+  if (offerOpen('disc')) { closeOffer(); } else { showDiscounts(); }
+};
 document.getElementById('btnStand').onclick = sendQuote;
   document.getElementById('btnDouble').onclick = doubleDown;
 document.getElementById('btnPanel').onclick = function(){
@@ -1719,6 +1801,7 @@ document.addEventListener('keydown', function(e){
   if (e.key !== 'Escape') return;
   if (document.body.classList.contains('how-open')) return closeHow();
   if (document.body.classList.contains('panel-open')) return document.body.classList.remove('panel-open');
+  if (S.live && S.offer.length) return closeOffer();
 });
 
 document.getElementById('btnWipe').onclick = function(){
