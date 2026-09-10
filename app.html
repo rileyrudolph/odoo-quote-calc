@@ -377,13 +377,16 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 }
 .bd-total{font-size:1.75rem;font-weight:800;color:var(--accent);letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1;}
 .bd-sub{font-size:.74rem;color:var(--sub);margin-top:3px;}
-.bd-permo.bd-save{
-  display:flex;justify-content:space-between;gap:10px;font-size:.8rem;
-  padding-top:9px;margin-top:9px;border-top:1px solid var(--line);color:var(--sub);
+.bd-permo, .bd-save{
+  display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+  font-size:.8rem;padding-top:9px;margin-top:9px;
+  border-top:1px solid var(--line);color:var(--sub);
 }
 .bd-permo span:last-child{font-weight:750;color:var(--ink);font-variant-numeric:tabular-nums;}
 .bd-save{color:var(--teal-text);border-top-style:dashed;}
 .bd-save span:last-child{font-weight:750;font-variant-numeric:tabular-nums;}
+.bd-gave{color:var(--amber-text);border-top-style:dashed;}
+.bd-gave span:last-child{font-weight:750;font-variant-numeric:tabular-nums;color:var(--amber-text);}
 .bd-fin{
   margin-top:10px;padding:9px 11px;background:var(--surface);border:1px dashed var(--line);
   border-radius:var(--r-md);
@@ -1917,7 +1920,7 @@ function renderDetail(){
       (!q.isMo && q.savings > 0
         ? `<div class="bd-save"><span>Saving vs month to month</span><span id="bdSave_${s.id}">${fmt(q.savings)}</span></div>` : '') +
       (q.discountGiven > 0
-        ? `<div class="bd-save"><span>Discount you gave</span><span id="bdDisc_${s.id}">${fmt(q.discountGiven)}</span></div>` : '')  +
+        ? `<div class="bd-permo bd-gave"><span>Discount you gave</span><span id="bdDisc_${s.id}">${fmt(q.discountGiven)}</span></div>` : '')  +
       fin +
       yearsBlock +
       `<div class="bd-detail">` +
@@ -3362,3 +3365,5 @@ render();
   };
 })();
 </script>
+</body>
+</html>

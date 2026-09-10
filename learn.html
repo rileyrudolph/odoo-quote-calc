@@ -124,7 +124,6 @@ body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b1319;color:#e
 .fact.big .v{color:var(--gold-2);font-size:1rem;}
 .cc.discount{border-color:#8e3b36;background:#fdf4f2;}
 .cc.discount .head{color:var(--red);}
-.cc .mo.grow{color:var(--sub);font-weight:600;font-size:.6rem;}
 .cc .tenor{font-size:.55rem;letter-spacing:.05em;text-transform:uppercase;color:#8b98a6;margin-top:5px;font-weight:700;}
 .cc .per{font-size:.57rem;color:var(--sub);margin-top:3px;}
 .cc .warn{margin-top:4px;font-size:.56rem;color:var(--red);font-weight:700;line-height:1.25;}
@@ -292,7 +291,7 @@ select:focus-visible, button:focus-visible{
       <button class="tbtn" id="btnPanel">Menu</button>
       <button class="tbtn" id="btnHow">How to play</button>
       <div class="bank">
-        <span class="bank-label">Book value</span>
+        <span class="bank-label" id="bankLabel">Commission, month 1</span>
         <span class="bank-amt" id="bank">$0</span>
       </div>
     </div>
@@ -326,7 +325,7 @@ select:focus-visible, button:focus-visible{
       <button class="abtn gold wide" id="btnDeal">Deal<small>next customer <kbd>Enter</kbd></small></button>
       <button class="abtn counter" id="btnHit" disabled>Add to the quote<small>worth more, asks more <kbd>G</kbd></small></button>
         <button class="abtn double" id="btnDouble" disabled>Double down<small>one more card, double stakes <kbd>B</kbd></small></button>
-      <button class="abtn give" id="btnCounter" disabled>Give a discount<small>lowers their total, costs margin <kbd>D</kbd></small></button>
+      <button class="abtn give" id="btnCounter" disabled>Give a discount<small>answers price only, cuts your MRR <kbd>D</kbd></small></button>
       <button class="abtn sign" id="btnStand" disabled>Send the quote<small>stand and find out <kbd>X</kbd></small></button>
     </div>
   </div>
@@ -342,7 +341,7 @@ select:focus-visible, button:focus-visible{
 
     <div class="pane on" id="pane-board">
       <h3>Leaderboard</h3>
-      <p>Ranked by book value: everything you closed, less what the deals you lost cost you to chase. Your name is saved on this device only.</p>
+      <p>Ranked on net bookings: contract value you signed, less the cost of chasing the deals you lost. Your name and total post to the shared board.</p>
       <div class="fld">
         <label>Your name<div class="hint">Shown on the board</div></label>
         <input type="text" id="playerName" maxlength="18" placeholder="Add your name"
@@ -363,8 +362,11 @@ select:focus-visible, button:focus-visible{
         <div class="stat"><span>Discounts given</span><span id="stAvg">nothing yet</span></div>
         <div class="stat"><span>Close rate</span><span id="stLeft">$0</span></div>
             <div class="stat"><span>Best streak</span><span id="stStreak">$0</span></div>
-            <div class="stat"><span>MRR closed</span><span id="stMrr">$0</span></div>
-            <div class="stat"><span>Net revenue retention</span><span id="stNrr">$0</span></div>
+            <div class="stat"><span>MRR achieved</span><span id="stMrr">$0</span></div>
+            <div class="stat"><span>NRR achieved</span><span id="stNrr">$0</span></div>
+            <div class="stat"><span>Next dollar of MRR pays</span><span id="stBand">-</span></div>
+            <div class="stat"><span>Best month</span><span id="stBest">$0</span></div>
+            <div class="stat"><span>Paid to date</span><span id="stPaid">$0</span></div>
             <div class="stat"><span>Closed at full price</span><span id="stClean">nothing yet</span></div>
       </div>
     </div>
@@ -402,12 +404,19 @@ select:focus-visible, button:focus-visible{
         <p class="mini">Every discount card prints what it buys before you spend it. Most customers give
           a point or two back. Somebody who has threatened to walk since day one gives
           nothing at all, because they were always going to ask again.</p>
-        <p class="mini">Discounting every hand lifts your close rate and lowers your book. The board
-          ranks book value, so the best scores come from quotes closed at full price.</p>
+        <p class="mini">Discounting every hand lifts your close rate and lowers what you are paid.
+          The board ranks your best month of commission, so the best scores come from long terms
+          closed at full price.</p>
       </div>
       <h3 style="margin-top:22px">Settings</h3>
       <div class="sec">
-        <div class="fld"><label>How tough customers are<div class="hint">Applies to everyone</div></label>
+        <div class="fld"><label>Which book you are on<div class="hint">The two plans pay very differently. On the 1 to 5 book the stretch between seventy and a hundred percent of quota pays 5.5212 and everything past quota pays 0.65.</div></label>
+          <select id="setSeg" aria-label="Which commission plan you are on">
+            <option value="6to50" selected>6 to 50 seats</option>
+            <option value="1to5">1 to 5 seats</option>
+          </select></div>
+
+        <div class="fld"><label>How tough customers are<div class="hint">Shifts how much objection the room carries.</div></label>
           <select id="setDiff" aria-label="How tough customers are">
             <option value="easy">Easy going</option>
             <option value="normal" selected>Mixed</option>
@@ -516,6 +525,66 @@ var PACKS = [
    you pulled in. Close it and that cost is covered by the contract. Lose it and
    you carry it, and the bigger the deal you chased the more it hurts. */
 var CHASE_COST_PCT = 0.28;
+
+/* ===================================================================
+   WHAT YOU ACTUALLY GET PAID
+   Straight off the signed plans: USHR BU-DS-NA-6to50 (11/20/2025) and
+   USHR BU-DS-NA-1to5 (07/15/2025). Both pay on two lines, MRR and NRR,
+   against a monthly quota that resets. Neither pays on contract value,
+   which is what this board used to rank, and that is why it taught the
+   wrong instincts: it made a five year term look like a big number
+   rather than a five times multiplier on the only line that matters.
+   =================================================================== */
+var MRR_RATE = { 1:1, 2:2, 3:3, 4:4, 5:5 };   // the plan's MRR Rate is the term in years
+var BAND_EDGES = [0.5, 0.7, 1.0, 1.2, 1.5, Infinity];
+var SEGMENTS = {
+  '6to50': { label:'6 to 50 seats', mrrQ:2100, nrrQ:18000,
+    mrrR:[0.1235, 1.2325, 1.2325, 1.0668, 0.7429, 0.7429],
+    nrrR:[0.0068, 0.0612, 0.0612, 0.0340, 0.0340, 0.0340] },
+  '1to5':  { label:'1 to 5 seats',  mrrQ:700,  nrrQ:6000,
+    mrrR:[0.3705, 0.9634, 5.5212, 0.6500, 0.6500, 0.6500],
+    nrrR:[0.0204, 0.0388, 0.2801, 0.0420, 0.0420, 0.0420] }
+};
+/* A month is ten hands. Long enough to climb out of the dead band at the
+   bottom, short enough that where you stand starts mattering early. */
+var MONTH_HANDS = 10;
+function seg(){ return SEGMENTS[S.segment] || SEGMENTS['6to50']; }
+function bandsFor(target, rates){
+  var out = [], floor = 0;
+  for (var i = 0; i < BAND_EDGES.length; i++) {
+    var top = BAND_EDGES[i] === Infinity ? Infinity : target * BAND_EDGES[i];
+    out.push({ from:floor, to:top, rate:rates[i] });
+    floor = top;
+  }
+  return out;
+}
+function bandedCommission(v, bs){
+  if (!(v > 0)) { return 0; }
+  var total = 0, floor = 0;
+  for (var i = 0; i < bs.length; i++) {
+    if (v <= floor) { break; }
+    total += (Math.min(v, bs[i].to) - floor) * bs[i].rate;
+    floor = bs[i].to;
+  }
+  return total;
+}
+/* What the next dollar pays, which is the number that actually moves a rep. */
+function marginalRate(v, bs){
+  for (var i = 0; i < bs.length; i++) { if (v < bs[i].to) { return bs[i].rate; } }
+  return bs[bs.length - 1].rate;
+}
+function monthCommission(){
+  var g = seg();
+  return bandedCommission(S.monthMrr, bandsFor(g.mrrQ, g.mrrR))
+       + bandedCommission(S.monthNrr, bandsFor(g.nrrQ, g.nrrR));
+}
+/* The MRR change line the plan describes: the recurring part of the contract
+   divided by its length, then multiplied by the MRR Rate for that term. */
+function achievedFrom(d, q){
+  var months = d.term * 12;
+  var recurring = q.contract - q.packTotal;
+  return { mrr: (recurring / months) * (MRR_RATE[d.term] || 1), nrr: q.packTotal };
+}
 var BAR_BASE = 18, BAR_SPREAD = 5, BAR_MIN = 14, BAR_MAX = 21, BAR_CAP = 21;
 var ASK_SPAN = 13, ASK_GAIN = 0.35, ASK_MIN = 2, ASK_MAX = 11, ASK_JITTER = 2;
 var OPEN_BASE = 4, OPEN_MIN = 4, OPEN_MAX = 13, OPEN_JITTER = 3;
@@ -529,6 +598,9 @@ var SH_STAGING = 14.40;
 var SH_DEDICATED = 480;
 var SH_SHARED_MAX_WORKERS = 8;
 var SH_DEDICATED_MIN_WORKERS = 4;
+/* Below this the shared plan still has room, so nobody is buying a flat $480 a
+   month for headroom they do not need. */
+var SH_DEDICATED_FROM_WORKERS = 6;
 var SH_DEDICATED_MAX_WORKERS = 256;    // Odoo.sh, one staging branch, per month
 
 function mulberry32(a){
@@ -639,22 +711,37 @@ var OBJECTIONS = [
 var BIG_INDUSTRY = /depots|forty stores|group|six sites|distribution|forwarding|trust|Refrigerated/i;
 var SMALL_INDUSTRY = /Legal|Accountancy|Optical|Design and fit|Security|Solar|Marine|printing/i;
 var COMPLEX_INDUSTRY = /Biotech|Pharma|Precision|moulding|Aviation|Healthcare|trust|Refrigerated|forwarding|depots|Mining|Distilling|exporting|regulated/i;
+/* Sized to the book a Buffalo AE actually works. Sampled across three live
+   territories in Odoo: the 1-5 desk runs 1 to 3 seats, and the 6+ desk tops out
+   around 15 on its largest account. The old bands ran to 140 seats, which put a
+   single deal at three and a half times a monthly MRR quota and made the
+   commission bands meaningless. */
 function seatBand(t){
-  if (BIG_INDUSTRY.test(t)) { return [40, 60, 90, 140]; }
-  if (SMALL_INDUSTRY.test(t)) { return [3, 5, 8, 12]; }
-  return [12, 18, 25, 40];
+  if (BIG_INDUSTRY.test(t)) { return [8, 12, 18, 28]; }
+  if (SMALL_INDUSTRY.test(t)) { return [1, 2, 3, 5]; }
+  return [3, 5, 8, 12];
 }
 function newDeal(){
   var a = pick(ACCOUNTS);
   var c = pickConduct();
+  var seats = pick(seatBand(a.t));
+  /* How many people actually work there. Seats start below it because not every
+     department goes on in wave one, but the quote can never pass it. Without this
+     the winning line was to keep buying seats: a five person firm was being sold
+     fifty three of them, which is not a deal any rep could put in writing. */
+  var staff = Math.max(seats + 1, Math.round(seats * (1.25 + rng() * 1.05)));
   return {
+    staff: staff,
     a:a, conduct:c,
-    users: pick(seatBand(a.t)),
+    users: seats,
     term: 1,
     plan: (COMPLEX_INDUSTRY.test(a.t) ? rng() < 0.75 : rng() < 0.2) ? 'custom' : 'standard',
     packIdx: 0,
     sh: false,
-    shWorkers: 1,
+    /* Roughly a worker per fifteen seats, the way Odoo.sh is actually sized. A
+       small practice sits on one; a forty store retailer starts near the shared
+       ceiling, which is the only place a dedicated server is a real proposal. */
+    shWorkers: Math.max(1, Math.round(seats / 15)),
     shDedicated: false,
     licDisc: 0,
     packDisc: 0,
@@ -697,7 +784,9 @@ var USERS_MAX = 10000;
 function growth(d){
   var r = LIC[d.plan], out = [];
 
-  var steps = d.users >= USERS_MAX ? [] : [
+  /* Never offer seats the business does not have people for. */
+  var headroom = Math.max(0, (d.staff || USERS_MAX) - d.users);
+  var steps = (d.users >= USERS_MAX || headroom < 1) ? [] : [
     /* Proportional to the account. The old floors of 2/4/8 meant a three seat
        legal practice was offered another eight seats, nearly four times its own
        size, which is not an expansion any rep would put in writing. */
@@ -705,6 +794,14 @@ function growth(d){
     { n: Math.max(2, Math.round(d.users * 0.6)),  ask: 2 },
     { n: Math.max(3, Math.round(d.users * 1.2)),  ask: 4 }
   ];
+  /* Trim each step to what is left of the business, and drop the duplicates that
+     collapse onto the same number once they are trimmed. */
+  var seenStep = {};
+  steps = steps.map(function(st){ return { n: Math.min(st.n, headroom), ask: st.ask }; })
+               .filter(function(st){
+                 if (st.n < 1 || seenStep[st.n]) { return false; }
+                 seenStep[st.n] = 1; return true;
+               });
   steps.forEach(function(st){
     out.push({
       kind:'users', tag:'Users', head:'+' + st.n + (st.n === 1 ? ' seat' : ' seats'),
@@ -841,7 +938,11 @@ var RULES = {
 var S = {
   bank:0, deal:null, them:[], offer:[], mode:'grow',
   live:false, accept:13, relief:0, streak:0, best:0, mrr:0, baseMrr:0, keptMrr:0, hands:0, won:0, lost:0, discounts:0, cleanWon:0, doubled:false, cardsTaken:0, doubledAt:-1,
-  unlocked:{}, log:[], name:''
+  unlocked:{}, log:[], name:'',
+  /* The month you are standing in. Everything the plan pays is measured
+     against it, and it empties on the first of the next one. */
+  segment:'6to50', monthNo:1, monthHands:0, monthMrr:0, monthNrr:0,
+  paidToDate:0, bestMonth:0
 };
 
 function unlock(id){ if (!id || S.unlocked[id]) return; S.unlocked[id] = true; renderRules(); }
@@ -942,7 +1043,11 @@ function applyDealType(d){
   }
   if (t.k === 'expansion') {
     d.packIdx = pick([1, 2, 2, 3]);
+    /* A department already live means a bigger business, so the headcount moves
+       with the seats. Growing users alone left the quote able to pass the staff
+       ceiling the seat cards are supposed to respect. */
     d.users = Math.max(5, Math.round(d.users * 1.5));
+    d.staff = Math.max(d.staff, Math.round(d.users * (1.25 + rng() * 1.05)));
   }
   return d;
 }
@@ -1040,7 +1145,7 @@ function hostingCards(d) {
       apply: function (x) { x.shWorkers = to; }
     });
   }
-  if (!d.shDedicated) {
+  if (!d.shDedicated && d.shWorkers >= SH_DEDICATED_FROM_WORKERS) {
     /* Dedicated starts at 4 workers on odoo.sh, so a customer sitting on 1 or 2
        comes up to the floor and pays for those workers as part of the move. */
     var floor = Math.max(d.shWorkers, SH_DEDICATED_MIN_WORKERS);
@@ -1311,24 +1416,22 @@ function sendQuote(){
    never removes the decision, only explains it. */
 function readOut(kind, asked, bar){
   if (kind === 'push') {
-    return 'You landed on ' + asked + ' and so did they. One more point of value '
-      + 'anywhere in the quote and it was signed.';
+    return 'Dead even. One more line anywhere in the quote takes it.';
   }
   if (kind === 'signed') {
     var over = asked - bar;
-    if (asked >= 20) return 'You cleared it by ' + over + ' with ' + (21 - asked) +
-      ' to spare before they walked. That was close.';
-    if (over <= 2) return 'You cleared it by ' + over + '. Any less and they would have gone elsewhere.';
-    return 'You cleared it by ' + over + '.';
+    if (asked >= 20) return 'Cleared by ' + over + ' with ' + (21 - asked) +
+      ' of headroom left. Any further and you talk yourself out of it.';
+    if (over <= 2) return 'Cleared by ' + over + '. Thin. A competitor with a fuller scope takes this one.';
+    return 'Cleared by ' + over + ', scoped with room to spare. That is the deal you want.';
   }
   if (kind === 'short') {
     var need = (bar - asked) + 1;
     return need <= 3
-      ? 'You were ' + need + ' short. One more concession would very likely have signed it.'
-      : 'You were ' + need + ' short. This one needed real scoping, not a quick send.';
+      ? 'Short by ' + need + '. One more line of scope carries it, and price was never what was stopping them.'
+      : 'Short by ' + need + '. That gap is a discovery problem, not a quoting problem.';
   }
-  var past = asked - 21;
-  return 'You went ' + past + ' past the line. Standing one card earlier would have kept it alive.';
+  return 'Past 21 nobody signs. Sending a card earlier books the deal instead of burning it.';
 }
 
 function settle(kind){
@@ -1371,7 +1474,7 @@ function settle(kind){
       if (!d.licDisc && !d.packDisc) { S.cleanWon++; }
       S.streak++; if (S.streak > S.best) S.best = S.streak;
     msg = 'Signed. ' + fmt(q.mrr) + ' a month, ' + fmt(q.contract) + ' over the term.';
-    why0 = 'Your quote reached ' + d.asked + ' against objections worth ' + resistance() + '. ';
+    why0 = 'Signed at ' + d.asked + ' against ' + resistance() + ' of objection. ';
     why = why0 + d.users + ' seats on ' + LIC[d.plan].name + ' for ' + d.term + ' year' + (d.term === 1 ? '' : 's') +
       (q.pack.hours ? ', ' + q.pack.name.toLowerCase() : ', no Success Pack') +
       (d.sh ? ', on Odoo.sh' : '') + '. ' +
@@ -1390,36 +1493,74 @@ function settle(kind){
     cls = 'lose'; S.lost++;
     if (d.type === 'renewal' || d.type === 'expansion') S.baseMrr += (d.startMrr || 0);
     S.streak = 0;
-    msg = 'Not enough. They went with somebody who scoped it properly. ' + fmt(-delta) + ' of pursuit gone.';
-    why = 'Their objections came to ' + resistance() + ' and your quote only reached ' + d.asked +
-      '. A quote that does not cover what they actually need does not win on being cheap. ' +
-      'You left ' + fmt(q.mrr) + ' a month on the table.';
+    msg = 'Lost. They bought a fuller scope elsewhere. ' + fmt(-delta) + ' of pursuit written off.';
+    why = 'You quoted ' + d.asked + ' against ' + resistance() + ' of objection, and ' +
+      fmt(q.mrr) + ' a month went with it.';
   } else if (kind === 'push') {
     /* They matched the ask to the point. No commission this quarter, but the
        pursuit is not burned and the relationship is intact, so the book does
        not move either way. It rolls forward. */
     delta = 0;
     cls = 'push';
-    msg = 'They matched you exactly. The deal stalls, nothing banked and nothing lost.';
-    why = 'Your quote reached ' + d.asked + ' against objections worth the same. '
-        + 'It rolls into next quarter with ' + fmt(q.mrr) + ' a month still on the table.';
+    msg = 'Matched exactly. It stalls: nothing booked, nothing burned.';
+    why = 'Quote and objections both at ' + d.asked + '. It rolls to next quarter with ' +
+      fmt(q.mrr) + ' a month still open.';
   } else {
     delta = -Math.round(q.contract * CHASE_COST_PCT * (S.doubled ? 2 : 1));
     cls = 'lose'; S.lost++;
     if (d.type === 'renewal' || d.type === 'expansion') S.baseMrr += (d.startMrr || 0);
     S.streak = 0;
-    msg = 'You asked for more than they could carry. They walked. ' + fmt(-delta) + ' of pursuit gone.';
-    why = 'You went to ' + d.asked + ', past the 21 they could bear. Everything you built is gone, ' +
-      'and so is the ' + fmt(q.mrr) + ' a month it was worth.' +
-      (d.licDisc || d.packDisc ? ' The discounts went with it.' : '');
+    msg = 'Over-reached. They walked. ' + fmt(-delta) + ' of pursuit written off.';
+    why = 'You took the quote to ' + d.asked + ', past what they could carry, and the ' +
+      fmt(q.mrr) + ' a month went with it.' +
+      (d.licDisc || d.packDisc ? ' So did the margin you gave away getting there.' : '');
   }
 
-  S.bank += delta; S.hands++;
+  /* The board pays the plan, not the contract. A signed deal moves the MRR and
+     NRR lines; a lost one moves neither, because a deal you did not close pays
+     nothing however much chasing it cost. */
+  if (kind === 'signed') {
+    var ach = achievedFrom(d, q);
+    /* The plan counts contraction in the MRR change line, and a discount given
+       to somebody who ground you for it is contraction with a date on it: they
+       open the renewal on that number and push again. Somebody straight with you
+       renews whole. Without this the board paid a rep MORE for discounting,
+       because a few more closes outran a slightly smaller line every time. */
+    var hold = (typeof keep === 'number') ? keep : 1;
+    S.monthMrr += ach.mrr * hold * (S.doubled ? 2 : 1);
+    S.monthNrr += ach.nrr * (S.doubled ? 2 : 1);
+  }
+  S.bank = monthCommission();
+  S.hands++;
+  /* A month holds only so much pipeline, and that is the only thing stopping a
+     rep quoting every deal to breaking point. A deal you over-reached and lost
+     took the whole cycle with it, the demos and the SE time included, and you
+     still have to go and find its replacement, so it costs two slots where a
+     signed or stalled deal costs one. Without this the board paid you more for
+     pushing every quote to 21 and losing a third of them. */
+  S.monthHands += (kind === 'walked' ? 2 : 1);
+  if (S.monthHands >= MONTH_HANDS) { closeMonth(); }
   S.log.unshift({ who:d.a.n, kind:kind, delta:delta, why:why,
     line: d.users + ' seats, ' + d.term + ' yr' + (d.licDisc ? ', ' + d.licDisc + '% off' : '') });
   var read = readOut(kind, d.asked, kind === 'walked' ? 21 : resistance());
   setMsg(msg, cls); setWhy(why + (discountNote || '') + ' ' + read);
   render(); renderStats(); renderLog(); save(); postScore();
+}
+
+/* Commission is paid on the month and the month starts again at nothing. This
+   is the part a linear running total could never teach: a deal that lands while
+   you are at eighty percent of quota is worth several times the same deal once
+   you are past it, which is exactly why real reps sprint and then coast. */
+function closeMonth(){
+  var earned = monthCommission();
+  S.paidToDate += earned;
+  if (earned > S.bestMonth) { S.bestMonth = earned; }
+  S.log.unshift({ who:'Month ' + S.monthNo + ' closed', kind:'month', delta:Math.round(earned),
+    why:'Paid ' + fmt(earned) + ' on ' + fmt(S.monthMrr) + ' of MRR achieved and ' +
+        fmt(S.monthNrr) + ' of NRR. Both lines reset now.',
+    line:seg().label });
+  S.monthNo++; S.monthHands = 0; S.monthMrr = 0; S.monthNrr = 0;
+  S.bank = 0;
 }
 
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -1473,18 +1614,6 @@ function discRoomLabel(c) {
   return 'takes ' + room + (room === 1 ? ' point' : ' points') +
     ' off what they raise on price';
 }
-/* The money on the card is exact. What it costs you in patience is not, because
-   a customer's is not exact either, so the card says how big the ask is rather
-   than printing a range and then charging somewhere inside it. The lesson a rep
-   carries out of this is the one on the left of the card: this much MRR asks
-   about this much of them. */
-function askBand(c) {
-  if (typeof c.askLo !== 'number') { return 'asks more of them'; }
-  var mid = (c.askLo + c.askHi) / 2;
-  if (mid <= 3) { return 'a small ask'; }
-  if (mid <= 5) { return 'a real ask'; }
-  return 'a big ask';
-}
 function offerCard(c, i){
   var d = document.createElement('div');
   var isDisc = S.mode === 'disc';
@@ -1508,8 +1637,7 @@ function offerCard(c, i){
           ' &middot; one licence and one pack discount per quote</div>' +
         '<div class="split"><span class="pts">' + money + '</span>' +
         '<span class="mo">' + discRoomLabel(c) + '</span></div>'
-      : '<div class="split"><span class="pts">' + money + '</span>' +
-        '<span class="mo grow">' + askBand(c) + '</span></div>');
+      : '<div class="split"><span class="pts">' + money + '</span></div>');
   d.onclick = function(){ takeOffer(i); };
   return d;
 }
@@ -1625,13 +1753,16 @@ function readLocal(p){
 
 function postScore(){
   var name = (S.name || '').trim();
-  if (!name || S.bank <= 0) { renderBoard(); return; }
-  recordLocal(name, S.bank);
+  /* Rank on the best month, the way a sales floor does. A running lifetime
+     total just rewards whoever sat down longest. */
+  var score = Math.max(S.bestMonth, monthCommission());
+  if (!name || score <= 0) { renderBoard(); return; }
+  recordLocal(name, score);
   if (LB_URL) {
     try {
       fetch(LB_URL + '/score', {
         method:'POST', headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify({ name:name, amount:Math.round(S.bank) })
+        body: JSON.stringify({ name:name, amount:Math.round(score) })
       }).then(function(){ renderBoard(); }).catch(function(){ renderBoard(); });
       return;
     } catch (e) {}
@@ -1666,12 +1797,22 @@ function renderStats(){
   document.getElementById('stWon').textContent = S.won;
   document.getElementById('stBust').textContent = S.lost;
   document.getElementById('stAvg').textContent = S.hands ? S.discounts + ' given' : 'none yet';
+  var g = seg();
   var me = document.getElementById('stMrr');
-  if (me) me.textContent = fmt(S.mrr || 0) + ' a month';
+  if (me) me.textContent = fmt(S.monthMrr) + '  ' +
+    Math.round(S.monthMrr / g.mrrQ * 100) + '% of quota';
   var ne = document.getElementById('stNrr');
-  if (ne) ne.textContent = S.baseMrr > 0
-    ? Math.round((S.keptMrr / S.baseMrr) * 100) + '%'
-    : 'no expansions yet';
+  if (ne) ne.textContent = fmt(S.monthNrr) + '  ' +
+    Math.round(S.monthNrr / g.nrrQ * 100) + '% of quota';
+  var bd = document.getElementById('stBand');
+  if (bd) bd.textContent = marginalRate(S.monthMrr, bandsFor(g.mrrQ, g.mrrR)).toFixed(4);
+  var bm = document.getElementById('stBest');
+  if (bm) bm.textContent = fmt(S.bestMonth);
+  var pd = document.getElementById('stPaid');
+  if (pd) pd.textContent = fmt(S.paidToDate);
+  var bl = document.getElementById('bankLabel');
+  if (bl) bl.textContent = 'Commission, month ' + S.monthNo +
+    '  (' + S.monthHands + ' of ' + MONTH_HANDS + ')';
   var ce = document.getElementById('stClean');
   if (ce) ce.textContent = S.won
     ? Math.round((S.cleanWon || 0) / S.won * 100) + '% of your wins'
@@ -1717,6 +1858,9 @@ function save(){
       bank: S.bank, hands: S.hands, won: S.won, lost: S.lost,
       streak: S.streak, best: S.best,
       mrr: S.mrr, baseMrr: S.baseMrr, keptMrr: S.keptMrr,
+      segment: S.segment, monthNo: S.monthNo, monthHands: S.monthHands,
+      monthMrr: S.monthMrr, monthNrr: S.monthNrr,
+      paidToDate: S.paidToDate, bestMonth: S.bestMonth,
       discounts: S.discounts, cleanWon: S.cleanWon, given: S.given, left: S.left,
       unlocked: S.unlocked, name: S.name,
       diff: (document.getElementById('setDiff') || {}).value
@@ -1743,6 +1887,16 @@ function load(){
     S.left = v.left || 0;
     S.unlocked = v.unlocked || {};
     S.name = v.name || '';
+    S.segment = SEGMENTS[v.segment] ? v.segment : '6to50';
+    S.monthNo = v.monthNo || 1;
+    S.monthHands = v.monthHands || 0;
+    S.monthMrr = v.monthMrr || 0;
+    S.monthNrr = v.monthNrr || 0;
+    S.paidToDate = v.paidToDate || 0;
+    S.bestMonth = v.bestMonth || 0;
+    S.bank = monthCommission();
+    var sg = document.getElementById('setSeg');
+    if (sg) sg.value = S.segment;
     var dd = document.getElementById('setDiff');
     if (dd && v.diff) dd.value = v.diff;
   } catch (e) {}
@@ -1808,6 +1962,14 @@ document.getElementById('btnWipe').onclick = function(){
   if (!confirm('Clear your banked revenue and history on this device?')) return;
   try { localStorage.removeItem(KEY); } catch (e) {}
   location.reload();
+};
+document.getElementById('setSeg').onchange = function(e){
+  S.segment = e.target.value;
+  /* Different plan, different month. Carrying a part-finished month across
+     books would pay it under rates it was never earned against. */
+  S.monthNo = 1; S.monthHands = 0; S.monthMrr = 0; S.monthNrr = 0; S.bank = 0;
+  setMsg('On the ' + seg().label + ' plan now. The month starts over.', '');
+  save(); render(); renderStats(); renderBoard();
 };
 document.getElementById('setDiff').onchange = function(){
   setMsg('Difficulty set. It changes how hard the next customer is to satisfy.', '');
