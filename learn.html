@@ -92,7 +92,24 @@ body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b1319;color:#e
 .breaktag{position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;
   font-size:.5rem;font-weight:800;letter-spacing:.05em;border-radius:8px;padding:2px 7px;white-space:nowrap;}
 
-#youHand{min-height:0;gap:6px;padding:2px 0;}
+#youHand{min-height:0;gap:6px;padding:2px 0;flex-wrap:wrap;}
+/* Your side of the table. The card does not say what it will cost before you
+   play it, on purpose, so this is where you find out and start building the
+   instinct. */
+.pl{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;
+  padding:5px 9px;display:flex;align-items:baseline;gap:8px;white-space:nowrap;
+  animation:deal .25s cubic-bezier(.2,.9,.3,1.2) both;}
+.pl .pl-h{font-size:.66rem;font-weight:700;color:#e8eef4;}
+.pl .pl-a{font-size:.62rem;font-weight:800;color:var(--sub);font-variant-numeric:tabular-nums;}
+.pl.disc{border-color:#8e3b36;background:rgba(142,59,54,.22);}
+.pl.disc .pl-a{color:var(--red);}
+/* A discount only ever reaches an objection about money. Saying which ones those
+   are is the difference between the button feeling like a lever and feeling like
+   a coin flip. */
+.pricetag{position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+  background:#8e3b36;color:#ffd9d4;font-size:.5rem;font-weight:800;letter-spacing:.05em;
+  border-radius:8px;padding:2px 7px;white-space:nowrap;}
+.pc.onprice{outline:2px solid #8e3b36;}
 .given{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border:1px solid var(--line);
   border-radius:999px;padding:4px 11px;font-size:.66rem;color:#dbe4ec;}
 .given.breaks{border-color:var(--red);}
@@ -198,6 +215,10 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
 .lbtab.on{background:var(--gold);color:#16202b;border-color:var(--gold);}
 .lbrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:.78rem;}
 .lbrow .rank{width:22px;color:var(--faint);font-weight:800;}
+.lbrow.unranked{opacity:.55;}
+.lbsub{display:block;font-size:.58rem;font-weight:600;color:var(--faint);letter-spacing:0;}
+.lbchip{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:999px;
+  background:rgba(255,255,255,.08);font-size:.55rem;font-weight:700;color:var(--faint);}
 .lbrow .who{flex:1;font-weight:600;}
 .lbrow .amt{font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;}
 .lbrow.you{background:rgba(217,164,65,.10);border-radius:6px;padding-left:6px;padding-right:6px;}
@@ -341,16 +362,14 @@ select:focus-visible, button:focus-visible{
 
     <div class="pane on" id="pane-board">
       <h3>Leaderboard</h3>
-      <p>Ranked on net bookings: contract value you signed, less the cost of chasing the deals you lost. Your name and total post to the shared board.</p>
+      <p>Ranked on your best month of commission, worked out on your own plan: MRR change times the rate for the term, plus NRR. Your name and total post to the shared board.</p>
       <div class="fld">
         <label>Your name<div class="hint">Shown on the board</div></label>
         <input type="text" id="playerName" maxlength="18" placeholder="Add your name"
             aria-label="Your name on the leaderboard" style="min-width:132px">
       </div>
       <div class="lbtabs">
-        <button class="lbtab on" data-period="day">Today</button>
-        <button class="lbtab" data-period="week">This week</button>
-        <button class="lbtab" data-period="month">This month</button>
+        <button class="lbtab on" data-period="month">This month</button>
         <button class="lbtab" data-period="all">All time</button>
       </div>
       <div id="lbList"><p class="mini">Play a hand to get on the board.</p></div>
@@ -416,7 +435,7 @@ select:focus-visible, button:focus-visible{
             <option value="1to5">1 to 5 seats</option>
           </select></div>
 
-        <div class="fld"><label>How tough customers are<div class="hint">Shifts how much objection the room carries.</div></label>
+        <div class="fld"><label>How tough customers are<div class="hint">Shifts how much objection the room carries. Easy pays about two and a half times what Tough does, so only Mixed goes on the leaderboard.</div></label>
           <select id="setDiff" aria-label="How tough customers are">
             <option value="easy">Easy going</option>
             <option value="normal" selected>Mixed</option>
@@ -477,8 +496,9 @@ select:focus-visible, button:focus-visible{
           it rolls to next quarter. About a quarter of hands.</li>
         <li><b>Not enough.</b> You came up short and they went with somebody who
           scoped it properly. You carry the pursuit cost.</li>
-        <li><b>They walked.</b> You went past 21. Everything you built is gone and you
-          still carry the pursuit. Every card prints its cost, so this one is
+        <li><b>They walked.</b> You asked for more than this one would carry. Everything
+          you built is gone, and it burns two slots of the month instead of one.
+          Where they stop is not the same for everybody, so this one is
           avoidable.</li>
       </ul>
 
@@ -548,7 +568,34 @@ var SEGMENTS = {
 /* A month is ten hands. Long enough to climb out of the dead band at the
    bottom, short enough that where you stand starts mattering early. */
 var MONTH_HANDS = 10;
-function seg(){ return SEGMENTS[S.segment] || SEGMENTS['6to50']; }
+/* The 1-5 desk does not keep a deal past ten users. */
+var ONETO5_MAX_USERS = 10;
+/* Three makes blanket doubling break even, so it becomes a read rather than a
+   button you press every hand. At two it paid 43% more to double everything. */
+var DOUBLE_LOSS_SLOTS = 3;
+var STAKE_SCALE = [1, 2, 4, 9];   // matches what the chip does to seat counts
+/* The quota belongs to the month, not to whatever chip is selected right now.
+   Reading it live meant a month's banked work could be re-priced by changing
+   chips before sending the last quote. */
+function stakeScale(){
+  if (S.monthScale == null) { S.monthScale = STAKE_SCALE[stakeTier()] || 1; }
+  return S.monthScale;
+}
+function seg(){
+  var base = SEGMENTS[S.segment] || SEGMENTS['6to50'];
+  var k = stakeScale();
+  if (k === 1) { return base; }
+  /* The quota moves with the room, and the rates move inversely, so on-target
+     still pays on-target. This is how the two real plans already differ from each
+     other: 1-5 carries a $700 quota with a 5.5212 top rate, 6to50 a $2,100 quota
+     with 1.2325, and both come out at $2,036 on-target. Scale only the quota and
+     a bigger chip pays nine times as much for playing exactly as well. */
+  var down = function (rates) {
+    return rates.map(function (r) { return r / k; });
+  };
+  return { label: base.label, mrrQ: base.mrrQ * k, nrrQ: base.nrrQ * k,
+           mrrR: down(base.mrrR), nrrR: down(base.nrrR) };
+}
 function bandsFor(target, rates){
   var out = [], floor = 0;
   for (var i = 0; i < BAND_EDGES.length; i++) {
@@ -585,8 +632,21 @@ function achievedFrom(d, q){
   var recurring = q.contract - q.packTotal;
   return { mrr: (recurring / months) * (MRR_RATE[d.term] || 1), nrr: q.packTotal };
 }
+/* Where this customer stops listening. Somebody straight with you will carry a
+   big ask; somebody threatening to walk since day one will not. You never see the
+   number, but the banner tells you roughly where it sits, and that is what makes
+   reading the room worth anything. Everyone breaking at exactly 21 was why
+   pushing to the ceiling was always right, why the biggest card won every hand,
+   and why implementation never got attached. */
+var WALK_BY_CONDUCT = { straight:[20,21], fair:[19,21], grinder:[18,20], bully:[17,19] };
+function rollWalk(c){
+  var r = WALK_BY_CONDUCT[c.k] || WALK_BY_CONDUCT.fair;
+  return between(r[0], r[1]);
+}
 var BAR_BASE = 18, BAR_SPREAD = 5, BAR_MIN = 14, BAR_MAX = 21, BAR_CAP = 21;
-var ASK_SPAN = 13, ASK_GAIN = 0.35, ASK_MIN = 2, ASK_MAX = 11, ASK_JITTER = 2;
+var ASK_SPAN = 13, ASK_GAIN = 0.35, ASK_MIN = 2, ASK_MAX = 13, ASK_JITTER = 2;
+/* Extra resistance for each additional year of lock-in, on top of the money. */
+var TERM_ASK_STEP = 2.0;
 var OPEN_BASE = 4, OPEN_MIN = 4, OPEN_MAX = 13, OPEN_JITTER = 3;
 var IMPL_MAX_PCT   = 30;   // the most the desk will sign off
 var IMPL_CAP_HOURS = 200;  // and it only reaches the first 200 hours
@@ -716,15 +776,38 @@ var COMPLEX_INDUSTRY = /Biotech|Pharma|Precision|moulding|Aviation|Healthcare|tr
    around 15 on its largest account. The old bands ran to 140 seats, which put a
    single deal at three and a half times a monthly MRR quota and made the
    commission bands meaningless. */
+/* The two desks work different books, and that is the whole reason their quotas
+   differ. The 1-5 team is capped at ten users: past that the deal transfers to
+   6+ with no split, which is in the territory rules. The 6+ plan is literally
+   called 6to50. Feeding both desks the same small deals was why the 6+ quotas
+   looked unreachable, particularly NRR: a four seat account does not need fifty
+   hours of implementation, so it can never carry an eighteen thousand a month
+   implementation target. */
 function seatBand(t){
-  if (BIG_INDUSTRY.test(t)) { return [8, 12, 18, 28]; }
-  if (SMALL_INDUSTRY.test(t)) { return [1, 2, 3, 5]; }
-  return [3, 5, 8, 12];
+  if (S.segment === '1to5') {
+    if (SMALL_INDUSTRY.test(t)) { return [1, 1, 2, 2, 3, 4]; }
+    if (BIG_INDUSTRY.test(t))   { return [2, 3, 4, 5, 7, 9]; }
+    return [1, 2, 3, 4, 5, 7];
+  }
+  if (BIG_INDUSTRY.test(t))   { return [10, 14, 20, 28, 38, 50]; }
+  if (SMALL_INDUSTRY.test(t)) { return [6, 7, 8, 10, 13, 18]; }
+  return [7, 9, 12, 16, 22, 34];
+}
+/* Weighted to the front of the band. Halving the odds at each step gives the
+   shape a territory actually has: a lot of two and three seat deals, a handful
+   of fifteens, and the occasional one that makes your month. */
+function pickSeats(t){
+  var band = seatBand(t), r = rng(), cum = 0;
+  for (var i = 0; i < band.length - 1; i++) {
+    cum += Math.pow(0.5, i + 1);          /* 50%, then 25, 12.5, 6.25... */
+    if (r < cum) { return band[i]; }
+  }
+  return band[band.length - 1];
 }
 function newDeal(){
   var a = pick(ACCOUNTS);
   var c = pickConduct();
-  var seats = pick(seatBand(a.t));
+  var seats = pickSeats(a.t);
   /* How many people actually work there. Seats start below it because not every
      department goes on in wave one, but the quote can never pass it. Without this
      the winning line was to keep buying seats: a five person firm was being sold
@@ -733,6 +816,7 @@ function newDeal(){
   return {
     staff: staff,
     a:a, conduct:c,
+    walk: rollWalk(c),
     users: seats,
     term: 1,
     plan: (COMPLEX_INDUSTRY.test(a.t) ? rng() < 0.75 : rng() < 0.2) ? 'custom' : 'standard',
@@ -741,7 +825,7 @@ function newDeal(){
     /* Roughly a worker per fifteen seats, the way Odoo.sh is actually sized. A
        small practice sits on one; a forty store retailer starts near the shared
        ceiling, which is the only place a dedicated server is a real proposal. */
-    shWorkers: Math.max(1, Math.round(seats / 15)),
+    shWorkers: Math.min(SH_SHARED_MAX_WORKERS, Math.max(1, Math.round(seats / 15))),
     shDedicated: false,
     licDisc: 0,
     packDisc: 0,
@@ -753,13 +837,19 @@ function newDeal(){
 function quote(d){
   var r = LIC[d.plan];
   var pack = PACKS[d.packIdx];
-  var licMo = r.y1 * d.users * (1 - d.licDisc / 100);
+  /* Year 1 is the promotional rate and the multi year discount cannot reach it.
+     Discounting it here quietly took the schedule off Year 1 too, which is the
+     one thing the Pricing rules pane says never happens. */
+  var licMo = r.y1 * d.users;
   var shMo = 0;
   if (d.sh) {
     /* Dedicated is a flat fee ON TOP of the metered workers and staging, not a
        replacement for them. Same as the calculator bills it. */
-    shMo = (d.shWorkers || 1) * SH_WORKER + SH_STAGING
-         + (d.shDedicated ? SH_DEDICATED : 0);
+    /* Shared tops out at eight workers. Past that it is dedicated or it is not a
+       quote Odoo can fulfil, so bill what they would actually have to buy. */
+    var w = Math.max(1, d.shWorkers || 1);
+    if (!d.shDedicated) { w = Math.min(w, SH_SHARED_MAX_WORKERS); }
+    shMo = w * SH_WORKER + SH_STAGING + (d.shDedicated ? SH_DEDICATED : 0);
   }
   var reached = Math.min(pack.hours, IMPL_CAP_HOURS);
   var packTotal = pack.hours * pack.rate - reached * pack.rate * (d.packDisc / 100);
@@ -815,22 +905,39 @@ function growth(d){
 
   for (var t = d.term + 1; t <= 5; t++) {
     out.push({
-      kind:'term', tag:'Commitment', head:t + ' year term',
+      kind:'term', years:t, tag:'Commitment', head:t + ' year term',
       body:'Get them to commit for ' + t + ' years instead of ' + d.term,
       mrr: 0, ask: (t - d.term),
       apply:(function(y){ return function(x){ x.term = y; }; })(t)
     });
   }
 
-  for (var k = 1; k <= 2 && d.packIdx + k < PACKS.length; k++) {
+  /* Hours a deal this shape really takes, read off real orders rather than
+     guessed: a Custom build runs about twelve hours a seat (OFFX took fifty for
+     four users, RAECO a hundred and seventy five for fifteen), while a Standard
+     rollout barely needs any (Integrated Care took four hours across eleven
+     seats). Odoo.sh adds a chunk on top for the migration. */
+  var needHours = d.users * (d.plan === 'custom' ? 12 : 0.4) + (d.sh ? 25 : 0);
+  var wantIdx = 1;
+  for (var pi = PACKS.length - 1; pi >= 1; pi--) {
+    if (PACKS[pi].hours <= needHours) { wantIdx = pi; break; }
+  }
+  /* The right size, one under it, and one over, so scoping it correctly is a
+     judgement rather than a staircase. */
+  var steps = {};
+  [wantIdx - 1, wantIdx, wantIdx + 1].forEach(function (idx) {
+    if (idx > d.packIdx && idx < PACKS.length) { steps[idx - d.packIdx] = 1; }
+  });
+  Object.keys(steps).forEach(function (kk) {
+    var k = +kk;
     var nx = PACKS[d.packIdx + k];
     out.push({
       kind:'pack', tag:'Success Pack', head:nx.name,
       body:'Scope them properly, up to the ' + nx.name.toLowerCase(),
-      mrr: 0, ask: k + 1,
+      mrr: 0, ask: k + 1, scopes: k,
       apply:(function(step){ return function(x){ x.packIdx += step; }; })(k)
     });
-  }
+  });
 
   if (!d.sh) {
     /* odoo.com: Standard is Odoo Online only, Odoo.sh needs the Custom plan. So
@@ -842,7 +949,8 @@ function growth(d){
       body: d.plan === 'standard'
         ? 'Put them on Odoo.sh, which moves them onto Custom because Standard is Odoo Online only'
         : 'Put them on Odoo.sh rather than leaving hosting to them',
-      mrr: SH_WORKER + SH_STAGING + planUplift, ask: 2,
+      mrr: Math.min(Math.max(1, d.shWorkers || 1), SH_SHARED_MAX_WORKERS) * SH_WORKER
+           + SH_STAGING + planUplift, ask: 2,
       apply:function(x){ x.sh = true; x.plan = 'custom'; } });
   }
 
@@ -866,7 +974,7 @@ function growth(d){
 function discounts(d){
   var out = [], ceiling = CEILING[d.term];
   if (!d.licDisc) {
-    [5, 10, 15].forEach(function(p){
+    [5, 10, 12.5, 15].forEach(function(p){
       var over = d.term === 1 || p > ceiling;
       out.push({
         kind:'lic', tag:'Licence discount', head:p + '% off',
@@ -923,7 +1031,7 @@ var RULES = {
   },
   bar: {
     t:'What the customer will carry, and how to read it',
-    d:'Their objections land somewhere between 16 and 21, and you have to beat that number without going past 21 yourself. One objection is face up, the rest are not. Somebody who has dealt straight with you settles two points lower and somebody fair one point lower. Somebody who has threatened to walk since day one sits two points higher, though the 21 ceiling clips some of that back. An expansion runs a point higher than new business, and the bigger the room you picked, the higher it starts.'
+    d:'Two hidden numbers, and you are aiming between them. What they need is the total of their objections, and your quote has to beat it. Where they stop listening is the other, and it is not 21 for everybody: somebody straight with you carries an ask to 20 or 21, somebody fair to 19 or above, a grinder to 18 or 20, and somebody threatening to walk since day one stops between 17 and 19. The banner is the only read you get on it. One objection is face up, the rest are not, and what they need always leaves at least one number that wins.'
   },
   attach: {
     t:'Why you still attach the Success Pack and Odoo.sh',
@@ -1052,17 +1160,32 @@ function applyDealType(d){
   return d;
 }
 
+/* Fewer people, fewer objections. A two partner practice decides over a coffee;
+   a twenty seat rollout has a migration, a go live date and a signature upstairs. */
+function seatWeight(u){
+  if (u <= 3) { return -3; }
+  if (u <= 6) { return -2; }
+  if (u <= 12) { return 0; }
+  if (u <= 25) { return 1; }
+  return 2;
+}
 function stakeTier(){
   var v = S.stake || 250;
   return v >= 2500 ? 3 : v >= 1000 ? 2 : v >= 500 ? 1 : 0;
 }
 function applyStake(d){
   var tier = stakeTier();
-  d.users = Math.max(1, Math.min(3000, Math.round(d.users * [1, 2, 4, 9][tier])));
-  if (tier >= 2 && Math.random() < 0.5) d.plan = 'custom';
-  /* A customer already on Odoo.sh is on Custom by definition, since Standard is
-     Odoo Online only. */
-  if (tier >= 3 && Math.random() < 0.7) { d.sh = true; d.plan = 'custom'; }
+  /* Seats only. The chip used to hand the top tiers a Custom plan and Odoo.sh on
+     top of nine times the seats, so the money grew about twenty fold against a
+     quota that grew nine fold, and the biggest chip paid sixteen times the
+     smallest for playing exactly as well. Scale the room, let the plan follow the
+     industry the way it does on every other deal, and the quota keeps up. */
+  d.users = Math.max(1, Math.min(3000, Math.round(d.users * STAKE_SCALE[tier])));
+  /* The business grows with the room. Without this, staff stayed at the pre-chip
+     headcount, the quote opened above it, and the seat cards were filtered out
+     entirely: on the 1k and 2.5k chips not one hand in four hundred was offered
+     a single seat. */
+  d.staff = Math.max(d.users + 1, Math.round(d.users * (1.25 + rng() * 1.05)));
   return d;
 }
 function diffShift(){
@@ -1073,6 +1196,7 @@ function diffShift(){
 
 function rollAccept(d){
   var base = BAR_BASE + between(0, BAR_SPREAD) + stakeTier() + diffShift();
+  base += seatWeight(d.users);
   if (d.type === 'expansion') base += 1;
   if (d.conduct.k === 'straight') base -= 2;   // easy to satisfy
   if (d.conduct.k === 'fair') base -= 1;
@@ -1089,9 +1213,22 @@ function priceablePts(){
   for (var i = 0; i < S.them.length; i++) if (S.them[i].price) n += S.them[i].pts;
   return n;
 }
+/* The objections a properly scoped implementation actually answers. */
+function deliveryPts(){
+  var n = 0;
+  for (var i = 0; i < S.them.length; i++) {
+    if (OBJ_KIND[S.them[i].body] === 'risk') { n += S.them[i].pts; }
+  }
+  return n;
+}
 function resistance(){
-  var relief = Math.min(S.relief || 0, priceablePts());
-  return Math.max(0, totalObj(S.them) - relief);
+  var relief = Math.min(S.relief || 0, priceablePts())
+             + Math.min(S.scoped || 0, deliveryPts());
+  /* What they need always leaves at least one number that both covers it and
+     stays inside what they will carry. Let the two meet and the hand is lost
+     before it is dealt, which is not a lesson, it is a coin landing on its edge. */
+  var ceiling = ((S.deal && S.deal.walk) ? S.deal.walk : BAR_CAP) - 1;
+  return Math.max(0, Math.min(ceiling, totalObj(S.them) - relief));
 }
 
 function deal(){
@@ -1107,8 +1244,10 @@ function deal(){
   for (var oi = 0; oi < 2; oi++) { var o0 = freshObjection(S.them, null); if (o0) S.them.push(o0); }
   S.offer = [];
   S.relief = 0;
+  S.scoped = 0;
   S.doubled = false;
   S.cardsTaken = 0;
+  S.played = [];
   S.doubledAt = -1;
   S.outcome = '';
   S.mode = 'grow';
@@ -1279,6 +1418,15 @@ function askFor(d, c, jitter){
   var lift = anchor > 0 ? (after - before) / anchor : 1;
   if (lift < 0) lift = 0;
   var pts = Math.round(ASK_SPAN * (1 - 1 / (1 + lift * ASK_GAIN)));
+  /* Years are their own kind of ask. The curve above prices a card purely by the
+     money it adds, and on that basis a five year term came out barely dearer than
+     a two year while paying six times as much, so every hand ended on a five.
+     Signing away five years is not one and a half times harder than two: a
+     business will spend more on seats long before it locks itself in for half a
+     decade. Price the commitment separately from the money. */
+  if (c.kind === 'term' && c.years) {
+    pts += Math.round((c.years - d.term - 1) * TERM_ASK_STEP);
+  }
     var j = (jitter == null) ? between(0, ASK_JITTER) : jitter;
   return Math.max(ASK_MIN, Math.min(ASK_MAX, pts + j));
 }
@@ -1300,6 +1448,9 @@ function takeOffer(i){
   /* An off schedule concession cannot be quoted. Say which rule stops it,
      because that is the part worth learning. */
   if (c.over) {
+    /* Unlock before the return, or the rule that just stopped you is the one
+       rule the panel never explains. */
+    unlock(c.kind === 'pack' ? 'implMax' : (S.deal.term === 1 ? 'oneYear' : 'ceiling'));
     setMsg('You cannot quote that one.', 'lose');
     setWhy(S.deal.term === 1
       ? 'A one year deal gets no multi year licence discount. The schedule starts at two years.'
@@ -1314,20 +1465,39 @@ function takeOffer(i){
     var room = roomBought(S.deal, c.pct);
     S.relief = (S.relief || 0) + room;
     S.discounts++;
+    S.played.push({ head: c.head + ' ' + (c.kind === 'lic' ? 'licence' : 'pack'),
+                    ask: -room, disc: true });
     c.apply(S.deal);
     if (c.over) unlock(c.kind === 'pack' ? 'implMax' : (S.deal.term === 1 ? 'oneYear' : 'ceiling'));
     if (c.kind === 'lic') unlock('recurring');
     S.offer = [];
     render();
-    setMsg('Discount applied.', '');
-    setWhy('A discount only moves them if price is what is holding them back. If what they need is a migration answer or a signature from upstairs, it buys you nothing and still costs you every month.');
-    setWhy(discountLine(c, room));
+    setMsg(room
+      ? 'Discount applied. It comes off their price objections, nothing else.'
+      : 'Discount applied. This customer gives nothing back for it.', '');
+    /* This line was written and then overwritten on the next statement, so the
+       explanation of what a discount cannot do never reached the screen. */
+    setWhy(discountLine(c, room) +
+      ' A discount only moves them if price is what is holding them back. If what ' +
+      'they need is a migration answer or a signature from upstairs, it buys you ' +
+      'nothing and still costs you every month.');
     return;
   }
+  if (c.scopes) { S.scoped = (S.scoped || 0) + c.scopes; }
   c.apply(S.deal);
   S.deal.asked += askNow;
   S.offer = [];
-  if (S.deal.asked > 21) {
+  /* Recorded before the walk check, or the card that lost the hand is the one
+     card missing from the hand you played. */
+  S.played.push({ head: c.head, ask: askNow, disc: false });
+  /* Explain a rule the first time the player actually uses the thing it covers. */
+  if (c.kind === 'pack') { unlock('attach'); }
+  if (c.kind === 'sh') { unlock('hosting'); }
+  if (S.segment === '1to5' && S.deal.users > ONETO5_MAX_USERS) {
+    S.outcome = 'transferred';
+    return settle('transferred');
+  }
+  if (S.deal.asked > S.deal.walk) {
     S.outcome = 'walked';
     return settle('walked');
   }
@@ -1377,8 +1547,8 @@ function doubleDown(){
   S.doubledAt = S.cardsTaken;
   showGrowth();
   setMsg('Doubled. One more piece of scope, then it goes.', '');
-  setWhy('Twice the contract if they sign, twice the pursuit if they do not. '
-    + 'You get one card and the quote sends itself.');
+  setWhy('Twice the MRR and twice the implementation if they sign. If they do not, '
+    + 'it burns double the month. You get one card and the quote sends itself.');
 }
 function sendQuote(){
   if (!S.live) return;
@@ -1401,12 +1571,13 @@ function sendQuote(){
     else { S.them.pop(); }
   }
   var bar = resistance();
-  if (S.deal.asked > 21) {
+  if (S.deal.asked > S.deal.walk) {
     S.outcome = 'walked';
     return settle('walked');
   }
   /* Matching the bar exactly is a push, the same as blackjack. In a pipeline
      that is a stalled deal, not a dead one. */
+  if (S.deal.asked <= bar) { unlock('bar'); }
   S.outcome = S.deal.asked > bar ? 'signed'
     : (S.deal.asked === bar ? 'push' : 'short');
   return settle(S.outcome);
@@ -1420,7 +1591,8 @@ function readOut(kind, asked, bar){
   }
   if (kind === 'signed') {
     var over = asked - bar;
-    if (asked >= 20) return 'Cleared by ' + over + ' with ' + (21 - asked) +
+    var lim = (S.deal && S.deal.walk) ? S.deal.walk : 21;
+    if (asked >= lim - 1) return 'Cleared by ' + over + ' with ' + (lim - asked) +
       ' of headroom left. Any further and you talk yourself out of it.';
     if (over <= 2) return 'Cleared by ' + over + '. Thin. A competitor with a fuller scope takes this one.';
     return 'Cleared by ' + over + ', scoped with room to spare. That is the deal you want.';
@@ -1493,9 +1665,18 @@ function settle(kind){
     cls = 'lose'; S.lost++;
     if (d.type === 'renewal' || d.type === 'expansion') S.baseMrr += (d.startMrr || 0);
     S.streak = 0;
-    msg = 'Lost. They bought a fuller scope elsewhere. ' + fmt(-delta) + ' of pursuit written off.';
+    msg = 'Lost. They bought a fuller scope elsewhere. Nothing on the board for it.';
     why = 'You quoted ' + d.asked + ' against ' + resistance() + ' of objection, and ' +
       fmt(q.mrr) + ' a month went with it.';
+  } else if (kind === 'transferred') {
+    /* "As soon as a deal is determined to be over 10 users, it is transferred to
+       the 6+ team with no split." Straight out of the 1-5 territory rules. You
+       still spent the cycle on it. */
+    delta = 0;
+    cls = 'lose'; S.lost++; S.streak = 0;
+    msg = 'Over ten users. It transfers to the 6+ team, and there is no split.';
+    why = 'You grew it to ' + d.users + ' seats. Past ten it stops being a 1-5 deal, ' +
+      'so the ' + fmt(q.mrr) + ' a month goes on somebody else\'s number.';
   } else if (kind === 'push') {
     /* They matched the ask to the point. No commission this quarter, but the
        pursuit is not burned and the relationship is intact, so the book does
@@ -1510,7 +1691,7 @@ function settle(kind){
     cls = 'lose'; S.lost++;
     if (d.type === 'renewal' || d.type === 'expansion') S.baseMrr += (d.startMrr || 0);
     S.streak = 0;
-    msg = 'Over-reached. They walked. ' + fmt(-delta) + ' of pursuit written off.';
+    msg = 'Over-reached. They walked. Two slots of the month gone and nothing to show.';
     why = 'You took the quote to ' + d.asked + ', past what they could carry, and the ' +
       fmt(q.mrr) + ' a month went with it.' +
       (d.licDisc || d.packDisc ? ' So did the margin you gave away getting there.' : '');
@@ -1519,6 +1700,7 @@ function settle(kind){
   /* The board pays the plan, not the contract. A signed deal moves the MRR and
      NRR lines; a lost one moves neither, because a deal you did not close pays
      nothing however much chasing it cost. */
+  var commBefore = monthCommission();
   if (kind === 'signed') {
     var ach = achievedFrom(d, q);
     /* The plan counts contraction in the MRR change line, and a discount given
@@ -1531,6 +1713,7 @@ function settle(kind){
     S.monthNrr += ach.nrr * (S.doubled ? 2 : 1);
   }
   S.bank = monthCommission();
+  var handPaid = Math.round(S.bank - commBefore);
   S.hands++;
   /* A month holds only so much pipeline, and that is the only thing stopping a
      rep quoting every deal to breaking point. A deal you over-reached and lost
@@ -1538,13 +1721,19 @@ function settle(kind){
      still have to go and find its replacement, so it costs two slots where a
      signed or stalled deal costs one. Without this the board paid you more for
      pushing every quote to 21 and losing a third of them. */
-  S.monthHands += (kind === 'walked' ? 2 : 1);
-  if (S.monthHands >= MONTH_HANDS) { closeMonth(); }
-  S.log.unshift({ who:d.a.n, kind:kind, delta:delta, why:why,
+  /* A lost deal costs the month more than a closed one, and a doubled hand that
+     misses costs double again. Without this, doubling was free: the upside was
+     doubled and the downside had quietly stopped existing. */
+  var slots = (kind === 'walked') ? 2 : (kind === 'short') ? 1 : 1;
+  if (S.doubled && kind !== 'signed' && kind !== 'push') { slots *= DOUBLE_LOSS_SLOTS; }
+  S.monthHands += slots;
+  /* What this hand put in your pocket, which on a lost one is nothing. */
+  S.log.unshift({ who:d.a.n, kind:kind, delta:handPaid, why:why,
     line: d.users + ' seats, ' + d.term + ' yr' + (d.licDisc ? ', ' + d.licDisc + '% off' : '') });
-  var read = readOut(kind, d.asked, kind === 'walked' ? 21 : resistance());
+  if (S.monthHands >= MONTH_HANDS) { closeMonth(); }
+  var read = readOut(kind, d.asked, kind === 'walked' ? d.walk : resistance());
   setMsg(msg, cls); setWhy(why + (discountNote || '') + ' ' + read);
-  render(); renderStats(); renderLog(); save(); postScore();
+  render(); renderStats(); renderLog(); save(); renderBoard();
 }
 
 /* Commission is paid on the month and the month starts again at nothing. This
@@ -1559,7 +1748,10 @@ function closeMonth(){
     why:'Paid ' + fmt(earned) + ' on ' + fmt(S.monthMrr) + ' of MRR achieved and ' +
         fmt(S.monthNrr) + ' of NRR. Both lines reset now.',
     line:seg().label });
+  postMonth(earned);
   S.monthNo++; S.monthHands = 0; S.monthMrr = 0; S.monthNrr = 0;
+  /* Next month takes the chip you are sitting on when it starts. */
+  S.monthScale = null;
   S.bank = 0;
 }
 
@@ -1569,8 +1761,12 @@ function setWhy(t){ document.getElementById('why').textContent = t || ''; }
 
 function objCard(o, hidden){
   var d = document.createElement('div');
-  d.className = 'pc' + (hidden ? ' back' : '');
-  if (!hidden) d.innerHTML = '<div class="rank">' + o.pts + '</div><div class="lever">' + esc(o.body) + '</div>';
+  var onPrice = !hidden && o.price;
+  d.className = 'pc' + (hidden ? ' back' : '') + (onPrice ? ' onprice' : '');
+  if (!hidden) {
+    d.innerHTML = (onPrice ? '<div class="pricetag">a discount reaches this</div>' : '') +
+      '<div class="rank">' + o.pts + '</div><div class="lever">' + esc(o.body) + '</div>';
+  }
   return d;
 }
 
@@ -1600,12 +1796,12 @@ function revealDeck() {
    there is no basic strategy to learn here, only guessing, so say plainly what
    this customer's behaviour does to the number you have to beat. */
 function conductEffect(cd) {
-  if (cd.k === 'straight') { return 'two points easier to satisfy'; }
-  if (cd.k === 'fair') { return 'one point easier to satisfy'; }
+  if (cd.k === 'straight') { return 'easier to satisfy, and will carry a big ask'; }
+  if (cd.k === 'fair') { return 'a little easier to satisfy, and fairly patient'; }
   /* Nominally +2, but the bar is capped at 21 so the effect measures nearer +1.4.
      Say it the honest way rather than quoting a number they will not see. */
-  if (cd.k === 'bully') { return 'the hardest there is to satisfy'; }
-  return 'no help either way';
+  if (cd.k === 'bully') { return 'the hardest to satisfy, and walks the soonest'; }
+  return 'no help either way, and short on patience';
 }
 function discRoomLabel(c) {
   if (!S.deal) { return 'takes points off their price objections'; }
@@ -1677,10 +1873,24 @@ function render(){
   else tt.textContent = 'their objections came to ' + resistance();
 
   var yh = document.getElementById('youHand'); yh.innerHTML = '';
+  (S.played || []).forEach(function(pl){
+    var c = document.createElement('div');
+    c.className = 'pl' + (pl.disc ? ' disc' : '');
+    c.innerHTML = '<span class="pl-h">' + esc(pl.head) + '</span><span class="pl-a">' +
+      (pl.disc
+        ? (pl.ask
+            /* What it can take off, not what it did: the objections it has to
+               land on are still face down when you play it. */
+            ? Math.abs(pl.ask) + ' off any price objection'
+            : 'buys nothing here')
+        : '+' + pl.ask + ' asked') + '</span>';
+    yh.appendChild(c);
+  });
   var yt = document.getElementById('youTotal');
   var asked = d ? d.asked : 0;
   yt.textContent = 'Your quote reaches ' + asked + ' of 21';
-  yt.className = 'pill' + (asked > 21 ? ' bust' : asked >= 17 ? ' hot' : '');
+  var lim = d ? d.walk : 21;
+  yt.className = 'pill' + (asked > lim ? ' bust' : asked >= lim - 3 ? ' hot' : '');
   var cn = document.getElementById('closeNow');
   cn.textContent = S.live ? 'Sending now puts ' + fmt(q.contract) + ' on the table' : 'Not in a deal';
   cn.className = 'pill' + (S.live ? ' money' : '');
@@ -1713,83 +1923,85 @@ function render(){
 // ===================================================================
 var LB_URL = 'https://deal-table-board.odoocalc.workers.dev';                 // set to the Worker URL to go shared
 var LB_KEY = 'odooTableBoard';
-var lbPeriod = 'day';
+var lbPeriod = 'month';
+var LB_RUN = 'odooTableRun';
 
 function periodKey(p, d){
-  d = d || new Date();
-  var y = d.getUTCFullYear(), m = d.getUTCMonth() + 1, day = d.getUTCDate();
-  var pad = function(n){ return (n < 10 ? '0' : '') + n; };
   if (p === 'all') return 'all';
-  if (p === 'month') return y + '-' + pad(m);
-  if (p === 'day') return y + '-' + pad(m) + '-' + pad(day);
-  var t = new Date(Date.UTC(y, d.getUTCMonth(), day));
-  var dow = (t.getUTCDay() + 6) % 7;
-  t.setUTCDate(t.getUTCDate() - dow);
-  return 'w' + t.getUTCFullYear() + '-' + pad(t.getUTCMonth() + 1) + '-' + pad(t.getUTCDate());
+  d = d || new Date();
+  var pad = function(n){ return (n < 10 ? '0' : '') + n; };
+  return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1);
 }
 
-function localBoard(){
-  try { return JSON.parse(localStorage.getItem(LB_KEY) || '{}'); } catch (e) { return {}; }
-}
-function saveLocalBoard(b){
-  try { localStorage.setItem(LB_KEY, JSON.stringify(b)); } catch (e) {}
-}
-function recordLocal(name, amount){
-  var b = localBoard();
-  ['day','week','month','all'].forEach(function(p){
-    var k = p + ':' + periodKey(p);
-    b[k] = b[k] || {};
-    b[k][name] = Math.max(b[k][name] || 0, Math.round(amount));
-  });
-  saveLocalBoard(b);
-}
-function readLocal(p){
-  var b = localBoard(), k = p + ':' + periodKey(p), rows = [];
-  var m = b[k] || {};
-  for (var n in m) rows.push({ name:n, amount:m[n] });
-  rows.sort(function(x, y){ return y.amount - x.amount; });
-  return rows.slice(0, 12);
-}
-
-function postScore(){
-  var name = (S.name || '').trim();
-  /* Rank on the best month, the way a sales floor does. A running lifetime
-     total just rewards whoever sat down longest. */
-  var score = Math.max(S.bestMonth, monthCommission());
-  if (!name || score <= 0) { renderBoard(); return; }
-  recordLocal(name, score);
-  if (LB_URL) {
-    try {
-      fetch(LB_URL + '/score', {
-        method:'POST', headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify({ name:name, amount:Math.round(score) })
-      }).then(function(){ renderBoard(); }).catch(function(){ renderBoard(); });
-      return;
-    } catch (e) {}
+/* One id per browser, so a month can be logged exactly once even if the post
+   is retried. It is not identity and it is not a login, it only stops the same
+   finished month being counted twice. */
+function runId(){
+  var v = '';
+  try { v = localStorage.getItem(LB_RUN) || ''; } catch (e) {}
+  if (!v) {
+    v = Math.random().toString(36).slice(2, 10);
+    try { localStorage.setItem(LB_RUN, v); } catch (e) {}
   }
-  renderBoard();
+  return v;
+}
+
+function rankedRun(){
+  var el = document.getElementById('setDiff');
+  return !el || !el.value || el.value === 'normal';
+}
+
+/* Called once, when a month closes. The board averages every month you log, so
+   there is nothing to gain by replaying: a bad month counts too. */
+function postMonth(earned){
+  var name = (S.name || '').trim();
+  if (!name || !LB_URL) { renderBoard(); return; }
+  if (!rankedRun()) { renderBoard(); return; }
+  try {
+    fetch(LB_URL + '/score', {
+      method:'POST', headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        name: name,
+        amount: Math.round(earned),
+        segment: S.segment,
+        chip: S.stake || 250,
+        difficulty: (document.getElementById('setDiff') || {}).value || 'normal',
+        monthKey: runId() + ':' + S.segment + ':' + S.monthNo
+      })
+    }).then(function(){ renderBoard(); }).catch(function(){ renderBoard(); });
+  } catch (e) { renderBoard(); }
 }
 
 function renderBoard(){
   var host = document.getElementById('lbList');
-  var draw = function(rows, shared){
-    if (!rows.length) { host.innerHTML = '<p class="mini">Nobody on this board yet. Play a hand.</p>'; return; }
-    host.innerHTML = rows.map(function(r, i){
+  var note = function(t){ return '<p class="mini" style="margin-top:10px">' + t + '</p>'; };
+  var draw = function(j, ok){
+    var rows = (j && j.rows) || [];
+    var need = (j && j.minMonths) || 3;
+    var head = note('Ranked on your average month on the ' +
+      (S.segment === '1to5' ? '1 to 5' : '6 to 50') + ' book. Every month you finish counts, ' +
+      'so replaying a bad one does not help. ' + need + ' months to appear.');
+    if (!ok) { host.innerHTML = note('Board is unreachable right now. Your months are still being counted.'); return; }
+    if (!rows.length) { host.innerHTML = head + note('Nobody on this board yet. Finish a month.'); return; }
+    host.innerHTML = head + rows.map(function(r, i){
       var mine = r.name === (S.name || '').trim();
-      return '<div class="lbrow' + (mine ? ' you' : '') + '">' +
-        '<span class="rank">' + (i + 1) + '</span>' +
-        '<span class="who">' + esc(r.name) + '</span>' +
-        '<span class="amt">' + fmt(r.amount) + '</span></div>';
-    }).join('') + (shared ? '' : '<p class="mini" style="margin-top:10px">This device only. Connect the Worker to share it.</p>');
+      var right = r.ranked
+        ? fmt(r.avg) + '<span class="lbsub">' + r.months + ' months &middot; best ' + fmt(r.best) + '</span>'
+        : '<span class="lbsub">' + r.months + ' of ' + need + ' months</span>';
+      return '<div class="lbrow' + (mine ? ' you' : '') + (r.ranked ? '' : ' unranked') + '">' +
+        '<span class="rank">' + (r.ranked ? (i + 1) : '&middot;') + '</span>' +
+        '<span class="who">' + esc(r.name) +
+          '<span class="lbchip">' + (r.chip >= 1000 ? (r.chip / 1000) + 'k' : r.chip) + '</span></span>' +
+        '<span class="amt">' + right + '</span></div>';
+    }).join('')
+      + (rankedRun() ? '' : note('You are on a changed difficulty, so these months are not going on the board. Set it back to Mixed to rank.'));
   };
-  if (LB_URL) {
-    fetch(LB_URL + '/top?period=' + lbPeriod + '&key=' + encodeURIComponent(periodKey(lbPeriod)))
-      .then(function(r){ return r.json(); })
-      .then(function(j){ draw(j.rows || [], true); })
-      .catch(function(){ draw(readLocal(lbPeriod), false); });
-  } else {
-    draw(readLocal(lbPeriod), false);
-  }
+  if (!LB_URL) { host.innerHTML = note('No board configured.'); return; }
+  fetch(LB_URL + '/top?segment=' + encodeURIComponent(S.segment) +
+        '&period=' + lbPeriod + '&key=' + encodeURIComponent(periodKey(lbPeriod)))
+    .then(function(r){ return r.json(); })
+    .then(function(j){ draw(j, true); })
+    .catch(function(){ draw(null, false); });
 }
 
 function renderStats(){
@@ -1841,7 +2053,9 @@ function renderLog(){
     return '<div class="logrow"><div class="top"><span>' + esc(l.who) +
       ' <em class="tag ' + esc(l.kind) + '">' +
       (l.kind === 'signed' ? 'signed' : l.kind === 'short' ? 'under scoped'
-        : l.kind === 'push' ? 'stalled' : 'over reached') +
+        : l.kind === 'push' ? 'stalled' : l.kind === 'month' ? 'month closed'
+        : l.kind === 'transferred' ? 'transferred out'
+        : 'over reached') +
       '</em></span>' +
       '<span class="amt ' + (up ? 'up' : l.delta < 0 ? 'down' : '') + '">' +
       (up ? '+' : '') + fmt(l.delta) + '</span></div>' +
