@@ -49,9 +49,9 @@
 
   /* Odoo buttons are 4px. Cards get a little more so the density stays readable. */
   --r-sm:4px; --r-md:6px; --r-lg:10px; --r-xl:14px;
-  --sh-1:0 1px 2px rgba(17,24,39.05), 0 1px 3px rgba(17,24,39.04);
-  --sh-2:0 1px 3px rgba(17,24,39.06), 0 8px 24px -12px rgba(17,24,39.16);
-  --sh-3:0 4px 8px rgba(17,24,39.06), 0 20px 40px -20px rgba(17,24,39.20);
+  --sh-1:0 1px 2px rgba(17,24,39,.05), 0 1px 3px rgba(17,24,39,.04);
+  --sh-2:0 1px 3px rgba(17,24,39,.06), 0 8px 24px -12px rgba(17,24,39,.16);
+  --sh-3:0 4px 8px rgba(17,24,39,.06), 0 20px 40px -20px rgba(17,24,39,.20);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -76,9 +76,9 @@
 
     --line:#2f343e;
     --line-soft:#262a33;
-    --sh-1:0 1px 2px rgba(0,0,0.4);
-    --sh-2:0 2px 6px rgba(0,0,0.45), 0 10px 28px -14px rgba(0,0,0.6);
-    --sh-3:0 6px 14px rgba(0,0,0.5), 0 24px 48px -20px rgba(0,0,0.7);
+    --sh-1:0 1px 2px rgba(0,0,0,.4);
+    --sh-2:0 2px 6px rgba(0,0,0,.45), 0 10px 28px -14px rgba(0,0,0,.6);
+    --sh-3:0 6px 14px rgba(0,0,0,.5), 0 24px 48px -20px rgba(0,0,0,.7);
   }
 }
 :root[data-theme="dark"]{
@@ -109,12 +109,12 @@ body{
 
 /* ── App bar ── */
 .appbar{
-  position:sticky;top:0;z-index:40;background:rgba(255,255,255.82);
+  position:sticky;top:0;z-index:40;background:rgba(255,255,255,.82);
   backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
   border-bottom:1px solid var(--line);margin:0 -20px 0;padding:0 20px;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .appbar{background:rgba(33,27,36.82);}}
-:root[data-theme="dark"] .appbar{background:rgba(33,27,36.82);}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .appbar{background:rgba(33,27,36,.82);}}
+:root[data-theme="dark"] .appbar{background:rgba(33,27,36,.82);}
 .appbar-inner{
   max-width:1320px;margin:0 auto;height:58px;
   display:flex;align-items:center;justify-content:space-between;gap:16px;
@@ -123,7 +123,7 @@ body{
 .brand-mark{
   width:22px;height:22px;border-radius:7px;flex:none;
   background:linear-gradient(140deg,var(--accent) 0%,var(--accent-deep) 100%);
-  box-shadow:0 2px 6px rgba(var(--accent-rgb).4);
+  box-shadow:0 2px 6px rgba(var(--accent-rgb),.4);
 }
 .brand-name{font-weight:700;font-size:.92rem;letter-spacing:-.01em;color:var(--ink);white-space:nowrap;}
 .appbar-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
@@ -165,7 +165,7 @@ body{
   font-variant-numeric:tabular-nums;-moz-appearance:textfield;
 }
 .stepper input::-webkit-outer-spin-button.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-.stepper:focus-within{border-color:rgba(var(--accent-rgb).55);box-shadow:0 0 0 3px rgba(var(--accent-rgb).13);}
+.stepper:focus-within{border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13);}
 .step-btn{
   width:36px;align-self:stretch;border:none;background:transparent;color:var(--sub);
   font-size:1.05rem;font-weight:600;cursor:pointer;transition:background .15s,color .15s;
@@ -174,7 +174,7 @@ body{
 
 .bd-chip{
   display:inline-block;font-family:"Inter",sans-serif;font-size:.72rem;font-weight:700;
-  background:var(--accent-soft);color:var(--accent);border:1px solid rgba(var(--accent-rgb).28);
+  background:var(--accent-soft);color:var(--accent);border:1px solid rgba(var(--accent-rgb),.28);
   padding:3px 11px;border-radius:4px;vertical-align:middle;margin-left:8px;letter-spacing:0;
 }
 
@@ -245,7 +245,7 @@ label.lbl{
 }
 .numfield input::-webkit-outer-spin-button.numfield input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .numfield span{padding:0 12px 0 4px;color:var(--faint);font-size:.78rem;white-space:nowrap;}
-.numfield:focus-within{border-color:rgba(var(--accent-rgb).55);box-shadow:0 0 0 3px rgba(var(--accent-rgb).13);}
+.numfield:focus-within{border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13);}
 select{
   padding:8px 26px 8px 10px;border-radius:var(--r-md);border:1px solid var(--line);
   background:var(--surface-2);color:var(--ink);font-family:inherit;font-size:.83rem;
@@ -255,7 +255,7 @@ select{
   background-position:calc(100% - 14px) 52%,calc(100% - 9px) 52%;
   background-size:5px 5px,5px 5px;background-repeat:no-repeat;
 }
-select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb).55);box-shadow:0 0 0 3px rgba(var(--accent-rgb).13);}
+select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13);}
 
 .pill-toggle{display:inline-flex;gap:4px;background:var(--surface-3);padding:4px;border-radius:999px;}
 .pill-toggle button{
@@ -280,7 +280,7 @@ select:focus-visible{outline:none;border-color:rgba(var(--accent-rgb).55);box-sh
 /* Nav items are real links so they can be middle clicked or opened in a new
    tab. Scoped to a.btn so no existing button changes. */
 a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center;}
-.btn:hover{border-color:rgba(var(--accent-rgb).5);color:var(--accent);box-shadow:var(--sh-2);}
+.btn:hover{border-color:rgba(var(--accent-rgb),.5);color:var(--accent);box-shadow:var(--sh-2);}
 .btn:active{transform:translateY(1px);}
 .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:none;}
 .btn-primary:hover{color:#fff;background:var(--accent-deep);border-color:var(--accent-deep);}
@@ -328,7 +328,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
   transition:border-color .15s,box-shadow .15s;
 }
 .sctable .pct::-webkit-outer-spin-button.sctable .pct::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-.sctable .pct:focus{outline:none;border-color:rgba(var(--accent-rgb).55);box-shadow:0 0 0 3px rgba(var(--accent-rgb).13);}
+.sctable .pct:focus{outline:none;border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13);}
 .sctable .pct:disabled{opacity:.32;cursor:not-allowed;}
 .sctable .na{color:var(--sub);}
 .rm-btn{
@@ -485,7 +485,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 /* ── Marketing / context blocks (these print with the quote) ── */
 
 /* ── Internal view ── */
-#internalCard{border:1px dashed rgba(var(--accent-rgb).55);background:var(--surface-2);}
+#internalCard{border:1px dashed rgba(var(--accent-rgb),.55);background:var(--surface-2);}
 .tag-internal{
   font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
   background:var(--accent);color:#fff;padding:3px 9px;border-radius:4px;vertical-align:middle;margin-left:8px;
@@ -547,7 +547,7 @@ footer{
   font-size:1.05rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
   opacity:.9;
 }
-.compose-icon-btn:hover{background:rgba(255,255,255.2);opacity:1;}
+.compose-icon-btn:hover{background:rgba(255,255,255,.2);opacity:1;}
 .compose-body{padding:2px 16px 0;display:flex;flex-direction:column;}
 .compose-row{border-bottom:1px solid var(--line-soft);padding:10px 0;}
 .compose-row.compose-message-row{border-bottom:none;padding-top:12px;padding-bottom:4px;}
@@ -595,7 +595,7 @@ footer{
 .compose-sig-row{border-bottom:none;padding:0 0 10px;}
 .compose-sig{height:84px;resize:vertical;line-height:1.5;font-size:.82rem;color:var(--sub);}
 .compose-panel.collapsed{width:280px;}
-.compose-panel.collapsed .compose-body.compose-panel.collapsed .compose-footer{display:none;}
+.compose-panel.collapsed .compose-body,.compose-panel.collapsed .compose-footer{display:none;}
 @media (max-width:480px){.compose-panel{right:0;left:0;width:100%;max-width:100%;}}
 /* Extra compose fields, the details that turn a raw send into a personalised,
    on-brand proposal: who it's for, which scenario, and a copy to the rep. */
@@ -622,7 +622,7 @@ footer{
 
 /* Preview, shows the exact email that will land in the customer's inbox. */
 .eprev-overlay{
-  position:fixed;inset:0;z-index:10000;background:rgba(17,24,39.55);
+  position:fixed;inset:0;z-index:10000;background:rgba(17,24,39,.55);
   display:none;align-items:center;justify-content:center;padding:24px;
 }
 .eprev-overlay.on{display:flex;}
@@ -646,8 +646,8 @@ footer{
   position:fixed;inset:0;z-index:99999;
   display:flex;align-items:center;justify-content:center;padding:24px;
   background:
-    radial-gradient(760px 520px at 10% -12%, rgba(var(--accent-rgb).20), transparent 60%),
-    radial-gradient(680px 480px at 108% 112%, rgba(var(--teal-rgb).16), transparent 60%),
+    radial-gradient(760px 520px at 10% -12%, rgba(var(--accent-rgb),.20), transparent 60%),
+    radial-gradient(680px 480px at 108% 112%, rgba(var(--teal-rgb),.16), transparent 60%),
     var(--bg);
   animation:pwFadeIn .4s ease both;
 }
@@ -663,7 +663,7 @@ footer{
 .pw-mark{
   width:58px;height:58px;border-radius:17px;margin:0 auto 20px;
   background:linear-gradient(140deg,var(--accent) 0%,var(--accent-deep) 100%);
-  box-shadow:0 8px 18px -4px rgba(var(--accent-rgb).5);
+  box-shadow:0 8px 18px -4px rgba(var(--accent-rgb),.5);
   display:flex;align-items:center;justify-content:center;
   color:#fff;font-family:"Inter",sans-serif;font-weight:800;font-size:27px;
 }
@@ -677,7 +677,7 @@ footer{
   transition:border-color .16s,box-shadow .16s;
 }
 .pw-field input::placeholder{font-weight:500;letter-spacing:normal;color:var(--faint);}
-.pw-field input:focus{outline:none;border-color:rgba(var(--accent-rgb).55);box-shadow:0 0 0 3px rgba(var(--accent-rgb).15);}
+.pw-field input:focus{outline:none;border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.15);}
 .pw-gate.pw-shake .pw-card{animation:pwShake .4s;}
 @keyframes pwShake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-5px)}40%,60%{transform:translateX(5px)}}
 .pw-error{font-size:.8rem;color:var(--warn);margin:10px 0 4px;min-height:1.1em;opacity:0;transition:opacity .15s;}
@@ -686,7 +686,7 @@ footer{
   width:100%;margin-top:16px;font-family:inherit;font-weight:700;font-size:.94rem;border-radius:999px;
   padding:13px 19px;cursor:pointer;border:1px solid var(--accent);
   background:var(--accent);color:#fff;
-  box-shadow:0 2px 6px rgba(var(--accent-rgb).3),0 10px 22px -10px rgba(var(--accent-rgb).6);
+  box-shadow:0 2px 6px rgba(var(--accent-rgb),.3),0 10px 22px -10px rgba(var(--accent-rgb),.6);
   transition:background .16s,border-color .16s,transform .06s;
 }
 .pw-submit:hover{background:var(--accent-deep);border-color:var(--accent-deep);}
@@ -1119,7 +1119,7 @@ document.addEventListener("click", function (e) {
 const PLANS_BY_COUNTRY = {
   US: {
     standard: { y1promo: 24.90, y2: 31.10, noCommitY1: 31.10, noCommit: 38.90 },
-    custom:   { y1promo: 49.00, y2: 61.00, noCommitY1: 61.10, noCommit: 76.20 }
+    custom:   { y1promo: 49.00, y2: 61.00, noCommitY1: 61.00, noCommit: 76.20 }
   },
   // Live-read from odoo.com/pricing with the country selector set to Canada, Aug 28 2026.
   // The previous third-party CAD figures were wrong in seven of eight places. Note especially

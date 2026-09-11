@@ -489,8 +489,8 @@ select:focus-visible, button:focus-visible{
         <p class="mini"><b>Grow the quote</b> adds seats, term, a Success Pack or Odoo.sh. Every one of those
         is worth real money every month, and every one asks a bit more of the customer.</p>
         <p class="mini">Ask more than they will carry and they walk. You get nothing, and everything you built
-        goes with them. The number to watch is how much you have asked, against the band
-        printed beside it.</p>
+        goes with them. The number to watch is how much you have asked, and the read on how
+        much they will take is the line under their name.</p>
         <p class="mini"><b>Send the quote</b> when you think they will still sign. Whatever they sign is what
         you bank.</p>
       </div>
@@ -543,9 +543,10 @@ select:focus-visible, button:focus-visible{
         together they add up to a number you have to beat. Your side is your quote,
         and what it asks of them is the number on the table. Beat their number without
         asking more than they will carry and they sign. Where they stop carrying is
-        the second hidden number, and it is different for every customer: the pill
-        under your quote prints the band it sits in, which comes straight off how
-        they have behaved with you.</p>
+        the second hidden number and it is different for every customer. Nothing on
+        the table prints it. The line under their name is the read: somebody straight
+        with you carries almost any ask, somebody threatening to walk since day one
+        stops early, and the pill under your quote turns as you get close.</p>
 
       <h3>The buttons</h3>
       <ul>
@@ -583,8 +584,8 @@ select:focus-visible, button:focus-visible{
       <h3>How a hand ends</h3>
       <ul>
         <li><b>Signed.</b> You beat their number and stopped before they did.
-          Where they stop is not 21 for everybody, and the pill under your quote
-          names the band this one carries.</li>
+          Where they stop is not the same for everybody, and you are reading it off
+          how they have behaved, not off a number on the screen.</li>
         <li><b>Stalled.</b> You matched it exactly. Nothing banked, nothing lost, and
           it rolls to next quarter. About a quarter of hands.</li>
         <li><b>Not enough.</b> You came up short and they went with somebody who
@@ -1679,18 +1680,10 @@ function takeOffer(i){
   setWhy(growthLine(c));
 }
 
-/* One phrasing of the walk band, used by the pill and by every line of copy that
-   used to say "of 21". Saying 21 everywhere was the thing that made a customer
-   walking at 18 feel arbitrary. */
-function askBandLine(){
-  var d = S.deal;
-  var band = d && d.conduct && WALK_BY_CONDUCT[d.conduct.k];
-  return band ? ', and this one is safe to ' + band[0] + ' and gone past ' + band[1] + '.' : '.';
-}
 function growthLine(c){
   var q = quote(S.deal);
   return 'The quote is now ' + fmt(q.mrr) + ' a month, ' + fmt(q.contract) +
-    ' across the whole commitment. You have asked ' + S.deal.asked + askBandLine();
+    ' across the whole commitment. You have asked ' + S.deal.asked + '.';
 }
 
 function discountLine(c, room){
@@ -1788,8 +1781,8 @@ function readOut(kind, asked, bar){
   for (var li = pl.length - 1; li >= 0; li--) {
     if (!pl[li].disc) { lastAsk = pl[li].ask; break; }
   }
-  var head = 'They carried an ask to ' + bar + ' and you took it to ' + asked + '. ';
-  if (!lastAsk) { return head + 'Nothing past ' + bar + ' was going to sign.'; }
+  var head = 'They stopped at ' + bar + '. ';
+  if (!lastAsk) { return head + 'Nothing past that was going to sign.'; }
   var prev = asked - lastAsk;
   return prev > resistance()
     ? head + 'Standing before that last card would have signed it.'
@@ -2095,16 +2088,13 @@ function render(){
   var yt = document.getElementById('youTotal');
   var asked = d ? d.asked : 0;
   var lim = d ? d.walk : BAR_CAP;
-  /* The exact walk point stays hidden. The band it sits in does not, because
-     printing "of 21" made every customer look like they carried to 21: a quote
-     at 19 read as comfortable right up until a grinder walked at 18, and the
-     player had no way to have known. The banner names the conduct, so this
-     names what that conduct carries. Anything at or below the low end is always
-     safe, anything past the high end always walks, and in between is the bet. */
-  var band = (d && d.conduct && WALK_BY_CONDUCT[d.conduct.k]) || null;
-  yt.textContent = !d ? 'No quote on the table'
-    : 'Your quote reaches ' + asked +
-      (band ? ' · safe to ' + band[0] + ', gone past ' + band[1] : '');
+  /* Just the number you have asked for. It used to say "of 21", which was a lie
+     on every customer who did not carry to 21, and for a moment it said the band
+     instead, which was worse: printing where they stop answers the question the
+     hand is supposed to ask. Where they stop is read off how they have behaved
+     with you, which is the line in the banner, and the pill goes hot as you get
+     close to it. That is the read, and it stays a read. */
+  yt.textContent = !d ? 'No quote on the table' : 'Your quote reaches ' + asked;
   yt.className = 'pill' + (asked > lim ? ' bust' : asked >= lim - 3 ? ' hot' : '');
   var cn = document.getElementById('closeNow');
   cn.textContent = S.live ? 'Sending now puts ' + fmt(q.contract) + ' on the table' : 'Not in a deal';
