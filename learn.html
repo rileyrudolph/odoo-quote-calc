@@ -942,6 +942,11 @@ function newDeal(){
     walk: rollWalk(c),
     users: seats,
     term: 1,
+    /* The longest commitment this business will entertain. New logos mostly sign
+       a year and think about the rest later; somebody already running Odoo has
+       the internal argument won and will go longer. Five years exists but it is
+       the exception it is in real life, not the default the deck used to make it. */
+    maxTerm: pickTermRoof('new'),
     plan: (COMPLEX_INDUSTRY.test(a.t) ? rng() < 0.75 : rng() < 0.2) ? 'custom' : 'standard',
     packIdx: 0,
     sh: false,
@@ -1054,7 +1059,16 @@ function growth(d){
     });
   });
 
-  for (var t = d.term + 1; t <= 5; t++) {
+  /* A business has a commitment appetite and it is not five years. Offering every
+     term up to five on every hand made the five year card the most common close in
+     the game, more common than one year, and because achieved MRR is the monthly
+     change times the term, that one card multiplied the deal by five. The result
+     was a median win worth 64% of the whole month's MRR quota and a top decile
+     worth 318% of it: two hands decided the month. Real customers sign what they
+     are willing to sign, so the cards stop at what this one will carry. The card
+     simply is not there, which is the same signal a rep gets on a call. */
+  var termRoof = d.maxTerm || 1;
+  for (var t = d.term + 1; t <= termRoof; t++) {
     out.push({
       kind:'term', years:t, tag:'Commitment', head:t + ' year term',
       body:'Get them to commit for ' + t + ' years instead of ' + d.term,
@@ -1073,11 +1087,20 @@ function growth(d){
   for (var pi = PACKS.length - 1; pi >= 1; pi--) {
     if (PACKS[pi].hours <= needHours) { wantIdx = pi; break; }
   }
+  /* The hours a Custom build really takes are read off real orders, so a fourteen
+     seat Custom deal genuinely wants about a hundred and seventy hours. What is
+     not real is this desk selling it. A four hundred hour engagement is $50,000
+     of NRR against a monthly quota of $18,000, and it is not a 6 to 50 seat rep
+     who writes it any more than they write a sixty seat licence. Same ceiling
+     logic as seats: the deal exists, it is just not on this desk. */
+  wantIdx = Math.min(wantIdx, packCeil());
   /* The right size, one under it, and one over, so scoping it correctly is a
      judgement rather than a staircase. */
   var steps = {};
+  /* The one over the right size has to respect the desk ceiling too, or the
+     ladder hands back the pack the ceiling just took away. */
   [wantIdx - 1, wantIdx, wantIdx + 1].forEach(function (idx) {
-    if (idx > d.packIdx && idx < PACKS.length) { steps[idx - d.packIdx] = 1; }
+    if (idx > d.packIdx && idx < PACKS.length && idx <= packCeil()) { steps[idx - d.packIdx] = 1; }
   });
   Object.keys(steps).forEach(function (kk) {
     var k = +kk;
@@ -1297,14 +1320,23 @@ function applyDealType(d){
   d.type = t.k;
   d.typeLabel = t.label;
   d.typeNote = t.note;
+  /* The roof follows the kind of customer, and it can never sit below the term
+     they are already on. */
+  d.maxTerm = Math.max(d.term, pickTermRoof(t.k));
   if (t.k === 'expansion') {
-    d.term = pick([2, 3, 3, 4, 5]);
+    /* The new seats ride whatever commitment is already running, and most running
+       Odoo contracts are one to three years, not five. Opening every expansion at
+       two to five years meant the deal arrived already multiplied. */
+    d.term = pick([1, 2, 2, 3, 3]);
+    d.maxTerm = Math.max(d.term, d.maxTerm);
     /* An existing customer already on Odoo.sh is on Custom by definition, since
        Standard is Odoo Online only. */
     if (Math.random() < 0.45) { d.sh = true; d.plan = 'custom'; }
   }
   if (t.k === 'expansion') {
-    d.packIdx = pick([1, 2, 2, 3]);
+    /* An expansion arrives with hours already on it, but never more than the
+       desk writes, or the ceiling is bypassed before the first card is played. */
+    d.packIdx = Math.min(pick([1, 2, 2, 3]), packCeil());
     /* A department already live means a bigger business, so the headcount moves
        with the seats. Growing users alone left the quote able to pass the staff
        ceiling the seat cards are supposed to respect. */
@@ -1316,6 +1348,25 @@ function applyDealType(d){
 
 /* Fewer people, fewer objections. A two partner practice decides over a coffee;
    a twenty seat rollout has a migration, a go live date and a signature upstairs. */
+/* How long each kind of customer will commit for, as a bag of years drawn from.
+   Weighted so one and three years carry the book the way they do on a real desk,
+   with four and five as the exception a rep has to earn. */
+var TERM_ROOF = {
+  'new':       [1,1,1,1,1,1,2,2,2,3,3,3,4,5],
+  'expansion': [1,1,2,2,3,3,3,3,4,4,5],
+  'renewal':   [1,1,2,2,3,3,3,4,4,5,5]
+};
+/* The largest Success Pack each desk writes, as an index into PACKS.
+   6 to 50 stops at the 100 hour pack, 1 to 5 at 25 hours. */
+var PACK_CEIL = { '6to50': 4, '1to5': 2 };
+function packCeil(){
+  var c = PACK_CEIL[S.segment];
+  return (c == null ? PACKS.length - 1 : c);
+}
+function pickTermRoof(kind){
+  var bag = TERM_ROOF[kind] || TERM_ROOF['new'];
+  return bag[Math.floor(rng() * bag.length)];
+}
 function seatWeight(u){
   if (u <= 3) { return -3; }
   if (u <= 6) { return -2; }
