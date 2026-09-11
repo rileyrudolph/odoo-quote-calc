@@ -332,28 +332,6 @@ body.how-open #howBack{display:flex;}
   .panel{position:fixed;top:0;right:0;bottom:0;width:min(392px,92vw);z-index:60;
     transform:translateX(100%);transition:transform .22s ease;box-shadow:-14px 0 40px rgba(0,0,0,.55);}
   body.panel-open .panel{transform:none;}
-  .logrow .tag{font-style:normal;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;
-  padding:2px 6px;border-radius:4px;margin-left:6px;opacity:.9;}
-.logrow .tag.signed{background:rgba(46,204,113,.16);color:var(--win);}
-.logrow .tag.short{background:rgba(217,164,65,.16);color:var(--gold);}
-.logrow .tag.walked{background:rgba(231,76,60,.16);color:var(--lose);}
-    .tag.push{background:rgba(201,211,220,.16);color:#c9d3dc;}
-.card .tcv{display:block;font-weight:600;opacity:.72;font-size:.86em;margin-top:2px;}
-.dealtype{margin:6px 0 2px;font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--gold);opacity:.85;}
-/* The action bar is one row. Buttons share it and shrink together rather than
-   dropping Send onto a second line. */
-.actions{flex-wrap:nowrap;}
-.actions .abtn{flex:1 1 0;min-width:0;}
-.actions .abtn small{display:block;margin-top:3px;font-size:.66rem;line-height:1.3;white-space:normal;}
-@media (max-width:820px){ .actions{flex-wrap:wrap;} .actions .abtn{flex:1 1 45%;} }
-.abtn kbd{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
-  border:1px solid rgba(255,255,255,.28);font:inherit;font-size:.82em;opacity:.8;}
-.abtn:disabled kbd{opacity:.35;}
-/* The running total is the thing you are deciding on, so it reads like a hand. */
-#youTotal{font-size:1.02rem;font-weight:800;letter-spacing:.01em;padding:7px 15px;}
-.bank-amt.neg{color:var(--lose);}
-#btnPanel{display:inline-block;}
 }
 @media (max-width:640px){ .cc{width:calc(50% - 6px);} }
 /* The table is played on the keyboard as much as the mouse, so every control has
@@ -404,7 +382,7 @@ select:focus-visible, button:focus-visible{
         <div class="hand" id="youHand"></div>
     <div class="payout" id="payout"></div>
         <div class="seat-label">
-          <span class="pill" id="youTotal">Your offer: 0 of 21</span>
+          <span class="pill" id="youTotal">No quote on the table</span>
           <span class="pill money" id="closeNow">Close now: $0 a month</span>
         </div>
       </div>
@@ -511,7 +489,8 @@ select:focus-visible, button:focus-visible{
         <p class="mini"><b>Grow the quote</b> adds seats, term, a Success Pack or Odoo.sh. Every one of those
         is worth real money every month, and every one asks a bit more of the customer.</p>
         <p class="mini">Ask more than they will carry and they walk. You get nothing, and everything you built
-        goes with them. The number to watch is how much you have asked, out of 21.</p>
+        goes with them. The number to watch is how much you have asked, against the band
+        printed beside it.</p>
         <p class="mini"><b>Send the quote</b> when you think they will still sign. Whatever they sign is what
         you bank.</p>
       </div>
@@ -561,9 +540,12 @@ select:focus-visible, button:focus-visible{
 <p>You are the rep. Every hand is one live deal, and your job is the same as it is at work: build a quote that actually covers what the customer needs, then send it.</p>
 <h3>The two sides</h3>
       <p>Their side is a stack of objections. One is face up, the rest are not, and
-        together they add up to a number between 16 and 21. Your side is your quote,
+        together they add up to a number you have to beat. Your side is your quote,
         and what it asks of them is the number on the table. Beat their number without
-        going past 21 and they sign.</p>
+        asking more than they will carry and they sign. Where they stop carrying is
+        the second hidden number, and it is different for every customer: the pill
+        under your quote prints the band it sits in, which comes straight off how
+        they have behaved with you.</p>
 
       <h3>The buttons</h3>
       <ul>
@@ -583,16 +565,26 @@ select:focus-visible, button:focus-visible{
       <h3>The cards</h3>
       <p>Each card prints what it adds and what it costs you: more seats, a longer
         term, a Success Pack, Odoo.sh, the Custom plan. The money is what lands on
-        your book. The ask is how much further it pushes you toward 21, printed as a
-        band because the exact price moves a little, the way a real customer does.</p>
+        your book. What it does not print is the ask: how much further it pushes you
+        toward the point they stop listening. That number moves a little every time,
+        the way a real customer does, and working out which cards are heavy is the
+        job.</p>
 
       <h3>The chip</h3>
-      <p>The chip is the size of room you walk into. Bigger chip, bigger customer,
-        worth far more if it lands and more expensive to chase if it does not.</p>
+      <p>The chip is the size of room you walk into. On the 6 to 50 desk it walks
+        you up through the book: a bigger chip puts you in front of a customer
+        nearer fifty seats, worth far more if it lands and more expensive to chase
+        if it does not, and your quota moves up with it. On the 1 to 5 desk there
+        is no bigger room, because the book stops at five seats and anything past
+        ten is somebody else&rsquo;s deal. There the chip buys a better customer
+        rather than a bigger one: more of them need Custom, and Custom is what puts
+        Odoo.sh on the table at all. Your quota stays where it is.</p>
 
       <h3>How a hand ends</h3>
       <ul>
-        <li><b>Signed.</b> You beat their number and stayed at or under 21.</li>
+        <li><b>Signed.</b> You beat their number and stopped before they did.
+          Where they stop is not 21 for everybody, and the pill under your quote
+          names the band this one carries.</li>
         <li><b>Stalled.</b> You matched it exactly. Nothing banked, nothing lost, and
           it rolls to next quarter. About a quarter of hands.</li>
         <li><b>Not enough.</b> You came up short and they went with somebody who
@@ -674,7 +666,19 @@ var ONETO5_MAX_USERS = 10;
 /* Three makes blanket doubling break even, so it becomes a read rather than a
    button you press every hand. At two it paid 43% more to double everything. */
 var DOUBLE_LOSS_SLOTS = 3;
-var STAKE_SCALE = [1, 2, 4, 9];   // matches what the chip does to seat counts
+/* What the chip does to the quota, fitted to what it actually does to the money
+   on each book rather than assumed. The old single row of [1,2,4,9] came from
+   the days when the chip multiplied seats by the same factor; it no longer does,
+   and on the 6 to 50 desk the seat ceiling flattens the top chips anyway, so a
+   quota that kept climbing ninefold paid the $2,500 chip $441 a month against
+   the $250 chip's $3,333. Measured over three hundred months a side, these hold
+   every chip on both books within about a tenth of the same median month.
+   On the 1 to 5 desk the chip cannot buy a bigger customer at all, because the
+   book is one to five seats, so it buys a better one and the quota stays put. */
+var STAKE_SCALE_BY_BOOK = {
+  '6to50': [1, 1.5, 2, 2.5],
+  '1to5':  [1, 1, 1, 1]
+};
 /* The quota belongs to the month, not to whatever chip is selected right now.
    Reading it live meant a month's banked work could be re-priced by changing
    chips before sending the last quote. */
@@ -683,7 +687,8 @@ function stakeScale(){ return S.monthScale || 1; }
    sitting on when its first hand goes out. */
 function openMonth(){
   if (S.monthScale != null) { return; }
-  S.monthScale = STAKE_SCALE[stakeTier()] || 1;
+  var row = STAKE_SCALE_BY_BOOK[S.segment] || STAKE_SCALE_BY_BOOK['6to50'];
+  S.monthScale = row[stakeTier()] || 1;
   S.monthDiff  = curDiff();
   S.monthChip  = S.stake || 250;
 }
@@ -757,9 +762,9 @@ var OPEN_BASE = 4, OPEN_MIN = 4, OPEN_MAX = 13, OPEN_JITTER = 3;
 var IMPL_MAX_PCT   = 30;   // the most the desk will sign off
 var IMPL_CAP_HOURS = 200;  // and it only reaches the first 200 hours
 var SH_WORKER  = 57.60;    // Odoo.sh, one extra worker, per month
-var SH_STAGING = 14.40;
-/* Odoo.sh dedicated server: a flat monthly fee that replaces per worker billing
-   and lifts the ceiling to 256 workers and 4096GB. Anything above 3 workers is
+var SH_STAGING = 14.40;    // Odoo.sh, one staging branch, per month
+/* Odoo.sh dedicated server: a flat monthly fee charged on top of the metered
+   workers, which lifts the ceiling from 8 workers to 256. Anything above 8 is
    dedicated only, which is the whole reason a deal moves onto one. */
 var SH_DEDICATED = 480;
 var SH_SHARED_MAX_WORKERS = 8;
@@ -767,7 +772,7 @@ var SH_DEDICATED_MIN_WORKERS = 4;
 /* Below this the shared plan still has room, so nobody is buying a flat $480 a
    month for headroom they do not need. */
 var SH_DEDICATED_FROM_WORKERS = 6;
-var SH_DEDICATED_MAX_WORKERS = 256;    // Odoo.sh, one staging branch, per month
+var SH_DEDICATED_MAX_WORKERS = 256;    // the ceiling a dedicated server runs to
 
 function mulberry32(a){
   return function(){
@@ -977,12 +982,40 @@ function quote(d){
 /* Seats compound: each step is a share of the seats they already have. Left
    unbounded that runs away, so the ladder stops at USERS_MAX. */
 var USERS_MAX = 10000;
+/* The book has a ceiling and the deck has to respect it. The panel says "6 to 50
+   seats" and the ladder was happily selling a 51st, which is a deal that leaves
+   the desk. The 1 to 5 book has its own rule further down: past ten seats the
+   deal transfers out rather than being capped, because that is what happens. */
+var SEATS_MAX = { '6to50': 50, '1to5': USERS_MAX };
+/* The floor matters as much as the roof. Odoo's 6 to 50 desk starts at six, and
+   the chip and the deal type between them could hand it a four seat customer. */
+var SEATS_MIN = { '6to50': 6, '1to5': 1 };
+/* The top of each book for the purpose of sizing a customer. The 1 to 5 desk has
+   no hard seat cap in play, but ten is where a deal stops being theirs, so that
+   is the top of the room the chip can put them in. */
+var BOOK_TOP  = { '6to50': 50, '1to5': ONETO5_MAX_USERS - 3 };
+/* How far up the book each chip walks you. Not a multiplier: a share of the
+   distance from this customer to the top of the desk. */
+var STAKE_PULL = [0, 0.22, 0.45, 0.72];
+function seatCeiling(){ return SEATS_MAX[S.segment] || USERS_MAX; }
+/* Put the customer inside the book this rep actually carries. The 1 to 5 desk
+   has no roof here on purpose: past ten seats the deal transfers out mid hand,
+   which is the rule on the real desk, and capping it would hide that. */
+function clampToBook(d){
+  var lo = SEATS_MIN[S.segment] || 1;
+  var hi = seatCeiling();
+  d.users = Math.max(lo, Math.min(hi, d.users));
+  d.staff = Math.max(d.staff || 0, d.users + 1);
+  return d;
+}
 function growth(d){
   var r = LIC[d.plan], out = [];
 
-  /* Never offer seats the business does not have people for. */
-  var headroom = Math.max(0, (d.staff || USERS_MAX) - d.users);
-  var steps = (d.users >= USERS_MAX || headroom < 1) ? [] : [
+  /* Never offer seats the business does not have people for, and never past
+     what this book is allowed to carry. */
+  var roof = Math.min(d.staff || USERS_MAX, seatCeiling());
+  var headroom = Math.max(0, roof - d.users);
+  var steps = (d.users >= roof || headroom < 1) ? [] : [
     /* Proportional to the account. The old floors of 2/4/8 meant a three seat
        legal practice was offered another eight seats, nearly four times its own
        size, which is not an expansion any rep would put in writing. */
@@ -1289,7 +1322,26 @@ function applyStake(d){
      quota that grew nine fold, and the biggest chip paid sixteen times the
      smallest for playing exactly as well. Scale the room, let the plan follow the
      industry the way it does on every other deal, and the quota keeps up. */
-  d.users = Math.max(1, Math.min(3000, Math.round(d.users * STAKE_SCALE[tier])));
+  /* The chip cannot be "multiply the seats" on a desk that is defined by seat
+     count. Multiplying by nine put a 6 to 50 rep in front of nothing but 50 seat
+     customers and put a 1 to 5 rep in front of eighteen seat customers that
+     transferred out before they could be quoted. The chip is the size of room
+     you walk into, so it pulls the customer up through the book it belongs to
+     and stops at the top of it. The spread survives: a small customer on a big
+     chip is still smaller than a big one. */
+  var lo = SEATS_MIN[S.segment] || 1;
+  var hi = BOOK_TOP[S.segment] || 50;
+  var pull = STAKE_PULL[tier] || 0;
+  d.users = Math.max(lo, Math.min(hi, Math.round(d.users + (hi - d.users) * pull)));
+  /* On the 1 to 5 desk there is no bigger room to walk into: the book is one to
+     five seats and a deal that outgrows it is not yours. So the chip buys a
+     better deal rather than a bigger one, which is the lever that desk actually
+     has. A richer chip meets more businesses that need Custom, and Custom is
+     what puts Odoo.sh on the table at all. */
+  if (S.segment === '1to5' && pull > 0) {
+    if (rng() < pull) { d.plan = 'custom'; }
+    if (d.plan === 'custom' && rng() < pull * 0.6) { d.sh = true; }
+  }
   /* The business grows with the room. Without this, staff stayed at the pre-chip
      headcount, the quote opened above it, and the seat cards were filtered out
      entirely: on the 1k and 2.5k chips not one hand in four hundred was offered
@@ -1346,6 +1398,13 @@ function deal(){
   S.deal = newDeal();
   applyDealType(S.deal);
   applyStake(S.deal);
+  /* Both of those multiply seats: an expansion by half again, the chip by up to
+     nine. Neither knew what book it was on, so a 6 to 50 desk was being dealt a
+     51 seat customer while the panel above it said "6 to 50 seats". Odoo splits
+     these desks by seat count, so a deal that outgrows the desk is not this
+     rep's deal. Clamp the customer to the book here, once, after every
+     multiplier has had its turn. */
+  clampToBook(S.deal);
   S.deal.startMrr = quote(S.deal).mrr;
   S.deal.baseContract = quote(S.deal).contract;
   S.deal.asked = openingAsk(S.deal);
@@ -1367,10 +1426,11 @@ function deal(){
   setWhy('Every card you add is worth more money and asks more of them. Send it while they will still sign.');
 }
 
-/* Hosting concessions. Odoo.sh bills per worker on a shared server up to three
+/* Hosting concessions. Odoo.sh bills per worker on a shared server up to eight
    workers, and anything beyond that has to move to a dedicated server, which is
-   a flat fee with workers included up to 256. These are the two real hosting
-   conversations a rep has, so they belong in the deck alongside seats and term. */
+   a flat fee charged on top of the metered workers and runs to 256 of them.
+   These are the two real hosting conversations a rep has, so they belong in the
+   deck alongside seats and term. */
 function hostingCards(d) {
   /* Odoo.sh sizing, straight off odoo.sh/pricing. Shared tops out at 8 workers.
      Dedicated is a flat $480 a month on top of the metered workers and is the
@@ -1395,19 +1455,17 @@ function hostingCards(d) {
     });
   }
   if (!d.shDedicated && d.shWorkers >= SH_DEDICATED_FROM_WORKERS) {
-    /* Dedicated starts at 4 workers on odoo.sh, so a customer sitting on 1 or 2
-       comes up to the floor and pays for those workers as part of the move. */
-    var floor = Math.max(d.shWorkers, SH_DEDICATED_MIN_WORKERS);
-    var lift = floor - d.shWorkers;
+    /* The card only offers itself once a customer is already at six workers,
+       which is above the four worker floor, so nobody is ever lifted up to it.
+       The old code carried a lift term that was arithmetically always zero and
+       a sentence about it that could never print. */
     out.push({
       kind: 'sh',
       tag: 'Odoo.sh',
       head: 'Dedicated server',
       body: 'Put them on a dedicated server, a flat $480 a month on top of the '
-          + 'workers and the only way past ' + SH_SHARED_MAX_WORKERS + ' workers'
-          + (lift > 0 ? ', and it starts at ' + SH_DEDICATED_MIN_WORKERS + ' workers'
-                        + ' so they move up from ' + d.shWorkers : ''),
-      mrr: SH_DEDICATED + lift * SH_WORKER,
+          + 'workers and the only way past ' + SH_SHARED_MAX_WORKERS + ' workers',
+      mrr: SH_DEDICATED,
       apply: function (x) {
         x.shDedicated = true;
         if (x.shWorkers < SH_DEDICATED_MIN_WORKERS) { x.shWorkers = SH_DEDICATED_MIN_WORKERS; }
@@ -1621,10 +1679,18 @@ function takeOffer(i){
   setWhy(growthLine(c));
 }
 
+/* One phrasing of the walk band, used by the pill and by every line of copy that
+   used to say "of 21". Saying 21 everywhere was the thing that made a customer
+   walking at 18 feel arbitrary. */
+function askBandLine(){
+  var d = S.deal;
+  var band = d && d.conduct && WALK_BY_CONDUCT[d.conduct.k];
+  return band ? ', and this one is safe to ' + band[0] + ' and gone past ' + band[1] + '.' : '.';
+}
 function growthLine(c){
   var q = quote(S.deal);
   return 'The quote is now ' + fmt(q.mrr) + ' a month, ' + fmt(q.contract) +
-    ' across the whole commitment. You have asked ' + S.deal.asked + ' of 21.';
+    ' across the whole commitment. You have asked ' + S.deal.asked + askBandLine();
 }
 
 function discountLine(c, room){
@@ -1713,7 +1779,21 @@ function readOut(kind, asked, bar){
       ? 'Short by ' + need + '. One more line of scope carries it, and price was never what was stopping them.'
       : 'Short by ' + need + '. That gap is a discovery problem, not a quoting problem.';
   }
-  return 'Past 21 nobody signs. Sending a card earlier books the deal instead of burning it.';
+  /* The old line here read "Past 21 nobody signs", which was wrong twice: the
+     walk point is per customer and is usually not 21, and "sending a card
+     earlier" parsed as sending a card rather than standing sooner. Say the
+     number they actually carried, then say honestly whether standing before
+     that last card would have signed it, because sometimes it would not have. */
+  var lastAsk = 0, pl = S.played || [];
+  for (var li = pl.length - 1; li >= 0; li--) {
+    if (!pl[li].disc) { lastAsk = pl[li].ask; break; }
+  }
+  var head = 'They carried an ask to ' + bar + ' and you took it to ' + asked + '. ';
+  if (!lastAsk) { return head + 'Nothing past ' + bar + ' was going to sign.'; }
+  var prev = asked - lastAsk;
+  return prev > resistance()
+    ? head + 'Standing before that last card would have signed it.'
+    : head + 'Standing before that last card was still short of what they needed, so this one wanted a different scope, not a bigger one.';
 }
 
 function settle(kind){
@@ -2014,8 +2094,17 @@ function render(){
   });
   var yt = document.getElementById('youTotal');
   var asked = d ? d.asked : 0;
-  yt.textContent = 'Your quote reaches ' + asked + ' of 21';
-  var lim = d ? d.walk : 21;
+  var lim = d ? d.walk : BAR_CAP;
+  /* The exact walk point stays hidden. The band it sits in does not, because
+     printing "of 21" made every customer look like they carried to 21: a quote
+     at 19 read as comfortable right up until a grinder walked at 18, and the
+     player had no way to have known. The banner names the conduct, so this
+     names what that conduct carries. Anything at or below the low end is always
+     safe, anything past the high end always walks, and in between is the bet. */
+  var band = (d && d.conduct && WALK_BY_CONDUCT[d.conduct.k]) || null;
+  yt.textContent = !d ? 'No quote on the table'
+    : 'Your quote reaches ' + asked +
+      (band ? ' · safe to ' + band[0] + ', gone past ' + band[1] : '');
   yt.className = 'pill' + (asked > lim ? ' bust' : asked >= lim - 3 ? ' hot' : '');
   var cn = document.getElementById('closeNow');
   cn.textContent = S.live ? 'Sending now puts ' + fmt(q.contract) + ' on the table' : 'Not in a deal';
@@ -2248,6 +2337,7 @@ function renderLog(){
 }
 
 var KEY = 'odooTableSave';
+var LOG_KEPT = 60;   // hands of history kept across a refresh
 /* Everything a rep would be annoyed to lose on a refresh: the book, the record,
    and the two numbers they are actually measured on. */
 function save(){
@@ -2261,6 +2351,11 @@ function save(){
       paidToDate: S.paidToDate, bestMonth: S.bestMonth,
       discounts: S.discounts, cleanWon: S.cleanWon, given: S.given, left: S.left,
       unlocked: S.unlocked, name: S.name,
+      /* History was the one thing the save promised and did not keep, so the
+         tab read "Nothing yet" after every refresh while the book beside it
+         survived. Capped, because a rep who plays all week should not fill
+         local storage with hands from three hundred deals ago. */
+      log: (S.log || []).slice(0, LOG_KEPT),
       diff: (document.getElementById('setDiff') || {}).value
     }));
   } catch (e) {}
@@ -2284,6 +2379,7 @@ function load(){
     S.given = v.given || 0;
     S.left = v.left || 0;
     S.unlocked = v.unlocked || {};
+    S.log = Array.isArray(v.log) ? v.log.slice(0, LOG_KEPT) : [];
     S.name = v.name || '';
     S.segment = SEGMENTS[v.segment] ? v.segment : '6to50';
     S.monthNo = v.monthNo || 1;
