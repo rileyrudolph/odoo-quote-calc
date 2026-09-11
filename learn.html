@@ -743,10 +743,20 @@ function marginalRate(v, bs){
   for (var i = 0; i < bs.length; i++) { if (v < bs[i].to) { return bs[i].rate; } }
   return bs[bs.length - 1].rate;
 }
+/* Both plans carry the same clause: "The maximum monthly commission payout that
+   can be earned in any month is capped at 3000% of the monthly on-target
+   commission goal." On-target is $2,036.03 on the 6 to 50 plan and $2,036.04 on
+   the 1 to 5, so the ceiling is the same $61,080 either way, and it does not move
+   with the chip because scaling the quota up and the rates down leaves on-target
+   where it is. It will almost never bind, which is the point: it is the plan's
+   own backstop against one freak month, and the board should honour it. */
+var ON_TARGET = 2036.03;
+var PAYOUT_CAP = ON_TARGET * 30;
 function monthCommission(){
   var g = seg();
-  return bandedCommission(S.monthMrr, bandsFor(g.mrrQ, g.mrrR))
-       + bandedCommission(S.monthNrr, bandsFor(g.nrrQ, g.nrrR));
+  var raw = bandedCommission(S.monthMrr, bandsFor(g.mrrQ, g.mrrR))
+          + bandedCommission(S.monthNrr, bandsFor(g.nrrQ, g.nrrR));
+  return Math.min(raw, PAYOUT_CAP);
 }
 /* The MRR change line the plan describes: the recurring part of the contract
    divided by its length, then multiplied by the MRR Rate for that term. */
