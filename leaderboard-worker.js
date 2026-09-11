@@ -88,6 +88,11 @@ function build(map, me) {
       avg: months ? Math.round(r.sum / months) : 0,
       months: months,
       best: Math.round(r.best || 0),
+      /* Banked is what ranks you, but MRR and NRR are what the plan measures, so
+         the row carries all three. Averaged over the same months as the payout
+         so the three numbers on a row always describe one typical month. */
+      mrr: months ? Math.round((r.mrrSum || 0) / months) : 0,
+      nrr: months ? Math.round((r.nrrSum || 0) / months) : 0,
       chip: r.chip || 250,
       difficulty: r.diffs ? topDiff(r.diffs) : (r.difficulty || 'normal'),
       ranked: months >= MIN_MONTHS
@@ -143,6 +148,8 @@ export default {
       const segment = segOf(body.segment);
       const chip    = Math.round(Number(body.chip) || 250);
       const diff    = diffOf(body.difficulty);
+      const mrr     = Math.max(0, Math.min(MAX_SCORE, Math.round(Number(body.mrr) || 0)));
+      const nrr     = Math.max(0, Math.min(MAX_SCORE, Math.round(Number(body.nrr) || 0)));
       // A month is identified by the run it came from plus its number, so a
       // retry or a double click cannot log the same month twice.
       const runKey  = String(body.monthKey || '').replace(/[^\w:-]/g, '').slice(0, 48);
@@ -161,7 +168,8 @@ export default {
         const k = 'b2:' + segment + ':' + period + ':' + periods[period];
         const stored = await env.BOARD.get(k);
         const map = stored ? JSON.parse(stored) : {};
-        const rec = map[name] || { sum: 0, count: 0, best: 0, chip: chip, diffs: {}, runs: [] };
+        const rec = map[name] || { sum: 0, count: 0, best: 0, mrrSum: 0, nrrSum: 0,
+                                   chip: chip, diffs: {}, runs: [] };
 
         // Already logged this exact month for this player. Ignore it.
         if (rec.runs && rec.runs.indexOf(runKey) >= 0) { continue; }
@@ -169,6 +177,8 @@ export default {
         rec.sum   = (rec.sum || 0) + amount;
         rec.count = (rec.count || 0) + 1;
         rec.best  = Math.max(rec.best || 0, amount);
+        rec.mrrSum = (rec.mrrSum || 0) + mrr;
+        rec.nrrSum = (rec.nrrSum || 0) + nrr;
         rec.chip  = chip;
         rec.diffs = rec.diffs || {};
         rec.diffs[diff] = (rec.diffs[diff] || 0) + 1;

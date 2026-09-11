@@ -418,7 +418,7 @@ select:focus-visible, button:focus-visible{
 
     <div class="pane on" id="pane-board">
       <h3>Leaderboard</h3>
-      <p>Ranked on your average month, worked out on your own plan: MRR change times the rate for the term, plus NRR. Every month you finish counts, so a bad one costs you. Three months to appear.</p>
+      <p>Your average month on your own plan. Every month counts, so a bad one costs you. Three to appear.</p>
       <div class="fld fld-name">
         <label>Your name<div class="hint">Shown on the board</div></label>
         <div class="namerow">
@@ -2194,6 +2194,11 @@ function postMonth(earned){
         segment: S.segment,
         chip: S.monthChip || 250,
         difficulty: S.monthDiff || 'normal',
+        /* The two lines the plan actually measures a rep on. The board was
+           ranking on what they paid out without ever showing the numbers that
+           produced it, which is the half of the story a rep cares about. */
+        mrr: Math.round(S.monthMrr),
+        nrr: Math.round(S.monthNrr),
         /* A counter that only ever goes up, so switching book or clearing the
            save cannot produce a key the board has already seen and silently
            throw the month away. */
@@ -2211,19 +2216,22 @@ function renderBoard(){
     var need = (j && j.minMonths) || 3;
     var head = '<div class="lbmode">' +
       '<b>' + (S.segment === '1to5' ? '1 TO 5 SEATS' : '6 TO 50 SEATS') + '</b>' +
-      '<span>' + (lbPeriod === 'all' ? 'all time' : 'this month') + '</span></div>' +
-      note('Ranked on your average month. Every month you finish counts, so replaying a bad ' +
-           'one does not help. ' + need + ' months to appear.');
-    if (!ok) { host.innerHTML = note('Board is unreachable right now. Your months are still being counted.'); return; }
-    if (!rows.length) { host.innerHTML = head + note('Nobody on this board yet. Finish a month.'); return; }
+      '<span>' + (lbPeriod === 'all' ? 'all time' : 'this month') + '</span></div>';
+    if (!ok) { host.innerHTML = note('Board unreachable. Your months are still counted.'); return; }
+    if (!rows.length) { host.innerHTML = head + note('Nobody here yet. Finish a month.'); return; }
     host.innerHTML = head + rows.map(function(r, i){
       var mine = r.name === (S.name || '').trim();
       /* Straight off a public endpoint, so it only ever becomes markup if it is
          one of the three values we know. */
       var d = DIFF_MULT[r.difficulty] ? r.difficulty : 'normal';
+      /* Banked is the rank, but MRR and NRR are what a rep is measured on, so
+         they sit right under it rather than nowhere. */
+      var lines = (r.mrr != null || r.nrr != null)
+        ? fmt(r.mrr || 0) + ' MRR &middot; ' + fmt(r.nrr || 0) + ' NRR'
+        : r.months + ' months';
       var right = r.ranked
-        ? fmt(r.avg) + '<span class="lbsub">' + r.months + ' months &middot; best ' + fmt(r.best) + '</span>'
-        : '<span class="lbsub">' + r.months + ' of ' + need + ' months</span>';
+        ? fmt(r.avg) + '<span class="lbsub">' + lines + '</span>'
+        : '<span class="lbsub">' + r.months + ' of ' + need + '</span>';
       var medal = r.ranked && i < 3 ? ' m' + (i + 1) : '';
       return '<div class="lbrow' + (mine ? ' you' : '') + (r.ranked ? '' : ' unranked') + medal + '">' +
         '<span class="rank">' + (r.ranked ? (i + 1) : '&middot;') + '</span>' +
@@ -2233,8 +2241,8 @@ function renderBoard(){
           '<span class="lbchip">' + (r.chip >= 1000 ? (r.chip / 1000) + 'k' : r.chip) + '</span></span>' +
         '<span class="amt">' + right + '</span></div>';
     }).join('')
-      + note('Playing <b>' + (DIFF_LABEL[curDiff()]) + '</b>. Tough pays less at the table, so it is ' +
-             'levelled at &times;' + DIFF_MULT[curDiff()] + ' here. Easy is levelled down.');
+      + note('Average month. ' + need + ' to rank. ' + (DIFF_LABEL[curDiff()]) +
+             ' is levelled &times;' + DIFF_MULT[curDiff()] + '.');
   };
   if (!LB_URL) { host.innerHTML = note('No board configured.'); return; }
   fetch(LB_URL + '/top?segment=' + encodeURIComponent(S.segment) +
@@ -2399,6 +2407,13 @@ function load(){
   var b = document.createElement('button');
   b.className = 'chip ' + pair[1] + (i === 0 ? ' sel' : '');
   b.textContent = amt >= 1000 ? (amt / 1000) + 'k' : amt;
+  /* What the chip costs you, not just what it buys. The upside was on the
+     button and the downside was nowhere. */
+  b.title = i === 0 ? 'Smallest room. Quota as written, most room to grow a deal.'
+    : (S.segment === '1to5'
+        ? 'Richer customers on the same quota, but they start nearer the ten seat line, so more of them outgrow your book mid hand.'
+        : 'Bigger customers and a quota ' + STAKE_SCALE_BY_BOOK['6to50'][i] +
+          ' times as big. They open nearer fifty seats, so there is less left to grow, and a walk costs more.');
   b.onclick = function(){
     if (S.live) return;
     S.stake = amt;
