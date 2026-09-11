@@ -2286,11 +2286,25 @@ function renderStats(){
   var set = function(id, v){ var n = document.getElementById(id); if (n) n.style.width = Math.max(0, Math.min(100, v / 150 * 100)) + '%'; };
   set('qMrrFill', mrrPct); set('qNrrFill', nrrPct);
   var txt = function(id, t){ var n = document.getElementById(id); if (n) n.textContent = t; };
-  txt('qMrrTxt', fmt(S.monthMrr) + ' of ' + fmt(g.mrrQ));
-  txt('qNrrTxt', fmt(S.monthNrr) + ' of ' + fmt(g.nrrQ));
+  /* Each line says what it pays, not just where it stands. Three numbers were on
+     screen with nothing connecting them: MRR achieved, NRR achieved, and banked.
+     They look like they disagree until you know banked is simply the two payouts
+     added, which is what the plan does. Now the page shows the addition. */
+  var mrrPay = bandedCommission(S.monthMrr, bandsFor(g.mrrQ, g.mrrR));
+  var nrrPay = bandedCommission(S.monthNrr, bandsFor(g.nrrQ, g.nrrR));
+  txt('qMrrTxt', fmt(S.monthMrr) + ' of ' + fmt(g.mrrQ) + ' · pays ' + fmt(mrrPay));
+  txt('qNrrTxt', fmt(S.monthNrr) + ' of ' + fmt(g.nrrQ) + ' · pays ' + fmt(nrrPay));
   txt('qMode', g.label);
   txt('qMonth', 'Month ' + S.monthNo + ' \u00b7 ' + S.monthHands + ' of ' + MONTH_HANDS);
   txt('qPay', fmt(S.bank));
+  /* Name the sum out loud, and say plainly that the board is not this number:
+     the board only ever counts months you have finished. */
+  var payNote = document.getElementById('qPayNote');
+  if (payNote) {
+    payNote.textContent = (S.monthHands >= MONTH_HANDS)
+      ? 'banked this month, now on the board'
+      : 'banked so far, MRR pay plus NRR pay. It reaches the board when the month closes';
+  }
   var rate = marginalRate(S.monthMrr, bandsFor(g.mrrQ, g.mrrR));
   var top  = Math.max.apply(null, g.mrrR);
   var rEl = document.getElementById('qRate'), box = document.getElementById('quotaBox');
