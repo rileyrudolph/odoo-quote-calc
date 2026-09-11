@@ -2538,6 +2538,21 @@ function initGmailTokenClient() {
         alert('Sign-in was cancelled or failed. Please try again.');
         return;
       }
+      /* Google asks for the two permissions separately and the Gmail one is a
+         tick box the user can leave unticked. Signing in still succeeds, so the
+         old code lit up the Send button and the failure only showed up later as
+         an unexplained error from the API. Check what was actually granted and
+         say so here, while the sign-in is still the thing on screen. */
+      const canSend = window.google.accounts.oauth2.hasGrantedAllScopes(
+        response, 'https://www.googleapis.com/auth/gmail.send');
+      if (!canSend) {
+        gmailAccessToken = null;
+        alert('Sending email was not allowed. Google asks for that permission as a '
+            + 'separate tick box on the consent screen and it was left unticked. '
+            + 'Click Sign in with Google again and tick "Send email on your behalf".');
+        gmailTokenClient.requestAccessToken({ prompt: 'consent' });
+        return;
+      }
       gmailAccessToken = response.access_token;
       try {
         const profile = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
@@ -2552,6 +2567,17 @@ function initGmailTokenClient() {
       gmailUserLabel.style.display = 'inline';
       gmailSignOutBtn.style.display = 'inline-block';
       sendEmailBtn.style.display = 'inline-block';
+    },
+    /* Without this a blocked or closed popup fails silently and the button just
+       looks dead, which is indistinguishable from the feature being broken. */
+    error_callback: (err) => {
+      console.error('Google sign-in error:', err);
+      const t = (err && err.type) || '';
+      alert(t === 'popup_failed_to_open'
+        ? 'The browser blocked the Google sign-in window. Allow pop-ups for this site and try again.'
+        : t === 'popup_closed'
+          ? 'The Google sign-in window closed before it finished.'
+          : 'Google sign-in failed: ' + (err && err.message ? err.message : t || 'unknown error'));
     },
   });
 }
@@ -3161,10 +3187,23 @@ emailSubmitBtn.addEventListener('click', async () => {
       }),
     });
     if (!response.ok) {
+      /* statusText is always an empty string over HTTP/2, which is what
+         googleapis.com serves, so the old line here read "Gmail API error: "
+         and told you nothing at all. Google puts the real reason in the body. */
+      let detail = '';
+      try {
+        const err = await response.json();
+        detail = (err && err.error && (err.error.message || err.error.status)) || '';
+      } catch (e) { /* not JSON, fall through to the status code */ }
       if (response.status === 401) {
-        throw new Error('Your Gmail session expired. Sign out and sign in again.');
+        throw new Error('Your Gmail session expired. Sign out, sign in again, and resend.');
       }
-      throw new Error(`Gmail API error: ${response.statusText}`);
+      if (response.status === 403 && /insufficient|scope/i.test(detail)) {
+        throw new Error('This sign-in did not include permission to send email. Sign out, '
+                      + 'sign in again, and tick "Send email on your behalf".');
+      }
+      throw new Error('Gmail refused it (' + response.status + ')'
+                      + (detail ? ': ' + detail : '. Check the console for the full reply.'));
     }
 
     composeStatus.style.color = 'var(--teal-text)';
