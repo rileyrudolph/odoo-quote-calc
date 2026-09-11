@@ -261,6 +261,13 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
 .q-foot{font-size:.58rem;color:var(--faint);line-height:1.45;margin-top:7px;}
 .namerow{display:flex;gap:6px;align-items:center;}
 .namerow input{flex:1 1 auto;min-width:0;}
+/* .fld is a two column row, label on the left and one control on the right. The
+   name field puts three things in it, so the status line was being squeezed into
+   a few characters wide against the edge of the panel and read as something
+   popping up over the page. Let it wrap onto its own full width line. */
+.fld-name{flex-wrap:wrap;align-items:flex-start;}
+.fld-name .namerow{flex:1 1 190px;}
+.fld-name .namestate{flex:1 0 100%;}
 .namestate{font-size:.58rem;color:var(--faint);margin-top:5px;line-height:1.4;}
 .namestate.on{color:#5fd8dd;font-weight:700;}
 .lbtabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
@@ -412,7 +419,7 @@ select:focus-visible, button:focus-visible{
     <div class="pane on" id="pane-board">
       <h3>Leaderboard</h3>
       <p>Ranked on your average month, worked out on your own plan: MRR change times the rate for the term, plus NRR. Every month you finish counts, so a bad one costs you. Three months to appear.</p>
-      <div class="fld">
+      <div class="fld fld-name">
         <label>Your name<div class="hint">Shown on the board</div></label>
         <div class="namerow">
           <input type="text" id="playerName" maxlength="18" placeholder="Add your name"

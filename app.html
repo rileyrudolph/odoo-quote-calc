@@ -805,7 +805,8 @@ footer{
         <span id="gmailUserLabel" style="display:none;font-size:.78rem;color:var(--sub);"></span>
         <button id="gmailSignOut" type="button" class="btn btn-sm" style="display:none;color:var(--sub);">Sign out</button>
       </div>
-      <button id="sendEmail" type="button" class="btn btn-sm" style="display:none;">Send Email</button>
+      <!-- It opens a draft, it does not send anything, so it should not say Send. -->
+      <button id="sendEmail" type="button" class="btn btn-sm" style="display:none;">Create email</button>
                   <a id="openLearn" class="btn btn-sm" title="Practise discount strategy" href="learn.html">Learn</a>
 <a id="openDeck" class="btn btn-sm" href="deck.html"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:13px;height:13px;margin:0 5px -2px 0;"><rect x="1.5" y="2.5" width="13" height="9" rx="1.2"/><path d="M5.5 14h5M8 11.5V14"/></svg>Deck</a>
       <button id="resetAll" type="button" class="btn btn-sm" title="Clear every scenario and start again">Reset</button>
@@ -1054,7 +1055,9 @@ footer{
           <input type="text" id="emailCompany" value="">
           <input type="text" id="emailSenderName" value="">
           <input type="text" id="emailSenderPhone" value="">
-          <input type="checkbox" id="emailCcSelf" aria-label="Send yourself a copy">
+          <!-- The Cc stub used to live here as a second element with the same id as
+               the visible "Send me a copy" box below. getElementById returns the
+               first one, so the box the rep could actually tick was never read. -->
           <div id="composeScenarioRow"><select id="emailScenario" aria-label="Which scenario to attach"><option value="all" selected>All scenarios</option></select></div>
         </div>
         <div class="compose-row">
@@ -1064,7 +1067,13 @@ footer{
       <textarea id="emailMessage" aria-label="Email message" class="compose-field compose-message" placeholder="Write a message..."></textarea>
     </div>
     <label class="compose-check"><input type="checkbox" id="emailSigOn"> Include signature</label>
-    
+    <!-- The signature box was deleted in a redesign but the script still looked for
+         it, so the page threw on load and every listener below that line, the whole
+         email feature included, was never wired up. It is back. -->
+    <div class="compose-row" id="composeSigRow" style="display:none;">
+      <textarea id="emailSignature" aria-label="Your signature" class="compose-field compose-sig"
+        placeholder="Your name&#10;Business Advisor, Odoo&#10;Phone"></textarea>
+    </div>
     <label class="compose-check"><input type="checkbox" id="emailCcSelf" checked> Send me a copy</label>
     <div class="compose-attachment" id="composeAttachNote">Pricing, term and payment options are laid out in the email.</div>
   </div>
@@ -2713,7 +2722,9 @@ function openCompose() {
   emailCompanyInput.value = '';
   emailSenderNameInput.value = prof.name || '';
   emailSenderPhoneInput.value = prof.phone || '';
-  emailMessageInput.value = 'Hi,\n\nHere is the Odoo pricing we went through, laid out the same way you saw it.\n\nThis is pricing for your reference, not a formal quote. The official quotation comes from Odoo once we agree the shape of it.\n\nHappy to walk back through any line of it.'; composeSigRow.style.display = emailSigOn.checked ? '' : 'none'; applySig();
+  emailMessageInput.value = 'Hi,\n\nHere is the Odoo pricing we went through, laid out the same way you saw it.\n\nThis is pricing for your reference, not a formal quote. The official quotation comes from Odoo once we agree the shape of it.\n\nHappy to walk back through any line of it.';
+  if (composeSigRow && emailSigOn) { composeSigRow.style.display = emailSigOn.checked ? '' : 'none'; }
+  applySig();
   /* Subject stays blank. The rep writes it, the same as Gmail. */
   emailSubjectInput.value = '';
   refreshScenarioPicker();
@@ -2747,14 +2758,16 @@ composeExpandBtn.addEventListener('click', (e) => {
 
 try {
   const st = JSON.parse(localStorage.getItem(SIG_KEY) || 'null');
-  if (st) { emailSignature.value = st.text || ''; emailSigOn.checked = !!st.on; }
+  if (st && emailSignature) { emailSignature.value = st.text || ''; emailSigOn.checked = !!st.on; }
 } catch (e) {}
 
 function saveSig(){
+  if (!emailSignature) { return; }
   try { localStorage.setItem(SIG_KEY, JSON.stringify({ text: emailSignature.value, on: emailSigOn.checked })); } catch (e) {}
 }
 
 function applySig(){
+  if (!emailSignature || !emailSigOn) { return; }
   const body = emailMessageInput.value;
   const cut = body.indexOf(SIG_MARK);
   const base = cut >= 0 ? body.slice(0, cut) : body;
@@ -2762,11 +2775,19 @@ function applySig(){
   emailMessageInput.value = (emailSigOn.checked && sig) ? base + SIG_MARK + sig : base;
 }
 
-emailSigOn.addEventListener('change', () => {
-  composeSigRow.style.display = emailSigOn.checked ? '' : 'none';
-  applySig(); saveSig();
-});
-emailSignature.addEventListener('input', () => { applySig(); saveSig(); });
+/* Guarded. A missing element here is a cosmetic loss, but an uncaught throw at
+   this point in the file silently skips every listener below it, which is how
+   the entire email feature came to be dead: the Create email button and the
+   compose window's own Send button are both wired further down. */
+if (emailSigOn && composeSigRow) {
+  emailSigOn.addEventListener('change', () => {
+    composeSigRow.style.display = emailSigOn.checked ? '' : 'none';
+    applySig(); saveSig();
+  });
+}
+if (emailSignature) {
+  emailSignature.addEventListener('input', () => { applySig(); saveSig(); });
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PROPOSAL EMAIL
