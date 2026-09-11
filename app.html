@@ -1793,6 +1793,19 @@ function renderWarnings(){
            + 'for initial users ordered, so seats added later in the year pay the standard rate');
   }
 
+  /* Standard is hosted on Odoo Online only, so Odoo.sh and on-premise both need
+     Custom. The detail card already said so, but a rep who never expands the row
+     never saw it and could send a quote that cannot be sold. Warned, not blocked:
+     modelling the ask is the whole point of the tool, and a rep may well be
+     pricing the Custom upgrade this warning is the argument for. */
+  const hostClash = scenarios.filter(s => s.plan === 'standard' && (s.sh === 'sh' || s.sh === 'self'));
+  if (hostClash.length) {
+    add(box, 'Plan + Hosting', 'Standard is Odoo Online only, so '
+      + hostClash.map(s => HOSTING[s.sh].label).filter((v, i, a) => a.indexOf(v) === i).join(' and ')
+      + ' needs the Custom plan. The tool still prices it so you can show what the upgrade costs, '
+      + 'but it is not a quote that can be signed as it stands');
+  }
+
   // Odoo publishes Odoo.sh in USD only; a Canadian Odoo.sh line is a conversion, not a pricelist.
   if (country === 'CA' && scenarios.some(s => isPaidHosting(s.sh))) {
     add(gbox, 'Country + Hosting', `Odoo publishes Odoo.sh in USD only, so this hosting line is converted at ${USD_TO_CAD.toFixed(4)} and is worth confirming`);
