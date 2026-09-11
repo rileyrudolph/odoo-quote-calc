@@ -627,7 +627,11 @@ select:focus-visible, button:focus-visible{
 // ===================================================================
 var LIC = {
   standard: { y1:24.90, y2:31.10, moY1:31.10, mo:38.90, name:'Standard' },
-  custom:   { y1:49.00, y2:61.00, moY1:61.10, mo:76.20, name:'Custom'   }
+  /* moY1 is $61.00, not $61.10. The game never quotes a monthly term so nothing
+     here reads it, but it is the same transposed digit that was inflating every
+     month-to-month Custom quote in the calculator, and a wrong number sitting in
+     the pricing table is a wrong number waiting to be used. */
+  custom:   { y1:49.00, y2:61.00, moY1:61.00, mo:76.20, name:'Custom'   }
 };
 // A multi year commitment earns a licence discount, and the ceiling
 // depends on the length of the term. It only ever reaches Year 2 on.
@@ -2074,7 +2078,12 @@ function render(){
   var tt = document.getElementById('themTotal');
   if (!S.them.length) tt.textContent = 'nothing yet';
   else if (S.live) tt.textContent = 'showing ' + S.them[0].pts + ', and there is more you cannot see'
-    + ((S.relief || 0) ? ', less ' + S.relief + ' from your discount' : '');
+    /* This used to read "less N from your discount", which was a promise the
+       game does not keep: relief only ever comes off objections that were about
+       price, and it is capped at those at settle. Printing the capped figure
+       instead would leak whether the face down cards are price cards, so say
+       what the discount is aimed at and let the hand show whether it landed. */
+    + ((S.relief || 0) ? ', and your discount comes off whatever of that is about price' : '');
   else if (S.outcome === 'walked') tt.textContent = 'you never found out what they needed';
   else tt.textContent = 'their objections came to ' + resistance();
 
