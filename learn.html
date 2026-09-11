@@ -776,7 +776,12 @@ function rollWalk(c){
   var r = WALK_BY_CONDUCT[c.k] || WALK_BY_CONDUCT.fair;
   return between(r[0], r[1]);
 }
-var BAR_BASE = 18, BAR_SPREAD = 5, BAR_MIN = 14, BAR_MAX = 21, BAR_CAP = 21;
+/* What a customer needs before they will sign. Raised from 18 after measuring:
+   at 18 a month cleared quota 51-57% of the time on both books, and that is not
+   a quota, it is a formality. At 20 it clears about 37% for a bot playing the
+   odds, which leaves a rep who reads the room properly landing somewhere near
+   half their months on target. Quota is supposed to be the hard part. */
+var BAR_BASE = 20, BAR_SPREAD = 5, BAR_MIN = 14, BAR_MAX = 21, BAR_CAP = 21;
 var ASK_SPAN = 13, ASK_GAIN = 0.35, ASK_MIN = 2, ASK_MAX = 13, ASK_JITTER = 2;
 /* Extra resistance for each additional year of lock-in, on top of the money. */
 var TERM_ASK_STEP = 2.0;
@@ -1995,6 +2000,21 @@ function settle(kind){
    is the part a linear running total could never teach: a deal that lands while
    you are at eighty percent of quota is worth several times the same deal once
    you are past it, which is exactly why real reps sprint and then coast. */
+/* What each line actually paid, which is not the same thing as what each line
+   achieved. A rep does not take home $18,000 for hitting the NRR target, they
+   take home the commission on it, which at quota is $612 against the MRR line's
+   $1,424. Showing the achieved figures as if they were the reward made NRR look
+   like the bigger prize when it is the smaller one. The two always add up to the
+   month's commission, including when the plan's cap bites, because the cap is
+   applied to the total and then shared back out in proportion. */
+function payBreakdown(){
+  var g = seg();
+  var m = bandedCommission(S.monthMrr, bandsFor(g.mrrQ, g.mrrR));
+  var n = bandedCommission(S.monthNrr, bandsFor(g.nrrQ, g.nrrR));
+  var raw = m + n, capped = Math.min(raw, PAYOUT_CAP);
+  if (raw > 0 && capped < raw) { var k = capped / raw; m *= k; n *= k; }
+  return { mrr: m, nrr: n, total: capped };
+}
 /* A month closing is the only moment in this game where money actually lands.
    Treat it like one. */
 function payoutFlash(earned, hitQuota){
@@ -2004,7 +2024,8 @@ function payoutFlash(earned, hitQuota){
   el.innerHTML = '<div class="po-in">' +
     '<div class="po-k">' + (hitQuota ? 'Quota cleared' : 'Month closed') + '</div>' +
     '<div class="po-amt">' + fmt(earned) + '</div>' +
-    '<div class="po-sub">' + fmt(S.monthMrr) + ' MRR &middot; ' + fmt(S.monthNrr) + ' NRR' +
+    '<div class="po-sub">' + fmt(payBreakdown().mrr) + ' from MRR &middot; ' +
+      fmt(payBreakdown().nrr) + ' from NRR' +
       (diffMult() !== 1 ? ' &middot; &times;' + diffMult() + ' on ' + DIFF_LABEL[curDiff()] : '') +
     '</div></div>';
   el.className = 'payout show' + (hitQuota ? ' big' : '');
@@ -2012,12 +2033,14 @@ function payoutFlash(earned, hitQuota){
 }
 function closeMonth(){
   var earned = monthCommission();
+  var pb = payBreakdown();
   payoutFlash(earned, S.monthMrr >= seg().mrrQ);
   S.paidToDate += earned;
   if (earned > S.bestMonth) { S.bestMonth = earned; }
   S.log.unshift({ who:'Month ' + S.monthNo + ' closed', kind:'month', delta:Math.round(earned),
-    why:'Paid ' + fmt(earned) + ' on ' + fmt(S.monthMrr) + ' of MRR achieved and ' +
-        fmt(S.monthNrr) + ' of NRR. Both lines reset now.',
+    why:'Commission ' + fmt(earned) + ', being ' + fmt(pb.mrr) + ' on ' +
+        fmt(S.monthMrr) + ' of MRR achieved and ' + fmt(pb.nrr) + ' on ' +
+        fmt(S.monthNrr) + ' of NRR achieved. Both lines reset now.',
     line:seg().label });
   postMonth(earned);
   S.monthNo++; S.monthHands = 0; S.monthMrr = 0; S.monthNrr = 0;
@@ -2269,6 +2292,12 @@ function postMonth(earned){
            produced it, which is the half of the story a rep cares about. */
         mrr: Math.round(S.monthMrr),
         nrr: Math.round(S.monthNrr),
+        /* What each line actually paid, levelled the same way the total is, so a
+           row's two figures always add up to the row's commission. The board
+           ranks on what a rep takes home, so it should show that and not the
+           achieved values, which are far larger and belong to the quota bars. */
+        mrrPay: Math.round(payBreakdown().mrr * (DIFF_MULT[S.monthDiff] || 1)),
+        nrrPay: Math.round(payBreakdown().nrr * (DIFF_MULT[S.monthDiff] || 1)),
         /* A counter that only ever goes up, so switching book or clearing the
            save cannot produce a key the board has already seen and silently
            throw the month away. */
@@ -2296,8 +2325,11 @@ function renderBoard(){
       var d = DIFF_MULT[r.difficulty] ? r.difficulty : 'normal';
       /* Banked is the rank, but MRR and NRR are what a rep is measured on, so
          they sit right under it rather than nowhere. */
-      var lines = (r.mrr != null || r.nrr != null)
-        ? fmt(r.mrr || 0) + ' MRR &middot; ' + fmt(r.nrr || 0) + ' NRR'
+      /* What the two lines paid, not what they achieved. The achieved figures are
+         much larger and belong on the quota bars; putting them here made NRR look
+         like the prize when the commission on it is the smaller half. */
+      var lines = (r.mrrPay != null && (r.mrrPay || r.nrrPay))
+        ? fmt(r.mrrPay) + ' from MRR &middot; ' + fmt(r.nrrPay) + ' from NRR'
         : r.months + ' months';
       var right = r.ranked
         ? fmt(r.avg) + '<span class="lbsub">' + lines + '</span>'

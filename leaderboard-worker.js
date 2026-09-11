@@ -93,6 +93,11 @@ function build(map, me) {
          so the three numbers on a row always describe one typical month. */
       mrr: months ? Math.round((r.mrrSum || 0) / months) : 0,
       nrr: months ? Math.round((r.nrrSum || 0) / months) : 0,
+      /* What those two lines actually paid. A rep does not take home the NRR, they
+         take home the commission on it, so this is what the row shows. The pair
+         adds up to avg. */
+      mrrPay: months ? Math.round((r.mrrPaySum || 0) / months) : 0,
+      nrrPay: months ? Math.round((r.nrrPaySum || 0) / months) : 0,
       chip: r.chip || 250,
       difficulty: r.diffs ? topDiff(r.diffs) : (r.difficulty || 'normal'),
       ranked: months >= MIN_MONTHS
@@ -150,6 +155,8 @@ export default {
       const diff    = diffOf(body.difficulty);
       const mrr     = Math.max(0, Math.min(MAX_SCORE, Math.round(Number(body.mrr) || 0)));
       const nrr     = Math.max(0, Math.min(MAX_SCORE, Math.round(Number(body.nrr) || 0)));
+      const mrrPay  = Math.max(0, Math.min(MAX_SCORE, Math.round(Number(body.mrrPay) || 0)));
+      const nrrPay  = Math.max(0, Math.min(MAX_SCORE, Math.round(Number(body.nrrPay) || 0)));
       // A month is identified by the run it came from plus its number, so a
       // retry or a double click cannot log the same month twice.
       const runKey  = String(body.monthKey || '').replace(/[^\w:-]/g, '').slice(0, 48);
@@ -169,6 +176,7 @@ export default {
         const stored = await env.BOARD.get(k);
         const map = stored ? JSON.parse(stored) : {};
         const rec = map[name] || { sum: 0, count: 0, best: 0, mrrSum: 0, nrrSum: 0,
+                                   mrrPaySum: 0, nrrPaySum: 0,
                                    chip: chip, diffs: {}, runs: [] };
 
         // Already logged this exact month for this player. Ignore it.
@@ -179,6 +187,8 @@ export default {
         rec.best  = Math.max(rec.best || 0, amount);
         rec.mrrSum = (rec.mrrSum || 0) + mrr;
         rec.nrrSum = (rec.nrrSum || 0) + nrr;
+        rec.mrrPaySum = (rec.mrrPaySum || 0) + mrrPay;
+        rec.nrrPaySum = (rec.nrrPaySum || 0) + nrrPay;
         rec.chip  = chip;
         rec.diffs = rec.diffs || {};
         rec.diffs[diff] = (rec.diffs[diff] || 0) + 1;
