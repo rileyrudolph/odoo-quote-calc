@@ -353,8 +353,11 @@ body.how-open #howBack{display:flex;}
   .brand-mark{width:26px;height:26px;font-size:.9rem;}
   .brand-name{font-size:.82rem;white-space:nowrap;}
   .brand-sub{display:none;}
-  .tbtn{padding:6px 9px;font-size:.72rem;}
-  .bank-label{font-size:.5rem;letter-spacing:.08em;}
+  .tbtn{padding:6px 9px;font-size:.72rem;white-space:nowrap;}
+  /* The uppercase "Commission, month 1 (0 of 10)" line wrapped onto three lines
+     and squeezed the buttons. The month is already on the quota box and the
+     leaderboard, so on a phone the gold figure speaks for itself. */
+  .bank-label{display:none;}
   .bank-amt{font-size:.98rem;}
   .felt{padding:8px 12px 0;}
   .actions{gap:7px;padding:9px 12px;}
