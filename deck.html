@@ -295,7 +295,10 @@ body{
 .sl-cols2{display:grid;grid-template-columns:1fr 1fr;gap:32px;height:100%;padding-top:4px;}
 .sl-cardbox{background:#F3F4F6;border-radius:16px;padding:26px 28px;}
 .sl-cardbox-h{font-family:"Caveat",cursive;font-weight:700;font-size:1.6rem;color:#21272B;margin:0 0 18px;display:inline-block;position:relative;}
-.sl-cardbox-h.strike::after{content:"";position:absolute;left:-2px;right:-2px;top:54%;height:3px;background:#FC787D;transform:rotate(-2deg);border-radius:2px;}
+/* The red mark sits under the words, matching the blue underline on the card
+   beside it. It used to run through the middle of "Monthly / Yearly", which
+   read as crossing the words out rather than marking them. */
+.sl-cardbox-h.strike::after{content:"";position:absolute;left:-2px;right:-2px;bottom:-5px;height:3px;background:#FC787D;transform:rotate(-2deg);border-radius:2px;}
 .sl-cardbox-h.underline::after{content:"";position:absolute;left:-2px;right:-2px;bottom:-5px;height:3px;background:#1BB6F9;border-radius:2px;}
 .sl-cardbox ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;}
 .sl-cardbox li{display:flex;gap:10px;align-items:flex-start;font-family:"Inter",sans-serif;font-size:.98rem;color:#21272B;line-height:1.4;}
@@ -451,7 +454,11 @@ body.present-page #appRoot{display:none;}
 }
 .present-overlay.on{display:flex;}
 .present-frame{width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;}
+/* The controls fade out once the pointer settles and come back the moment it
+   moves, so the blurred pill stops sitting on top of the slide. Keyboard arrows
+   keep working whether it is showing or not. */
 .present-controls{
+  transition:opacity .35s ease;
   position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;
   background:rgba(255,255,255,.08);backdrop-filter:blur(10px);border-radius:4px;padding:8px 10px;
 }
@@ -461,6 +468,8 @@ body.present-page #appRoot{display:none;}
 }
 .present-controls button:hover:not(:disabled){background:rgba(255,255,255,.24);}
 .present-controls button:disabled{opacity:.3;cursor:not-allowed;}
+.present-overlay.idle .present-controls{opacity:0;pointer-events:none;}
+.present-overlay.idle{cursor:none;}
 .present-controls button.on{background:rgba(255,255,255,.32);}
 .present-controls .pc-count{color:#fff;font-size:.78rem;font-variant-numeric:tabular-nums;padding:0 6px;min-width:44px;text-align:center;}
 .present-exit{
@@ -1427,6 +1436,22 @@ renderPanel();
 renderStage();
 window.addEventListener('deck-unlocked', () => { renderStage(); if (PRESENT_PAGE) enterPresent(); });
 if (PRESENT_PAGE) enterPresent();
+
+/* Hide the controls when nothing is happening. Any pointer move, key or tap
+   brings them straight back. */
+(function(){
+  var ov = document.querySelector('.present-overlay'), timer;
+  if (!ov) { return; }
+  function wake(){
+    ov.classList.remove('idle');
+    clearTimeout(timer);
+    timer = setTimeout(function(){ ov.classList.add('idle'); }, 2200);
+  }
+  ['mousemove','mousedown','keydown','touchstart','wheel'].forEach(function(ev){
+    document.addEventListener(ev, wake, true);
+  });
+  wake();
+})();
 </script>
 </body>
 </html>
