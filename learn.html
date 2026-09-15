@@ -496,9 +496,8 @@ select:focus-visible, button:focus-visible{
         without losing it.</p>
         <p class="mini"><b>Grow the quote</b> adds seats, term, a Success Pack or Odoo.sh. Every one of those
         is worth real money every month, and every one asks a bit more of the customer.</p>
-        <p class="mini">Ask more than they will carry and they walk. You get nothing, and everything you built
-        goes with them. The number to watch is how much you have asked, and the read on how
-        much they will take is the line under their name.</p>
+        <p class="mini">Go past 21 and they walk. You get nothing, and everything you built goes with
+        them. The number to watch is the one under your quote.</p>
         <p class="mini"><b>Send the quote</b> when you think they will still sign. Whatever they sign is what
         you bank.</p>
       </div>
@@ -550,11 +549,11 @@ select:focus-visible, button:focus-visible{
       <p>Their side is a stack of objections. One is face up, the rest are not, and
         together they add up to a number you have to beat. Your side is your quote,
         and what it asks of them is the number on the table. Beat their number without
-        asking more than they will carry and they sign. Where they stop carrying is
-        the second hidden number and it is different for every customer. Nothing on
-        the table prints it. The line under their name is the read: somebody straight
-        with you carries almost any ask, somebody threatening to walk since day one
-        stops early, and the pill under your quote turns as you get close.</p>
+        going over 21 and they sign. Twenty one is the same for everyone and it is
+        printed under your quote, so the only thing you are guessing at is how much
+        they need. The line under their name is your read on that: somebody straight
+        with you needs less than somebody who has used a competitor quote as a stick
+        in every meeting.</p>
 
       <h3>The buttons</h3>
       <ul>
@@ -575,9 +574,8 @@ select:focus-visible, button:focus-visible{
       <p>Each card prints what it adds and what it costs you: more seats, a longer
         term, a Success Pack, Odoo.sh, the Custom plan. The money is what lands on
         your book. What it does not print is the ask: how much further it pushes you
-        toward the point they stop listening. That number moves a little every time,
-        the way a real customer does, and working out which cards are heavy is the
-        job.</p>
+        toward 21. That number moves a little every time, the way a real customer
+        does, so working out which cards are heavy is part of the job.</p>
 
       <h3>The chip</h3>
       <p>The chip is the size of room you walk into. On the 6 to 50 desk it walks
@@ -699,7 +697,7 @@ var DOUBLE_LOSS_SLOTS = 3;
    across the cliff, and on it these hold every chip on both books within about a
    tenth of the same month, with no chip paying better for the same play. */
 var STAKE_SCALE_BY_BOOK = {
-  '6to50': [1, 1.5, 2, 3],
+  '6to50': [1, 1.5, 2, 3.5],
   '1to5':  [1, 1.25, 1.5, 1.5]
 };
 /* The quota belongs to the month, not to whatever chip is selected right now.
@@ -776,23 +774,33 @@ function achievedFrom(d, q){
   var recurring = q.contract - q.packTotal;
   return { mrr: (recurring / months) * (MRR_RATE[d.term] || 1), nrr: q.packTotal };
 }
+/* How much this customer needs before they will sign. Somebody straight with you
+   asks for less. This is the hand you are playing against, and it stays hidden.
+   Old comment below is kept for the reasoning, the numbers have moved on. */
 /* Where this customer stops listening. Somebody straight with you will carry a
    big ask; somebody threatening to walk since day one will not. You never see the
    number, but the banner tells you roughly where it sits, and that is what makes
    reading the room worth anything. Everyone breaking at exactly 21 was why
    pushing to the ceiling was always right, why the biggest card won every hand,
    and why implementation never got attached. */
-var WALK_BY_CONDUCT = { straight:[20,21], fair:[19,21], grinder:[18,20], bully:[17,19] };
-function rollWalk(c){
-  var r = WALK_BY_CONDUCT[c.k] || WALK_BY_CONDUCT.fair;
-  return between(r[0], r[1]);
-}
+/* Everybody busts at 21. This is blackjack: one number, known to the table,
+   the same for every customer. For a while each customer had their own hidden
+   walk point and it was a mistake. It meant the bar under your quote could not
+   tell you the truth, a 19 looked safe against somebody who left at 18, and the
+   whole game turned on a number nobody could see. The uncertainty belongs where
+   blackjack puts it: in what the other side is holding, and in what the next
+   card is worth. Not in where the table ends. */
+function rollWalk(){ return WALK_AT; }
 /* What a customer needs before they will sign. Raised from 18 after measuring:
    at 18 a month cleared quota 51-57% of the time on both books, and that is not
    a quota, it is a formality. At 20 it clears about 37% for a bot playing the
    odds, which leaves a rep who reads the room properly landing somewhere near
    half their months on target. Quota is supposed to be the hard part. */
 var BAR_BASE = 20, BAR_SPREAD = 5, BAR_MIN = 14, BAR_MAX = 21, BAR_CAP = 21;
+/* Declared after BAR_CAP on purpose: var hoisting made this undefined when it
+   sat above the line it reads, and an undefined bust line means nobody ever
+   busts and every hand comes back short. */
+var WALK_AT = BAR_CAP;
 var ASK_SPAN = 13, ASK_GAIN = 0.35, ASK_MIN = 2, ASK_MAX = 13, ASK_JITTER = 2;
 /* Extra resistance for each additional year of lock-in, on top of the money. */
 var TERM_ASK_STEP = 2.0;
@@ -965,7 +973,7 @@ function newDeal(){
   return {
     staff: staff,
     a:a, conduct:c,
-    walk: rollWalk(c),
+    walk: rollWalk(),
     users: seats,
     term: 1,
     /* The longest commitment this business will entertain. New logos mostly sign
@@ -1091,7 +1099,7 @@ function growth(d){
      change times the term, that one card multiplied the deal by five. The result
      was a median win worth 64% of the whole month's MRR quota and a top decile
      worth 318% of it: two hands decided the month. Real customers sign what they
-     are willing to sign, so the cards stop at what this one will carry. The card
+     are willing to sign, so the cards stop at the longest this one will sign. The card
      simply is not there, which is the same signal a rep gets on a call. */
   var termRoof = d.maxTerm || 1;
   for (var t = d.term + 1; t <= termRoof; t++) {
@@ -1230,8 +1238,8 @@ var RULES = {
     d: 'Odoo.sh bills $57.60 a worker plus $14.40 for staging. Shared hosting stops at 8 workers. Past that the database needs a dedicated server, which adds a flat $480 a month on top of the metered lines and lifts the ceiling to 256 workers and 4096GB.'
   },
   bar: {
-    t:'What the customer will carry, and how to read it',
-    d:'Two hidden numbers, and you are aiming between them. What they need is the total of their objections, and your quote has to beat it. Where they stop listening is the other, and it is not 21 for everybody: somebody straight with you carries an ask to 20 or 21, somebody fair to 19 or above, a grinder to 18 or 20, and somebody threatening to walk since day one stops between 17 and 19. The banner is the only read you get on it. One objection is face up, the rest are not, and what they need always leaves at least one number that wins.'
+    t:'Twenty one, and the number you cannot see',
+    d:'This is blackjack. Twenty one is the table, the same for everybody: ask more than that and they walk, every time, no exceptions. The number you cannot see is what they need, which is the total of their objections, and your quote has to beat it to sign. One objection is face up and the rest are not, so you are reading the room for the rest. How they have behaved tells you roughly how much they need: somebody straight with you needs less, somebody who has threatened to walk since day one needs more. What they need always leaves room to beat it and still stay under 21, so every hand can be won.'
   },
   attach: {
     t:'Why you still attach the Success Pack and Odoo.sh',
@@ -1400,8 +1408,14 @@ function seatWeight(u){
   if (u <= 25) { return 1; }
   return 2;
 }
+/* The chip the month is being played on, not the one currently highlighted. The
+   quota was already locked at month open but the customers were not, so a rep
+   could open a month on the $250 chip, keep its $2,100 quota, then switch to
+   $2,500 between hands and be dealt 38 seat customers instead of 11. That is a
+   free quota, and it is not a thing that exists at Odoo: nobody picks their
+   territory again halfway through the month. Pick your room, play the month. */
 function stakeTier(){
-  var v = S.stake || 250;
+  var v = S.monthChip || S.stake || 250;
   return v >= 2500 ? 3 : v >= 1000 ? 2 : v >= 500 ? 1 : 0;
 }
 function applyStake(d){
@@ -1596,7 +1610,7 @@ function showGrowth(){
   }
   S.offer = out;
   setMsg('What do you add to the quote?', '');
-  setWhy('Nothing here is a discount. Each one grows the deal and pushes them a little closer to walking.');
+  setWhy('Nothing here is a discount. Each one grows the deal and pushes you a little closer to 21.');
   render();
   revealDeck();
 }
@@ -1848,7 +1862,7 @@ function readOut(kind, asked, bar){
   }
   if (kind === 'signed') {
     var over = asked - bar;
-    var lim = (S.deal && S.deal.walk) ? S.deal.walk : 21;
+    var lim = WALK_AT;
     if (asked >= lim - 1) return 'Cleared by ' + over + ' with ' + (lim - asked) +
       ' of headroom left. Any further and you talk yourself out of it.';
     if (over <= 2) return 'Cleared by ' + over + '. Thin. A competitor with a fuller scope takes this one.';
@@ -1869,8 +1883,8 @@ function readOut(kind, asked, bar){
   for (var li = pl.length - 1; li >= 0; li--) {
     if (!pl[li].disc) { lastAsk = pl[li].ask; break; }
   }
-  var head = 'They stopped at ' + bar + '. ';
-  if (!lastAsk) { return head + 'Nothing past that was going to sign.'; }
+  var head = 'Past 21 nobody signs. ';
+  if (!lastAsk) { return head + 'There was no card left that kept you under.'; }
   var prev = asked - lastAsk;
   return prev > resistance()
     ? head + 'Standing before that last card would have signed it.'
@@ -1995,7 +2009,13 @@ function settle(kind){
   /* A lost deal costs the month more than a closed one, and a doubled hand that
      misses costs double again. Without this, doubling was free: the upside was
      doubled and the downside had quietly stopped existing. */
-  var slots = (kind === 'walked') ? 2 : (kind === 'short') ? 1 : 1;
+/* Busting costs three slots, not two. Once 21 became the whole table's number
+   the optimal line was to shove every quote to the edge and eat a 57% bust rate,
+   because the wins were worth more than the busts cost. Three makes pushing a
+   decision again: the best line drops to a 45% bust rate and quota stops being a
+   formality. Four was better still on paper and left barely four hands in a
+   month, which is not a month. */
+  var slots = (kind === 'walked') ? 3 : (kind === 'short') ? 1 : 1;
   if (S.doubled && kind !== 'signed' && kind !== 'push') { slots *= DOUBLE_LOSS_SLOTS; }
   S.monthHands += slots;
   /* What this hand put in your pocket, which on a lost one is nothing. */
@@ -2105,11 +2125,11 @@ function revealDeck() {
    there is no basic strategy to learn here, only guessing, so say plainly what
    this customer's behaviour does to the number you have to beat. */
 function conductEffect(cd) {
-  if (cd.k === 'straight') { return 'easier to satisfy, and will carry a big ask'; }
+  if (cd.k === 'straight') { return 'straight with you, and needs less to say yes'; }
   if (cd.k === 'fair') { return 'a little easier to satisfy, and fairly patient'; }
   /* Nominally +2, but the bar is capped at 21 so the effect measures nearer +1.4.
      Say it the honest way rather than quoting a number they will not see. */
-  if (cd.k === 'bully') { return 'the hardest to satisfy, and walks the soonest'; }
+  if (cd.k === 'bully') { return 'the hardest to satisfy, and needs the most'; }
   return 'no help either way, and short on patience';
 }
 function discRoomLabel(c) {
@@ -2203,13 +2223,11 @@ function render(){
   var yt = document.getElementById('youTotal');
   var asked = d ? d.asked : 0;
   var lim = d ? d.walk : BAR_CAP;
-  /* Just the number you have asked for. It used to say "of 21", which was a lie
-     on every customer who did not carry to 21, and for a moment it said the band
-     instead, which was worse: printing where they stop answers the question the
-     hand is supposed to ask. Where they stop is read off how they have behaved
-     with you, which is the line in the banner, and the pill goes hot as you get
-     close to it. That is the read, and it stays a read. */
-  yt.textContent = !d ? 'No quote on the table' : 'Your quote reaches ' + asked;
+  /* "of 21" is honest again now that 21 is the table's number rather than a
+     different hidden one per customer. It is the blackjack read: how close am I
+     to busting. What stays hidden is what they need, which is the hand you are
+     playing against. */
+  yt.textContent = !d ? 'No quote on the table' : 'Your quote reaches ' + asked + ' of ' + lim;
   yt.className = 'pill' + (asked > lim ? ' bust' : asked >= lim - 3 ? ' hot' : '');
   var cn = document.getElementById('closeNow');
   cn.textContent = S.live ? 'Sending now puts ' + fmt(q.contract) + ' on the table' : 'Not in a deal';
@@ -2551,7 +2569,12 @@ function load(){
     var all = document.querySelectorAll('.chip');
     for (var j = 0; j < all.length; j++) all[j].classList.remove('sel');
     b.classList.add('sel');
-    setMsg(amt >= 500 ? 'Bigger wager, tougher room. Deal when ready.' : 'Wager set. Deal when ready.', '');
+    /* Changing the chip mid month cannot change the month you are already in. */
+    var mid = (S.monthChip != null && S.monthHands > 0);
+    setMsg(mid
+      ? 'Chip set for month ' + (S.monthNo + 1) + '. This month stays on the ' +
+        (S.monthChip >= 1000 ? (S.monthChip / 1000) + 'k' : S.monthChip) + ' chip.'
+      : (amt >= 500 ? 'Bigger wager, tougher room. Deal when ready.' : 'Wager set. Deal when ready.'), '');
   };
   document.getElementById('chips').appendChild(b);
 });
