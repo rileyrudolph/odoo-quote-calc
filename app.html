@@ -135,6 +135,22 @@ body{
       .layout > *{min-width:0;}}
 .sidebar{position:sticky;top:76px;}
 @media(max-width:1000px){.sidebar{position:static;}}
+
+/* Phones. The app bar carries eight controls and wraps them onto two or three
+   rows, but .appbar-inner was pinned to a 58px height, so every row after the
+   first was clipped. Let it grow, tighten the buttons, and give the page back
+   some side margin: the scenario table already scrolls sideways inside
+   .scroll-x, so the narrower the frame the more of it you can see. */
+@media (max-width:640px){
+  body{padding:0 12px 40px;}
+  .appbar-inner{height:auto;min-height:52px;padding:8px 0;flex-wrap:wrap;gap:10px;}
+  .appbar-actions{gap:6px;}
+  .btn-sm{padding:6px 10px;font-size:.72rem;}
+  .brand-name{font-size:.86rem;}
+  .globals{gap:16px;}
+  .g-item{min-width:118px;}
+  .sidebar{top:auto;}
+}
 .sidebar-card{padding:20px 20px 18px;margin-bottom:0;}
 .side-sec{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line-soft);}
 .side-sec:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0;}
