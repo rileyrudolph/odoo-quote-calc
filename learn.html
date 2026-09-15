@@ -342,6 +342,32 @@ body.how-open #howBack{display:flex;}
   body.panel-open .panel{transform:none;}
 }
 @media (max-width:640px){ .cc{width:calc(50% - 6px);} }
+
+/* Phones. At 375px the header was wrapping "The Deal Table" onto three lines,
+   the commission block was spilling over the edge, and the action buttons were
+   tall enough to push the table off the screen. Everything here is about giving
+   the felt back the room it needs to show a hand. */
+@media (max-width:520px){
+  .topbar{gap:8px;padding:8px 12px;}
+  .brand{gap:7px;}
+  .brand-mark{width:26px;height:26px;font-size:.9rem;}
+  .brand-name{font-size:.82rem;white-space:nowrap;}
+  .brand-sub{display:none;}
+  .tbtn{padding:6px 9px;font-size:.72rem;}
+  .bank-label{font-size:.5rem;letter-spacing:.08em;}
+  .bank-amt{font-size:.98rem;}
+  .felt{padding:8px 12px 0;}
+  .actions{gap:7px;padding:9px 12px;}
+  .actions .abtn{flex:1 1 calc(50% - 4px);padding:9px 8px;font-size:.82rem;}
+  .actions .abtn small{font-size:.6rem;line-height:1.25;margin-top:2px;}
+  .abtn kbd{display:none;}
+  .chiprow{gap:5px;margin-right:0;}
+  .cc{width:100%;}
+}
+/* Very narrow phones: one button per row reads better than two cramped ones. */
+@media (max-width:360px){
+  .actions .abtn{flex:1 1 100%;}
+}
 /* The table is played on the keyboard as much as the mouse, so every control has
    to show where focus is. */
 .abtn:focus-visible, .tab:focus-visible, .panel-x:focus-visible, #howClose:focus-visible,
