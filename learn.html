@@ -224,6 +224,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--gold);}
 .po-amt{font-size:3.3rem;font-weight:900;letter-spacing:-.03em;color:#fff;line-height:1.05;margin:4px 0 2px;
   font-variant-numeric:tabular-nums;text-shadow:0 0 34px rgba(217,164,65,.65);}
 .po-sub{font-size:.66rem;color:var(--sub);font-weight:700;}
+.po-next{margin-top:9px;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;opacity:.75;}
 .payout.big .po-amt{font-size:4.1rem;animation:poPulse 1.1s ease-in-out 2;}
 @keyframes poIn{from{opacity:0;transform:scale(.82);}to{opacity:1;transform:none;}}
 @keyframes poPulse{0%,100%{text-shadow:0 0 34px rgba(217,164,65,.65);}
@@ -687,9 +688,19 @@ var DOUBLE_LOSS_SLOTS = 3;
    every chip on both books within about a tenth of the same median month.
    On the 1 to 5 desk the chip cannot buy a bigger customer at all, because the
    book is one to five seats, so it buys a better one and the quota stays put. */
+/* Re-fitted after the term and pack rebalance, which made the previous row stale
+   the moment deal shapes changed: the $2,500 chip on the 1 to 5 book had drifted
+   to nearly three times the $250 chip for the same play.
+   Fitted on the MEAN month, not the median. Both plans put a steep accelerator
+   just under quota, 1.2325 on the 6 to 50 and 5.5212 on the 1 to 5, so payout is
+   a cliff rather than a curve: months pile up either side of quota and the median
+   flips between the two piles from one sample to the next. A median fit swung by
+   a factor of three between runs and pointed the wrong way. The mean is stable
+   across the cliff, and on it these hold every chip on both books within about a
+   tenth of the same month, with no chip paying better for the same play. */
 var STAKE_SCALE_BY_BOOK = {
-  '6to50': [1, 1.5, 2, 2.5],
-  '1to5':  [1, 1, 1, 1]
+  '6to50': [1, 1.5, 2, 3],
+  '1to5':  [1, 1.25, 1.5, 1.5]
 };
 /* The quota belongs to the month, not to whatever chip is selected right now.
    Reading it live meant a month's banked work could be re-priced by changing
@@ -2020,14 +2031,18 @@ function payBreakdown(){
 function payoutFlash(earned, hitQuota){
   var el = document.getElementById('payout');
   if (!el) { return; }
-  var g = seg();
+  var g = seg(), pbf = payBreakdown();
   el.innerHTML = '<div class="po-in">' +
-    '<div class="po-k">' + (hitQuota ? 'Quota cleared' : 'Month closed') + '</div>' +
+    /* Say which month closed and that the next one is already open. The table
+       clearing itself after a payout reads like the game ending, especially when
+       the month ran out on a walk, which costs two slots and can finish a month
+       a hand earlier than expected. */
+    '<div class="po-k">' + (hitQuota ? 'Quota cleared' : 'Month ' + S.monthNo + ' closed') + '</div>' +
     '<div class="po-amt">' + fmt(earned) + '</div>' +
-    '<div class="po-sub">' + fmt(payBreakdown().mrr) + ' from MRR &middot; ' +
-      fmt(payBreakdown().nrr) + ' from NRR' +
+    '<div class="po-sub">' + fmt(pbf.mrr) + ' from MRR &middot; ' + fmt(pbf.nrr) + ' from NRR' +
       (diffMult() !== 1 ? ' &middot; &times;' + diffMult() + ' on ' + DIFF_LABEL[curDiff()] : '') +
-    '</div></div>';
+    '</div>' +
+    '<div class="po-next">Month ' + (S.monthNo + 1) + ' starts now. Press Deal.</div></div>';
   el.className = 'payout show' + (hitQuota ? ' big' : '');
   setTimeout(function(){ el.className = 'payout'; }, hitQuota ? 3400 : 2200);
 }
