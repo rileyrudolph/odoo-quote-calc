@@ -1139,7 +1139,7 @@ function growth(d){
     var nx = PACKS[d.packIdx + k];
     out.push({
       kind:'pack', tag:'Success Pack', head:nx.name,
-      body:'Scope them properly, up to the ' + nx.name.toLowerCase(),
+      body:'Scope the implementation properly, up to the ' + nx.name.toLowerCase(),
       mrr: 0, ask: k + 1, scopes: k,
       apply:(function(step){ return function(x){ x.packIdx += step; }; })(k)
     });
@@ -1153,8 +1153,8 @@ function growth(d){
       ? (LIC.custom.y1 - LIC.standard.y1) * d.users : 0;
     out.push({ kind:'sh', tag:'Hosting', head:'Odoo.sh',
       body: d.plan === 'standard'
-        ? 'Put them on Odoo.sh, which moves them onto Custom because Standard is Odoo Online only'
-        : 'Put them on Odoo.sh rather than leaving hosting to them',
+        ? 'Move them onto Odoo.sh. That means Custom too, because Standard is Odoo Online only'
+        : 'Move them off Odoo Online onto Odoo.sh, where they can run their own code',
       mrr: Math.min(Math.max(1, d.shWorkers || 1), SH_SHARED_MAX_WORKERS) * SH_WORKER
            + SH_STAGING + planUplift, ask: 2,
       apply:function(x){ x.sh = true; x.plan = 'custom'; } });
@@ -1162,7 +1162,7 @@ function growth(d){
 
   if (d.plan === 'standard') {
     out.push({ kind:'plan', tag:'Plan', head:'Custom',
-      body:'Move them to Custom for the studio, multi company and external API',
+      body:'Move them to Custom for Odoo Studio, multi company and the external API',
       mrr: (LIC.custom.y1 - LIC.standard.y1) * d.users, ask: 3,
       apply:function(x){ x.plan = 'custom'; } });
   }
@@ -1185,7 +1185,7 @@ function discounts(d){
       out.push({
         kind:'lic', tag:'Licence discount', head:p + '% off',
         body: d.term === 1
-          ? 'Take ' + p + '% off the licence, which on a one year term lands on the promotional rate'
+          ? 'Take ' + p + '% off the licence, though a one year deal has no Year 2 for it to come off'
           : 'Take ' + p + '% off the licence from Year 2 on',
         pct:p, over:over,
         note: d.term === 1
@@ -1782,19 +1782,19 @@ function growthLine(c){
 
 function discountLine(c, room){
   var q = quote(S.deal);
-  var t = 'They have dealt with you like this: ' + S.deal.conduct.label.toLowerCase() + '. ';
+  var t = 'This is somebody ' + S.deal.conduct.label.toLowerCase() + '. ';
   /* Same dead threshold as the renewal line: room tops out at 1, so every
      customer got told they were always going to ask again, including one the
      banner had just called straight with you. */
   var k = S.deal.conduct.k;
   if (k === 'straight') {
-    t += 'That is why it bought you ' + room + '. A discount lands when somebody has earned it. ';
+    t += 'That is why it bought you ' + room + '. A discount lands when it has been earned. ';
   } else if (k === 'bully') {
-    t += 'That is why it bought you nothing. Somebody who has threatened to walk since day one banks it and asks again. ';
+    t += 'That is why it bought you nothing. Somebody who has threatened to walk all along just banks it and asks again. ';
   } else if (k === 'grinder') {
     t += 'That is why it only bought you ' + room + '. Grinding on price is how they got here, and it is how they will open the renewal. ';
   } else {
-    t += 'That is why it bought you ' + room + '. Fair to deal with, but they had not asked for it. ';
+    t += 'That is why it bought you ' + room + '. Fair to deal with, but they never asked for it. ';
   }
   if (c.over) t += 'It was also outside what the desk approves. ';
   return t + 'The quote is now ' + fmt(q.mrr) + ' a month.';
@@ -1850,27 +1850,25 @@ function sendQuote(){
    never removes the decision, only explains it. */
 function readOut(kind, asked, bar){
   if (kind === 'push') {
-    return 'Dead even. One more line anywhere in the quote takes it.';
+    return 'Dead even. One more line anywhere in the quote would have taken it.';
   }
   if (kind === 'signed') {
     var over = asked - bar;
     var lim = WALK_AT;
-    if (asked >= lim - 1) return 'Cleared by ' + over + ' with ' + (lim - asked) +
-      ' of headroom left. Any further and you talk yourself out of it.';
-    if (over <= 2) return 'Cleared by ' + over + '. Thin. A competitor with a fuller scope takes this one.';
-    return 'Cleared by ' + over + ', scoped with room to spare. That is the deal you want.';
+    if (asked >= lim - 1) return 'Beat them by ' + over + ' with ' + (lim - asked) +
+      ' to spare. Any further and you talk yourself out of it.';
+    if (over <= 2) return 'Beat them by ' + over + '. Thin. A competitor with a fuller scope takes this one.';
+    return 'Beat them by ' + over + ', with room to spare. That is the deal you want.';
   }
   if (kind === 'short') {
     var need = (bar - asked) + 1;
     return need <= 3
-      ? 'Short by ' + need + '. One more line of scope carries it, and price was never what was stopping them.'
-      : 'Short by ' + need + '. That gap is a discovery problem, not a quoting problem.';
+      ? 'Short by ' + need + '. One more line of scope would have carried it, and price was never the problem.'
+      : 'Short by ' + need + '. A gap that size means you did not find out what they needed.';
   }
-  /* The old line here read "Past 21 nobody signs", which was wrong twice: the
-     walk point is per customer and is usually not 21, and "sending a card
-     earlier" parsed as sending a card rather than standing sooner. Say the
-     number they actually carried, then say honestly whether standing before
-     that last card would have signed it, because sometimes it would not have. */
+  /* Say honestly whether standing before that last card would have signed it,
+     because sometimes it would not have, and telling a rep it would is a lie
+     that teaches the wrong lesson. */
   var lastAsk = 0, pl = S.played || [];
   for (var li = pl.length - 1; li >= 0; li--) {
     if (!pl[li].disc) { lastAsk = pl[li].ask; break; }
@@ -1923,7 +1921,7 @@ function settle(kind){
       if (!d.licDisc && !d.packDisc) { S.cleanWon++; }
       S.streak++; if (S.streak > S.best) S.best = S.streak;
     msg = 'Signed. ' + fmt(q.mrr) + ' a month, ' + fmt(q.contract) + ' over the term.';
-    why0 = 'Signed at ' + d.asked + ' against ' + resistance() + ' of objection. ';
+    why0 = 'You came in at ' + d.asked + ' and they needed ' + resistance() + '. ';
     why = why0 + d.users + ' seats on ' + LIC[d.plan].name + ' for ' + d.term + ' year' + (d.term === 1 ? '' : 's') +
       (q.pack.hours ? ', ' + q.pack.name.toLowerCase() : ', no Success Pack') +
       (d.sh ? ', on Odoo.sh' : '') + '. ' +
@@ -1942,35 +1940,35 @@ function settle(kind){
     cls = 'lose'; S.lost++;
     if (d.type === 'renewal' || d.type === 'expansion') S.baseMrr += (d.startMrr || 0);
     S.streak = 0;
-    msg = 'Lost. They bought a fuller scope elsewhere. Nothing on the board for it.';
-    why = 'You quoted ' + d.asked + ' against ' + resistance() + ' of objection, and ' +
-      fmt(q.mrr) + ' a month went with it.';
+    msg = 'Not enough. They went with a fuller scope somewhere else.';
+    why = 'You came in at ' + d.asked + ' and they needed ' + resistance() + '. That ' +
+      fmt(q.mrr) + ' a month went somewhere else.';
   } else if (kind === 'transferred') {
     /* "As soon as a deal is determined to be over 10 users, it is transferred to
        the 6+ team with no split." Straight out of the 1-5 territory rules. You
        still spent the cycle on it. */
     delta = 0;
     cls = 'lose'; S.lost++; S.streak = 0;
-    msg = 'Over ten users. It transfers to the 6+ team, and there is no split.';
-    why = 'You grew it to ' + d.users + ' seats. Past ten it stops being a 1-5 deal, ' +
-      'so the ' + fmt(q.mrr) + ' a month goes on somebody else\'s number.';
+    msg = 'Past ten users this is not your deal. It goes to the 6+ team, and there is no split.';
+    why = 'You grew it to ' + d.users + ' seats. Anything past ten stops being a 1 to 5 deal, ' +
+      'so that ' + fmt(q.mrr) + ' a month lands on somebody else\'s number.';
   } else if (kind === 'push') {
     /* They matched the ask to the point. No commission this quarter, but the
        pursuit is not burned and the relationship is intact, so the book does
        not move either way. It rolls forward. */
     delta = 0;
     cls = 'push';
-    msg = 'Matched exactly. It stalls: nothing booked, nothing burned.';
-    why = 'Quote and objections both at ' + d.asked + '. It rolls to next quarter with ' +
-      fmt(q.mrr) + ' a month still open.';
+    msg = 'Matched exactly. It stalls. Nothing booked, nothing burned.';
+    why = 'Your quote and what they needed both landed on ' + d.asked + '. It rolls to next ' +
+      'quarter with ' + fmt(q.mrr) + ' a month still open.';
   } else {
     delta = -Math.round(q.contract * CHASE_COST_PCT * (S.doubled ? 2 : 1));
     cls = 'lose'; S.lost++;
     if (d.type === 'renewal' || d.type === 'expansion') S.baseMrr += (d.startMrr || 0);
     S.streak = 0;
     msg = 'Over 21. They walked. Three slots of the month gone and nothing to show for it.';
-    why = 'You took the quote to ' + d.asked + ' and 21 is the line, so the ' +
-      fmt(q.mrr) + ' a month went with it.' +
+    why = 'You took it to ' + d.asked + ' and 21 is the line, so that ' +
+      fmt(q.mrr) + ' a month went with them.' +
       (d.licDisc || d.packDisc ? ' So did the margin you gave away getting there.' : '');
   }
 
@@ -2065,9 +2063,9 @@ function closeMonth(){
   S.paidToDate += earned;
   if (earned > S.bestMonth) { S.bestMonth = earned; }
   S.log.unshift({ who:'Month ' + S.monthNo + ' closed', kind:'month', delta:Math.round(earned),
-    why:'Commission ' + fmt(earned) + ', being ' + fmt(pb.mrr) + ' on ' +
-        fmt(S.monthMrr) + ' of MRR achieved and ' + fmt(pb.nrr) + ' on ' +
-        fmt(S.monthNrr) + ' of NRR achieved. Both lines reset now.',
+    why:'Commission ' + fmt(earned) + '. That is ' + fmt(pb.mrr) + ' on ' +
+        fmt(S.monthMrr) + ' of MRR and ' + fmt(pb.nrr) + ' on ' + fmt(S.monthNrr) +
+        ' of NRR. Both lines start again at nothing.',
     line:seg().label });
   postMonth(earned);
   S.monthNo++; S.monthHands = 0; S.monthMrr = 0; S.monthNrr = 0;
