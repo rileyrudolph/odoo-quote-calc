@@ -453,23 +453,25 @@ body.present-page #appRoot{display:none;}
   position:fixed;inset:0;z-index:5000;background:#111318;display:none;align-items:center;justify-content:center;
 }
 .present-overlay.on{display:flex;}
-.present-frame{width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;}
-/* The controls fade out once the pointer settles and come back the moment it
-   moves, so the blurred pill stops sitting on top of the slide. Keyboard arrows
-   keep working whether it is showing or not. */
+/* The slide gets the room above the control bar, not the whole screen. The bar
+   used to sit on top of the slide, which is why it covered the corner of one. */
+.present-frame{width:100%;height:calc(100% - 84px);display:flex;align-items:center;justify-content:center;position:relative;}
+/* Solid and dark so it reads against a white slide. It used to be a translucent
+   white pill with white arrows: over a white slide that is invisible, and the
+   backdrop blur smeared whatever the slide had underneath it. No blur now, and
+   it sits in its own band below the slide rather than over it. */
 .present-controls{
-  transition:opacity .35s ease;
-  position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;
-  background:rgba(255,255,255,.08);backdrop-filter:blur(10px);border-radius:4px;padding:8px 10px;
+  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;
+  background:#20242c;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:8px 12px;
+  box-shadow:0 6px 20px rgba(0,0,0,.45);
 }
 .present-controls button{
-  width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.12);color:#fff;
-  cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background .15s;
+  width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.14);color:#fff;
+  cursor:pointer;font-size:1.25rem;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s;
 }
-.present-controls button:hover:not(:disabled){background:rgba(255,255,255,.24);}
-.present-controls button:disabled{opacity:.3;cursor:not-allowed;}
-.present-overlay.idle .present-controls{opacity:0;pointer-events:none;}
-.present-overlay.idle{cursor:none;}
+.present-controls button:hover:not(:disabled){background:rgba(255,255,255,.32);}
+.present-controls button:disabled{opacity:.35;cursor:not-allowed;}
 .present-controls button.on{background:rgba(255,255,255,.32);}
 .present-controls .pc-count{color:#fff;font-size:.78rem;font-variant-numeric:tabular-nums;padding:0 6px;min-width:44px;text-align:center;}
 .present-exit{
@@ -1436,22 +1438,6 @@ renderPanel();
 renderStage();
 window.addEventListener('deck-unlocked', () => { renderStage(); if (PRESENT_PAGE) enterPresent(); });
 if (PRESENT_PAGE) enterPresent();
-
-/* Hide the controls when nothing is happening. Any pointer move, key or tap
-   brings them straight back. */
-(function(){
-  var ov = document.querySelector('.present-overlay'), timer;
-  if (!ov) { return; }
-  function wake(){
-    ov.classList.remove('idle');
-    clearTimeout(timer);
-    timer = setTimeout(function(){ ov.classList.add('idle'); }, 2200);
-  }
-  ['mousemove','mousedown','keydown','touchstart','wheel'].forEach(function(ev){
-    document.addEventListener(ev, wake, true);
-  });
-  wake();
-})();
 </script>
 </body>
 </html>
