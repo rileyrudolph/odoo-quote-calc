@@ -1087,7 +1087,12 @@ function renderRefTitle(){
 // reference set over to the verbatim images the moment it confirms they are there.
 const REF_DEFS = {
   title:     () => HAS_REF ? renderRefTitle()  : renderTitleSlide(),
-  subBreak:  () => HAS_REF ? refImg(1)         : renderSubBreakdown(),
+  /* This one slide always uses the HTML rebuild, never the source image. The
+     picture has a red line struck through the middle of "Monthly/Yearly", and
+     pixels cannot be restyled: the mark belongs under the words, matching the
+     blue underline on the card beside it. The rebuild carries the same heading
+     and the same three bullets, so nothing is lost by drawing it in HTML. */
+  subBreak:  () => renderSubBreakdown(),
   yearPr:    () => HAS_REF ? refImg(2)         : renderYearPricing(),
   multiAdv:  () => HAS_REF ? refImg(3)         : renderMultiAdvantages(),
   fiveYrRef: () => HAS_REF ? refImg(4)         : renderYearPricing(),

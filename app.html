@@ -1144,7 +1144,11 @@ document.addEventListener("click", function (e) {
 const PLANS_BY_COUNTRY = {
   US: {
     standard: { y1promo: 24.90, y2: 31.10, noCommitY1: 31.10, noCommit: 38.90 },
-    custom:   { y1promo: 49.00, y2: 61.00, noCommitY1: 61.00, noCommit: 76.20 }
+    /* noCommitY1 is 61.10, not 61.00. A previous pass assumed the .10 was a
+       transposition of the 61.00 annual rate and "corrected" it. The source
+       pricing deck shows $61.10* for Monthly, Year 1 on its Pricing by Year
+       slide, so the original figure was right and the correction was not. */
+    custom:   { y1promo: 49.00, y2: 61.00, noCommitY1: 61.10, noCommit: 76.20 }
   },
   // Live-read from odoo.com/pricing with the country selector set to Canada, Aug 28 2026.
   // The previous third-party CAD figures were wrong in seven of eight places. Note especially
