@@ -293,6 +293,9 @@ body{
 
 /* Subscription Breakdown */
 .sl-cols2{display:grid;grid-template-columns:1fr 1fr;gap:32px;height:100%;padding-top:4px;}
+/* Cards sized to their content, the way the source slide has them, rather than
+   stretched down the full height of the slide. */
+.sl-cols2.sl-cols2-top{align-items:start;}
 .sl-cardbox{background:#F3F4F6;border-radius:16px;padding:26px 28px;}
 .sl-cardbox-h{font-family:"Caveat",cursive;font-weight:700;font-size:1.6rem;color:#21272B;margin:0 0 18px;display:inline-block;position:relative;}
 /* The red mark sits under the words, matching the blue underline on the card
@@ -797,21 +800,25 @@ function renderTitleSlide(){
 function renderSubBreakdown(){
   return `
     <div class="sl-pad">
-      ${slTitle('Subscription Breakdown')}
-      <div class="sl-body sl-cols2">
+      <!-- Built by hand rather than through slTitle, which marks a single run.
+           The source slide underlines Subscription in blue and highlights
+           Breakdown in yellow, and this slide sits among nine screenshots of
+           that deck, so it has to match them. -->
+      <h2 class="sl-h"><span class="hl-wrap"><span class="hl-text">Subscription</span></span> <span class="hl-wrap"><span class="hl-text hl-yellow">Breakdown</span></span></h2>
+      <div class="sl-body sl-cols2 sl-cols2-top">
         <div class="sl-cardbox">
           <div class="sl-cardbox-h strike">Monthly/Yearly</div>
           <ul>
-            <li>Available on the Odoo website</li>
+            <li>Available on the Odoo Website</li>
             <li>Flexible</li>
-            <li>Variable rate</li>
+            <li>Variable Rate</li>
           </ul>
         </div>
         <div class="sl-cardbox">
           <div class="sl-cardbox-h underline">Multi-Year</div>
           <ul>
             <li>Available via Sales Consultant</li>
-            <li>Cost savings</li>
+            <li>Cost Savings</li>
             <li>Price Protection/Lock</li>
           </ul>
         </div>
