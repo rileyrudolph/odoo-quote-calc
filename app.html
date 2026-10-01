@@ -1336,13 +1336,16 @@ function packCost(hours){
   return packCombo(hours).cost;
 }
 
-// What the breakdown header actually prints — always the real billed combination (e.g.
-// "Custom 100h + Standard 50h" for a 150-hour deal), so the label can't drift from the price again.
+// What the breakdown header actually prints. Only names the Success Pack when the entered hours
+// are literally that pack's size (e.g. 100h -> "Custom 100h") — anything else still bills the
+// cheapest real combination behind the scenes (packCost/packCombo are unchanged), but the
+// client-facing label just states the hours asked for rather than spelling out Odoo's internal
+// SKU math (e.g. 150h -> "150h", not "Standard 50h + Custom 100h"; 14h -> "14h", not "Basic 25h").
 function packComboLabel(hours){
   if (hours <= 0) return 'None 0h';
-  return packCombo(hours).packs
-    .map(p => `${p.count > 1 ? p.count + '× ' : ''}${p.label} ${p.hours}h`)
-    .join(' + ');
+  const { packs } = packCombo(hours);
+  const isExactPack = packs.length === 1 && packs[0].count === 1 && packs[0].hours === hours;
+  return isExactPack ? `${packs[0].label} ${hours}h` : `${hours}h`;
 }
 
 const sym = () => '$'; // both supported countries use $; currency is disambiguated by the label
