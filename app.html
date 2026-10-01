@@ -1267,49 +1267,82 @@ const APR_LOW = 0.06, APR_HIGH = 0.13;
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
-function packFor(hours){
-  const PACKS = PACKS_();
-  if (hours <= 0) return {hours: 0, rate: 0, label: 'None'};
-  for (const p of PACKS) if (hours <= p.hours) return p;
-  return PACKS[PACKS.length - 1];
-}
-
 // Arbitrary hour counts are quoted as the cheapest realistic combination of Success Packs that
 // covers them, a rep quoting 135 hours sells a 100 + a 50 ($19,500), not a 200 ($25,000).
 // Deliberately capped at TWO packs: an unconstrained search "wins" by stacking nine 4-hour
 // Starter packs, which is cheaper on paper and not something anyone would ever quote. Past two
 // packs' worth of hours it falls back to whole Pro packs plus one pack for the remainder.
 // (vepat instead scales linearly off the next-lowest pack, pricing hours Odoo does not sell.)
-function packComboCost(hours){
-  if (hours <= 0) return 0;
+//
+// Single source of truth for what's actually billed: packCost() and the breakdown label both
+// read off this. They used to disagree — a now-removed packFor() picked the smallest single SKU
+// that covers the hours purely for the on-screen label, while the price came from this combo
+// search below, so a 150-hour deal priced as 100h+50h ($19,500) displayed as "Pro 200h." Derive
+// any future label from packCombo(), never from a separate single-pack lookup.
+function packCombo(hours){
+  if (hours <= 0) return {packs: [], cost: 0};
   const PACKS = PACKS_();
-  const biggest = PACKS[PACKS.length - 1];
 
+  const exact = PACKS.find(p => p.hours === hours);
+  if (exact) return {packs: [{...exact, count: 1}], cost: exact.hours * exact.rate};
+
+  const biggest = PACKS[PACKS.length - 1];
   if (hours > biggest.hours * 2) {
     const k = Math.floor(hours / biggest.hours);
     const rem = hours - k * biggest.hours;
-    const bulk = k * biggest.hours * biggest.rate;
-    if (rem <= 0) return bulk;
-    const top = PACKS.find(p => p.hours >= rem) || biggest;
-    return bulk + top.hours * top.rate;
+    let cost = k * biggest.hours * biggest.rate;
+    let packs;
+    if (rem <= 0) {
+      packs = [{...biggest, count: k}];
+    } else {
+      const top = PACKS.find(p => p.hours >= rem) || biggest;
+      cost += top.hours * top.rate;
+      // The remainder can land on the same pack size as the bulk (e.g. 999h = 4 Pro + a 199h
+      // remainder, which itself only fits in a 5th Pro pack) — fold it into the count instead
+      // of printing "4× Pro 200h + Pro 200h".
+      packs = top.hours === biggest.hours
+        ? [{...biggest, count: k + 1}]
+        : [{...biggest, count: k}, {...top, count: 1}];
+    }
+    return {packs, cost};
   }
 
-  let best = Infinity;
+  let bestCost = Infinity, bestPacks = [{...biggest, count: 1}];
   for (const a of PACKS) {
-    if (a.hours >= hours) best = Math.min(best, a.hours * a.rate);
+    if (a.hours >= hours && a.hours * a.rate < bestCost) {
+      bestCost = a.hours * a.rate;
+      bestPacks = [{...a, count: 1}];
+    }
     for (const b of PACKS) {
-      if (a.hours + b.hours >= hours) best = Math.min(best, a.hours * a.rate + b.hours * b.rate);
+      if (a.hours + b.hours < hours) continue;
+      const cost = a.hours * a.rate + b.hours * b.rate;
+      if (cost < bestCost) {
+        bestCost = cost;
+        // Same pack twice (e.g. two Starters) collapses into one "2× " entry instead of
+        // printing the same label back to back.
+        bestPacks = a.hours === b.hours
+          ? [{...a, count: 2}]
+          : (a.hours <= b.hours ? [{...a, count: 1}, {...b, count: 1}] : [{...b, count: 1}, {...a, count: 1}]);
+      }
     }
   }
-  return best;
+  return {packs: bestPacks, cost: bestCost};
 }
+
+function packComboCost(hours){ return packCombo(hours).cost; }
 
 // A listed pack is priced flat at its own rate; anything else falls to the combination price.
 function packCost(hours){
-  if (hours <= 0) return 0;
-  const exact = PACKS_().find(p => p.hours === hours);
-  if (exact) return exact.hours * exact.rate;
-  return packComboCost(hours);
+  return packCombo(hours).cost;
+}
+
+// What the breakdown header actually prints — always the real billed combination (e.g.
+// "Custom 100h + Standard 50h" for a 150-hour deal), so the label can't drift from the price again.
+function packComboLabel(hours){
+  if (hours <= 0) return 'None 0h';
+  return packCombo(hours).packs
+    .map(p => `${p.count > 1 ? p.count + '× ' : ''}${p.label} ${p.hours}h`)
+    .join(' + ');
 }
 
 const sym = () => '$'; // both supported countries use $; currency is disambiguated by the label
@@ -1859,7 +1892,6 @@ function renderDetail(){
   scenarios.forEach((s, i) => {
     const q = compute(s);
     const users = scenarioUsers(s);
-    const p = packFor(s.hours);
 
     const el = document.createElement('div');
     el.className = 'bd-card';
@@ -1867,7 +1899,7 @@ function renderDetail(){
 
     const rows = [];
     rows.push(`<div class="bd-line"><span>Year 1 (1st-year discount)</span><span>${fmtDec(q.y1Total)}</span></div>`);
-    if (q.y2PlusTotal > 0) rows.push(`<div class="bd-line"><span>Year 2+ (before discount)</span><span>${fmtDec(q.y2PlusTotal)}</span></div>`);
+    if (q.y2PlusTotal > 0) rows.push(`<div class="bd-line"><span>Year 2+ (list)</span><span>${fmtDec(q.y2PlusTotal)}</span></div>`);
     if (q.licDiscAmt > 0) {
       const label = licDiscountBasis(s.term) === 'year2'
         ? 'Multi-year discount'
@@ -1877,7 +1909,7 @@ function renderDetail(){
 
     let implRows = '';
     if (q.implList > 0) {
-      implRows = `<div class="bd-sec"><div class="bd-sec-h"><span class="dotmark amber"></span>Implementation<em>${p.label} ${p.hours}h</em></div>` +
+      implRows = `<div class="bd-sec"><div class="bd-sec-h"><span class="dotmark amber"></span>Implementation<em>${packComboLabel(s.hours)}</em></div>` +
         `<div class="bd-line"><span>${q.implDiscAmt !== 0 ? 'List price' : 'Success Pack'}</span><span>${fmtDec(q.implList)}</span></div>` +
         (q.implDiscAmt !== 0 ? `<div class="bd-line disc amber"><span>Discount</span><span>-${fmtDec(q.implDiscAmt)} (${s.implDisc}%)</span></div>` : '') +
         `</div>`;
